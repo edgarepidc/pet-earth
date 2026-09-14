@@ -28,6 +28,7 @@ export default async function HomePage() {
           appointments={appointments as AppointmentRow[]}
           invoices={invoices as OpenInvoiceRow[]}
           clinicName={staff.organizationName}
+          branchName={staff.branchName}
         />
         <aside className="space-y-3">
           <div className="pe-card p-4">

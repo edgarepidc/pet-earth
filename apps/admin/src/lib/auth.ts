@@ -6,9 +6,11 @@ import { createAdminClient } from '@petearth/supabase/admin';
 
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import {
-  readImpersonationCookies,
+  listOrgBranches,
+  readTenantCookies,
   resolveTenantByIds,
-  resolveTenantForUser,
+  resolveWorkingTenant,
+  type BranchOption,
   type TenantContext,
 } from '@/lib/tenant';
 
@@ -25,6 +27,7 @@ export interface StaffContext extends TenantContext {
   role: StaffRole;
   isPlatformAdmin: boolean;
   viaPlatform: boolean;
+  branches: BranchOption[];
 }
 
 async function readAuthUser() {
@@ -52,6 +55,42 @@ export async function getPlatformSession(): Promise<PlatformContext | null> {
   };
 }
 
+async function buildStaffContext(input: {
+  userId: string;
+  email: string;
+  fullName: string | null;
+  isPlatformAdmin: boolean;
+  viaPlatform: boolean;
+  tenant: TenantContext;
+}): Promise<StaffContext | null> {
+  const admin = createAdminClient();
+  const { data: membership } = await admin
+    .from('staff_memberships')
+    .select('role, status')
+    .eq('user_id', input.userId)
+    .eq('organization_id', input.tenant.organizationId)
+    .eq('status', 'active')
+    .maybeSingle();
+
+  const role = normalizeStaffRole(membership?.role ?? null);
+  if (!membership || !role) {
+    if (!input.isPlatformAdmin) return null;
+  }
+
+  const branches = await listOrgBranches(input.tenant.organizationId);
+
+  return {
+    ...input.tenant,
+    userId: input.userId,
+    email: input.email,
+    fullName: input.fullName,
+    role: role ?? 'owner',
+    isPlatformAdmin: input.isPlatformAdmin,
+    viaPlatform: input.viaPlatform,
+    branches,
+  };
+}
+
 export async function getStaffSession(): Promise<StaffContext | null> {
   const user = await readAuthUser();
   if (!user?.email) return null;
@@ -64,50 +103,33 @@ export async function getStaffSession(): Promise<StaffContext | null> {
     .maybeSingle();
 
   const isPlatformAdmin = Boolean(profile?.is_platform_admin);
+  const preferred = await readTenantCookies();
 
-  if (isPlatformAdmin) {
-    const impersonation = await readImpersonationCookies();
-    if (impersonation) {
-      const tenant = await resolveTenantByIds(impersonation.organizationId, impersonation.branchId);
-      if (tenant) {
-        return {
-          ...tenant,
-          userId: user.id,
-          email: user.email,
-          fullName: profile?.full_name ?? null,
-          role: 'owner',
-          isPlatformAdmin: true,
-          viaPlatform: true,
-        };
-      }
+  if (isPlatformAdmin && preferred) {
+    const tenant = await resolveTenantByIds(preferred.organizationId, preferred.branchId);
+    if (tenant) {
+      return buildStaffContext({
+        userId: user.id,
+        email: user.email,
+        fullName: profile?.full_name ?? null,
+        isPlatformAdmin: true,
+        viaPlatform: true,
+        tenant,
+      });
     }
   }
 
-  const tenant = await resolveTenantForUser(user.id);
+  const tenant = await resolveWorkingTenant(user.id, preferred);
   if (!tenant) return null;
 
-  const { data: membership } = await admin
-    .from('staff_memberships')
-    .select('role, status')
-    .eq('user_id', user.id)
-    .eq('organization_id', tenant.organizationId)
-    .eq('status', 'active')
-    .maybeSingle();
-
-  const role = normalizeStaffRole(membership?.role ?? null);
-  if (!membership || !role) {
-    if (!isPlatformAdmin) return null;
-  }
-
-  return {
-    ...tenant,
+  return buildStaffContext({
     userId: user.id,
     email: user.email,
     fullName: profile?.full_name ?? null,
-    role: role ?? 'owner',
     isPlatformAdmin,
     viaPlatform: false,
-  };
+    tenant,
+  });
 }
 
 export async function loadClinicSession(): Promise<StaffContext> {

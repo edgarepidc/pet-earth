@@ -51,11 +51,13 @@ export function DayBoard({
   appointments,
   invoices = [],
   clinicName,
+  branchName,
 }: {
   title: string;
   appointments: AppointmentRow[];
   invoices?: OpenInvoiceRow[];
   clinicName: string;
+  branchName?: string;
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
@@ -105,9 +107,11 @@ export function DayBoard({
     <section className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="pe-kicker">Sala de espera</p>
+          <p className="pe-kicker">Sala de espera · {branchName ?? clinicName}</p>
           <h1 className="font-serif text-2xl font-semibold">{title}</h1>
-          <p className="text-sm text-[#6b5e55]">Check-in → consulta → cobro. El piso entero en un vistazo.</p>
+          <p className="text-sm text-[#6b5e55]">
+            Check-in → consulta → cobro. El piso de esta sucursal en un vistazo.
+          </p>
         </div>
         <Link href="/agenda" className="pe-btn-secondary px-4 py-2 text-sm">
           Semana / mes

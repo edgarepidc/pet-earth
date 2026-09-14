@@ -5,7 +5,7 @@ import { NextResponse } from 'next/server';
 import type { Database } from '@petearth/supabase';
 import { createServerClient } from '@supabase/ssr';
 
-import { resolveTenantForUser } from '@/lib/tenant';
+import { resolveTenantForUser, writeTenantCookies } from '@/lib/tenant';
 
 export async function POST(request: Request) {
   let email = '';
@@ -59,6 +59,10 @@ export async function POST(request: Request) {
       { error: 'Tu cuenta no tiene acceso al panel. Entra por el portal de tutores.' },
       { status: 403 },
     );
+  }
+
+  if (tenant) {
+    await writeTenantCookies(tenant);
   }
 
   return NextResponse.json({

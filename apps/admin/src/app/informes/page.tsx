@@ -13,7 +13,7 @@ export default async function InformesPage() {
   const end = addMexicoDays(todayMexicoYmd(), 1);
   const start = addMexicoDays(todayMexicoYmd(), -30);
   const [report, lowStock, org] = await Promise.all([
-    loadClinicReports(staff.organizationId, `${start}T00:00:00-06:00`, `${end}T00:00:00-06:00`),
+    loadClinicReports(staff.organizationId, `${start}T00:00:00-06:00`, `${end}T00:00:00-06:00`, staff.branchId),
     loadLowStock(staff.organizationId),
     createAdminClient().from('organizations').select('settings').eq('id', staff.organizationId).maybeSingle(),
   ]);
@@ -28,7 +28,9 @@ export default async function InformesPage() {
     <AdminShell>
       <p className="pe-kicker">Dirección</p>
       <h1 className="font-serif text-2xl font-semibold">Informes</h1>
-      <p className="text-sm text-[#6b5e55]">Últimos 30 días. Servicio vs medicamento y cobro por MVZ.</p>
+      <p className="text-sm text-[#6b5e55]">
+        Últimos 30 días en {staff.branchName}. Servicio vs medicamento y cobro por MVZ.
+      </p>
 
       <div className="mt-5 grid gap-3 sm:grid-cols-4">
         <div className="pe-card p-4">

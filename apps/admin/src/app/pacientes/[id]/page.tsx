@@ -82,7 +82,7 @@ export default async function PatientPage({ params }: { params: Promise<{ id: st
           <ClinicalMedia patientId={patient.id} />
         </section>
         <aside className="space-y-4">
-          <NewAppointmentForm patientId={patient.id} />
+          <NewAppointmentForm patientId={patient.id} branchName={staff.branchName} />
           <div className="pe-glass-card p-4">
             <h2 className="font-semibold">Peso</h2>
             <ul className="mt-2 space-y-1 text-sm text-slate-600">

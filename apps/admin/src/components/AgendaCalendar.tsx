@@ -26,9 +26,11 @@ function one<T>(value: T | T[] | null | undefined): T | null {
 export function AgendaCalendar({
   initialDate,
   appointments,
+  branchName,
 }: {
   initialDate: string;
   appointments: AppointmentRow[];
+  branchName?: string;
 }) {
   const router = useRouter();
   const [view, setView] = useState<'week' | 'month'>('week');
@@ -76,6 +78,7 @@ export function AgendaCalendar({
         <div>
           <h1 className="font-serif text-2xl font-semibold">Agenda</h1>
           <p className="text-sm text-[#6b5e55]">
+            {branchName ? `${branchName} · ` : ''}
             {view === 'week' ? 'Capacidad de la semana' : 'Planeación del mes'}
           </p>
         </div>

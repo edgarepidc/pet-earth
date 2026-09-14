@@ -2,6 +2,7 @@ import { STAFF_ROLE_LABELS } from '@petearth/shared';
 
 import { AdminNav } from '@/components/AdminNav';
 import { BrandLogo } from '@/components/BrandLogo';
+import { BranchSwitcher } from '@/components/BranchSwitcher';
 import { ClinicClock } from '@/components/ClinicClock';
 import { ExitClinicButton } from '@/components/ExitClinicButton';
 import { GlobalSearch } from '@/components/GlobalSearch';
@@ -15,7 +16,14 @@ export async function AdminShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="pe-app flex min-h-screen">
       <aside className="pe-sidebar hidden w-[232px] shrink-0 flex-col px-3 py-4 lg:flex">
-        <BrandLogo href="/" subtitle={staff.branchName} inverted />
+        <BrandLogo href="/" subtitle={staff.organizationName} inverted />
+        {staff.branches.length > 1 ? (
+          <div className="mt-4 px-1">
+            <BranchSwitcher currentBranchId={staff.branchId} branches={staff.branches} inverted />
+          </div>
+        ) : (
+          <p className="mt-2 truncate px-2 text-[11px] text-[#d7cfc4]">{staff.branchName}</p>
+        )}
         <div className="mt-5">
           <ClinicClock />
         </div>
@@ -48,9 +56,14 @@ export async function AdminShell({ children }: { children: React.ReactNode }) {
             </div>
           ) : null}
         </header>
+        {staff.branches.length > 1 ? (
+          <div className="border-b border-[var(--pe-line)] bg-[#f7efe6] px-3 py-2 lg:hidden">
+            <BranchSwitcher currentBranchId={staff.branchId} branches={staff.branches} />
+          </div>
+        ) : null}
         {staff.viaPlatform ? (
           <div className="border-b border-[var(--pe-line)] bg-[#f7efe6] px-3 py-2 text-sm text-[#6b5e55] lg:px-5">
-            Viendo {staff.organizationName} · {staff.branchName} como soporte. Los cambios quedan en esa clínica.
+            Viendo {staff.organizationName} · {staff.branchName} como soporte. Los cambios quedan en esa sucursal.
           </div>
         ) : null}
         <main className="flex-1 px-3 py-4 lg:px-5 lg:py-5">{children}</main>

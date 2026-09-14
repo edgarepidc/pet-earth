@@ -5,7 +5,7 @@ import { useState } from 'react';
 
 import { todayMexicoYmd } from '@petearth/shared';
 
-export function NewAppointmentForm({ patientId }: { patientId: string }) {
+export function NewAppointmentForm({ patientId, branchName }: { patientId: string; branchName?: string }) {
   const router = useRouter();
   const [date, setDate] = useState(todayMexicoYmd());
   const [time, setTime] = useState('10:00');
@@ -32,6 +32,7 @@ export function NewAppointmentForm({ patientId }: { patientId: string }) {
   return (
     <form onSubmit={submit} className="pe-glass-card space-y-3 p-4">
       <h2 className="font-semibold">Agendar cita</h2>
+      {branchName ? <p className="text-sm text-[#6b5e55]">Se guarda en {branchName}.</p> : null}
       <input type="date" className="pe-input" value={date} onChange={(e) => setDate(e.target.value)} />
       <input type="time" className="pe-input" value={time} onChange={(e) => setTime(e.target.value)} />
       <input className="pe-input" placeholder="Motivo" value={reason} onChange={(e) => setReason(e.target.value)} />

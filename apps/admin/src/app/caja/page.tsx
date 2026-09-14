@@ -10,7 +10,7 @@ export default async function CajaPage() {
   const invoices = await loadOpenInvoices(staff.organizationId, staff.branchId);
   return (
     <AdminShell>
-      <CashierDesk invoices={invoices as never} />
+      <CashierDesk invoices={invoices as never} branchName={staff.branchName} />
     </AdminShell>
   );
 }

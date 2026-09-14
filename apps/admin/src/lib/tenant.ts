@@ -15,6 +15,13 @@ export interface TenantContext {
   branchSlug: string;
 }
 
+export interface BranchOption {
+  id: string;
+  name: string;
+  slug: string;
+  address: string | null;
+}
+
 export function tenantCookieOptions() {
   return {
     httpOnly: true,
@@ -23,6 +30,19 @@ export function tenantCookieOptions() {
     path: '/',
     maxAge: 60 * 60 * 24 * 14,
   };
+}
+
+export async function writeTenantCookies(tenant: { organizationId: string; branchId: string }) {
+  const store = await cookies();
+  const options = tenantCookieOptions();
+  store.set(PE_ORG_COOKIE, tenant.organizationId, options);
+  store.set(PE_BRANCH_COOKIE, tenant.branchId, options);
+}
+
+export async function clearTenantCookies() {
+  const store = await cookies();
+  store.delete(PE_ORG_COOKIE);
+  store.delete(PE_BRANCH_COOKIE);
 }
 
 export async function resolveTenantByIds(
@@ -52,7 +72,25 @@ export async function resolveTenantByIds(
   };
 }
 
+export async function listOrgBranches(organizationId: string): Promise<BranchOption[]> {
+  const supabase = createAdminClient();
+  const { data } = await supabase
+    .from('branches')
+    .select('id, name, slug, address')
+    .eq('organization_id', organizationId)
+    .eq('is_active', true)
+    .order('created_at', { ascending: true });
+  return data ?? [];
+}
+
 export async function resolveTenantForUser(userId: string): Promise<TenantContext | null> {
+  return resolveWorkingTenant(userId, null);
+}
+
+export async function resolveWorkingTenant(
+  userId: string,
+  preferred: { organizationId: string; branchId: string } | null,
+): Promise<TenantContext | null> {
   const supabase = createAdminClient();
   const { data: memberships } = await supabase
     .from('staff_memberships')
@@ -64,8 +102,14 @@ export async function resolveTenantForUser(userId: string): Promise<TenantContex
   const membership = memberships?.[0];
   if (!membership) return null;
 
+  if (preferred?.organizationId === membership.organization_id) {
+    const fromCookie = await resolveTenantByIds(preferred.organizationId, preferred.branchId);
+    if (fromCookie) return fromCookie;
+  }
+
   if (membership.branch_id) {
-    return resolveTenantByIds(membership.organization_id, membership.branch_id);
+    const home = await resolveTenantByIds(membership.organization_id, membership.branch_id);
+    if (home) return home;
   }
 
   const { data: branch } = await supabase
@@ -80,7 +124,7 @@ export async function resolveTenantForUser(userId: string): Promise<TenantContex
   return resolveTenantByIds(membership.organization_id, branch.id);
 }
 
-export async function readImpersonationCookies(): Promise<{
+export async function readTenantCookies(): Promise<{
   organizationId: string;
   branchId: string;
 } | null> {

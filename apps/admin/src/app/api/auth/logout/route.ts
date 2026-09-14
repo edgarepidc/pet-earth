@@ -1,14 +1,11 @@
-import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
 import { createSupabaseServerClient } from '@/lib/supabase/server';
-import { PE_BRANCH_COOKIE, PE_ORG_COOKIE } from '@/lib/tenant';
+import { clearTenantCookies } from '@/lib/tenant';
 
 export async function POST() {
   const supabase = await createSupabaseServerClient();
   await supabase.auth.signOut();
-  const store = await cookies();
-  store.delete(PE_ORG_COOKIE);
-  store.delete(PE_BRANCH_COOKIE);
+  await clearTenantCookies();
   return NextResponse.json({ ok: true });
 }

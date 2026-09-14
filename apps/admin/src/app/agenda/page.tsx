@@ -26,7 +26,11 @@ export default async function AgendaPage({
 
   return (
     <AdminShell>
-      <AgendaCalendar initialDate={start} appointments={appointments as AppointmentRow[]} />
+      <AgendaCalendar
+        initialDate={start}
+        appointments={appointments as AppointmentRow[]}
+        branchName={staff.branchName}
+      />
     </AdminShell>
   );
 }

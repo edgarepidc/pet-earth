@@ -91,15 +91,17 @@ export async function loadLowStock(organizationId: string) {
   return (data ?? []).filter((item) => item.min_stock != null && Number(item.stock ?? 0) <= Number(item.min_stock));
 }
 
-export async function loadClinicReports(organizationId: string, startIso: string, endIso: string) {
+export async function loadClinicReports(organizationId: string, startIso: string, endIso: string, branchId?: string) {
   const supabase = createAdminClient();
-  const { data: invoices, error } = await supabase
+  let query = supabase
     .from('invoices')
     .select('id, total, services_total, products_total, visit_id, created_at, cfdi_status')
     .eq('organization_id', organizationId)
     .eq('status', 'paid')
     .gte('created_at', startIso)
     .lt('created_at', endIso);
+  if (branchId) query = query.eq('branch_id', branchId);
+  const { data: invoices, error } = await query;
   if (error) throw new Error(error.message);
 
   const paid = invoices ?? [];

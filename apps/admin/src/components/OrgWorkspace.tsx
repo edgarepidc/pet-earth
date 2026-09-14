@@ -146,7 +146,8 @@ export function OrgWorkspace({
             <li key={row.id} className="py-3">
               <p className="font-medium">{row.fullName || row.email || 'Sin nombre'}</p>
               <p className="text-sm text-[#6b5e55]">
-                {row.email} · {STAFF_ROLE_LABELS[row.role]} · {row.status}
+                {row.email} · {STAFF_ROLE_LABELS[row.role]} ·{' '}
+                {branches.find((branch) => branch.id === row.branch_id)?.name ?? 'Sin sucursal habitual'}
               </p>
             </li>
           ))}
@@ -183,6 +184,7 @@ export function OrgWorkspace({
             ))}
           </select>
           <select className="pe-input" value={staffBranchId} onChange={(e) => setStaffBranchId(e.target.value)}>
+            <option value="">Toda la clínica</option>
             {branches.map((branch) => (
               <option key={branch.id} value={branch.id}>
                 {branch.name}
@@ -193,7 +195,9 @@ export function OrgWorkspace({
             {busy === 'staff' ? 'Guardando…' : 'Agregar staff'}
           </button>
         </form>
-        <p className="mt-2 text-xs text-[#6b5e55]">Si el correo ya existe, se liga a esta clínica sin cambiar la contraseña.</p>
+        <p className="mt-2 text-xs text-[#6b5e55]">
+          La sucursal habitual es el piso al entrar. El equipo puede cambiar a otra sucursal de la misma clínica.
+        </p>
       </section>
     </div>
   );

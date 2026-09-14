@@ -20,7 +20,7 @@ function one<T>(value: T | T[] | null | undefined): T | null {
   return Array.isArray(value) ? value[0] ?? null : value;
 }
 
-export function CashierDesk({ invoices }: { invoices: Invoice[] }) {
+export function CashierDesk({ invoices, branchName }: { invoices: Invoice[]; branchName?: string }) {
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -62,13 +62,15 @@ export function CashierDesk({ invoices }: { invoices: Invoice[] }) {
   return (
     <section className="space-y-4">
       <div>
-        <p className="pe-kicker">Recepción</p>
+        <p className="pe-kicker">Recepción{branchName ? ` · ${branchName}` : ''}</p>
         <h1 className="font-serif text-2xl font-semibold">Caja</h1>
-        <p className="text-sm text-[#6b5e55]">Tickets abiertos. Cobrar sin abrir el SOAP.</p>
+        <p className="text-sm text-[#6b5e55]">Tickets abiertos de esta sucursal. Cobrar sin abrir el SOAP.</p>
       </div>
       {error ? <p className="pe-callout-amber p-3 text-sm">{error}</p> : null}
       {invoices.length === 0 ? (
-        <div className="pe-card p-6 text-sm text-[#6b5e55]">No hay tickets por cobrar.</div>
+        <div className="pe-card p-6 text-sm text-[#6b5e55]">
+          No hay tickets por cobrar{branchName ? ` en ${branchName}` : ''}.
+        </div>
       ) : (
         <ul className="space-y-3">
           {invoices.map((invoice) => {
