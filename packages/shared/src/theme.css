@@ -1,0 +1,138 @@
+/* Pet Earth — clean earth design system (same family as Puerta Verde) */
+
+@theme {
+  --font-sans: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+
+  --color-pe-50: #f4faf7;
+  --color-pe-100: #e4f3ec;
+  --color-pe-200: #c5e4d4;
+  --color-pe-500: #2f6f5e;
+  --color-pe-600: #245a4c;
+  --color-pe-700: #1c463b;
+  --color-pe-ink: #1c1917;
+}
+
+:root {
+  --pe-green-50: #f4faf7;
+  --pe-green-100: #e4f3ec;
+  --pe-green-600: #2f6f5e;
+  --pe-green-700: #245a4c;
+  --pe-ink: #1c1917;
+  --pe-clay: #c45c26;
+  --pe-glass-border: rgba(15, 23, 42, 0.08);
+  --pe-glass-border-subtle: rgba(15, 23, 42, 0.06);
+  --pe-glass-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.04);
+  --pe-glass-shadow-lg: 0 4px 16px rgba(15, 23, 42, 0.06), 0 16px 40px rgba(15, 23, 42, 0.05);
+}
+
+.pe-ambient {
+  display: none;
+}
+
+.pe-glass-card {
+  border-radius: 1.25rem;
+  background: #ffffff;
+  border: 1px solid var(--pe-glass-border);
+  box-shadow: var(--pe-glass-shadow);
+}
+
+.pe-glass-panel {
+  border-radius: 1.5rem;
+  background: #ffffff;
+  border: 1px solid var(--pe-glass-border);
+  box-shadow: var(--pe-glass-shadow-lg);
+}
+
+.pe-glass-header {
+  background: #ffffff;
+  border-bottom: 1px solid var(--pe-glass-border-subtle);
+  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.03);
+}
+
+.pe-glass-nav {
+  background: #f1f5f9;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.pe-btn-primary {
+  border-radius: 9999px;
+  background: var(--pe-green-600);
+  color: white;
+  font-weight: 600;
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.pe-btn-primary:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+
+.pe-btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pe-btn-secondary {
+  border-radius: 9999px;
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  color: var(--pe-ink);
+  font-weight: 500;
+}
+
+.pe-btn-secondary:hover {
+  background: #f8fafc;
+}
+
+.pe-btn-ghost {
+  border-radius: 9999px;
+  background: transparent;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  color: #64748b;
+  font-weight: 500;
+}
+
+.pe-btn-ghost:hover {
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.pe-input {
+  width: 100%;
+  border-radius: 0.875rem;
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  padding: 0.5rem 0.75rem;
+  color: var(--pe-ink);
+}
+
+.pe-input:focus {
+  outline: none;
+  border-color: rgba(47, 111, 94, 0.55);
+  box-shadow: 0 0 0 3px rgba(47, 111, 94, 0.15);
+}
+
+.pe-pill {
+  border-radius: 9999px;
+  padding: 0.15rem 0.6rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.pe-nav-active {
+  background: #ffffff;
+  color: var(--pe-green-700);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+}
+
+.pe-callout-amber {
+  border-radius: 1rem;
+  border: 1px solid rgba(196, 92, 38, 0.25);
+  background: rgba(196, 92, 38, 0.08);
+  color: #9a3412;
+}
+
+textarea.pe-input {
+  min-height: 5.5rem;
+  resize: vertical;
+}

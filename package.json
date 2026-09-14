@@ -1,0 +1,33 @@
+{
+  "name": "pet-earth",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo dev",
+    "dev:web": "npm run dev --workspace=@petearth/web",
+    "dev:admin": "npm run dev --workspace=@petearth/admin",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck",
+    "test": "turbo test",
+    "test:shared": "npm run test --workspace=@petearth/shared",
+    "db:start": "supabase start",
+    "db:stop": "supabase stop",
+    "db:reset": "supabase db reset",
+    "db:types": "supabase gen types typescript --local > packages/supabase/src/database.types.ts",
+    "create:supabase": "bash scripts/create-supabase-project.sh",
+    "deploy:vercel": "bash scripts/deploy-vercel.sh"
+  },
+  "devDependencies": {
+    "turbo": "^2.5.4",
+    "typescript": "^5.8.3"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "npm@10.9.2"
+}
