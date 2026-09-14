@@ -51,7 +51,7 @@ export default async function PlataformaPage() {
                   {org.name}
                 </Link>
                 <p className="text-sm text-[#6b5e55]">
-                  {org.slug} · {orgBranches.length} sucursal{orgBranches.length === 1 ? '' : 'es'} · alta{' '}
+                  {org.slug} · {orgBranches.length === 1 ? '1 sucursal' : `${orgBranches.length} sucursales`} · alta{' '}
                   {formatMexicoDate(org.created_at.slice(0, 10))}
                 </p>
                 {orgBranches.length > 0 ? (
