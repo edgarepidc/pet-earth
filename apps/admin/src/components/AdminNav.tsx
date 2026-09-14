@@ -30,6 +30,7 @@ const GROUPS: {
     items: [
       { href: '/caja', label: 'Caja', show: canTakePayment },
       { href: '/catalogo', label: 'Catálogo', show: (role) => canManageCatalog(role) || role === 'vet' || role === 'reception' },
+      { href: '/informes', label: 'Informes', show: (role) => canManageCatalog(role) || role === 'vet' },
     ],
   },
 ];

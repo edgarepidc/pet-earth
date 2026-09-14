@@ -53,3 +53,17 @@ export {
   todayMexicoYmd,
 } from './dates';
 export { formatMoney, lineTotal, roundMoney, splitInvoiceTotals } from './money';
+export {
+  appointmentWhatsAppText,
+  mexicoWhatsAppNumber,
+  vaccineWhatsAppText,
+  whatsappHref,
+} from './whatsapp';
+export {
+  CFDI_STATUS_LABELS,
+  CFDI_USO_LABELS,
+  CFDI_USOS,
+  normalizeRfc,
+  type CfdiStatus,
+  type CfdiUso,
+} from './cfdi';

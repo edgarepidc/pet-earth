@@ -25,6 +25,10 @@ export async function POST(request: Request) {
     phone?: string;
     email?: string;
     notes?: string;
+    rfc?: string;
+    taxZip?: string;
+    usoCfdi?: string;
+    fiscalName?: string;
   };
   if (!body.fullName?.trim()) {
     return NextResponse.json({ error: 'El nombre del tutor es obligatorio.' }, { status: 400 });
@@ -38,9 +42,39 @@ export async function POST(request: Request) {
       phone: body.phone?.trim() || null,
       email: body.email?.trim() || null,
       notes: body.notes?.trim() || null,
+      rfc: body.rfc?.trim().toUpperCase() || null,
+      tax_zip: body.taxZip?.trim() || null,
+      uso_cfdi: body.usoCfdi || 'G03',
+      fiscal_name: body.fiscalName?.trim() || null,
     })
     .select('id')
     .single();
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   return NextResponse.json({ id: data.id });
+}
+
+export async function PATCH(request: Request) {
+  const auth = await requireStaffApi();
+  if (auth instanceof NextResponse) return auth;
+  const body = (await request.json()) as {
+    id?: string;
+    rfc?: string;
+    taxZip?: string;
+    usoCfdi?: string;
+    fiscalName?: string;
+  };
+  if (!body.id) return NextResponse.json({ error: 'Falta el tutor.' }, { status: 400 });
+  const supabase = createAdminClient();
+  const { error } = await supabase
+    .from('clients')
+    .update({
+      rfc: body.rfc?.trim().toUpperCase() || null,
+      tax_zip: body.taxZip?.trim() || null,
+      uso_cfdi: body.usoCfdi || 'G03',
+      fiscal_name: body.fiscalName?.trim() || null,
+    })
+    .eq('id', body.id)
+    .eq('organization_id', auth.organizationId);
+  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  return NextResponse.json({ ok: true });
 }

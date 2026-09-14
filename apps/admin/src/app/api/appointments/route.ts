@@ -95,7 +95,12 @@ export async function POST(request: Request) {
 export async function PATCH(request: Request) {
   const auth = await requireStaffApi();
   if (auth instanceof NextResponse) return auth;
-  const body = (await request.json()) as { id?: string; action?: string };
+  const body = (await request.json()) as {
+    id?: string;
+    action?: string;
+    date?: string;
+    time?: string;
+  };
   if (!body.id || !body.action) {
     return NextResponse.json({ error: 'Falta la acción' }, { status: 400 });
   }
@@ -119,6 +124,32 @@ export async function PATCH(request: Request) {
       .eq('id', body.id)
       .eq('organization_id', auth.organizationId);
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+    return NextResponse.json({ ok: true });
+  }
+  if (body.action === 'reschedule') {
+    if (!body.date || !body.time) {
+      return NextResponse.json({ error: 'Fecha y hora son obligatorias para reagendar.' }, { status: 400 });
+    }
+    const admin = createAdminClient();
+    const { data: appointment } = await admin
+      .from('appointments')
+      .select('id, starts_at, ends_at, client_id, patient_id')
+      .eq('id', body.id)
+      .eq('organization_id', auth.organizationId)
+      .maybeSingle();
+    if (!appointment) return NextResponse.json({ error: 'Cita no encontrada.' }, { status: 404 });
+    const durationMs = new Date(appointment.ends_at).getTime() - new Date(appointment.starts_at).getTime();
+    const startsAt = parseClockToIso(body.date, body.time);
+    const ends = new Date(new Date(startsAt).getTime() + Math.max(durationMs, 15 * 60 * 1000));
+    const { error } = await admin
+      .from('appointments')
+      .update({ starts_at: startsAt, ends_at: ends.toISOString(), status: 'scheduled' })
+      .eq('id', appointment.id);
+    if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+    await admin
+      .from('reminders')
+      .update({ due_on: body.date, status: 'pending', title: 'Cita clínica (reagendada)' })
+      .eq('appointment_id', appointment.id);
     return NextResponse.json({ ok: true });
   }
   return NextResponse.json({ error: 'Acción no soportada' }, { status: 400 });

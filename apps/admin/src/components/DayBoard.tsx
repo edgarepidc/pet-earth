@@ -4,9 +4,15 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 
-import { formatMexicoTime, type AppointmentStatus } from '@petearth/shared';
+import {
+  appointmentWhatsAppText,
+  formatMexicoDateTime,
+  formatMexicoTime,
+  type AppointmentStatus,
+} from '@petearth/shared';
 
 import { StatusPill } from '@/components/StatusPill';
+import { WhatsAppLink } from '@/components/WhatsAppLink';
 
 export type AppointmentRow = {
   id: string;
@@ -44,14 +50,19 @@ export function DayBoard({
   title,
   appointments,
   invoices = [],
+  clinicName,
 }: {
   title: string;
   appointments: AppointmentRow[];
   invoices?: OpenInvoiceRow[];
+  clinicName: string;
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [rescheduleId, setRescheduleId] = useState<string | null>(null);
+  const [rescheduleDate, setRescheduleDate] = useState('');
+  const [rescheduleTime, setRescheduleTime] = useState('10:00');
 
   const grouped = useMemo(() => {
     const map = new Map<string, AppointmentRow[]>();
@@ -64,13 +75,18 @@ export function DayBoard({
     return map;
   }, [appointments]);
 
-  async function act(id: string, action: string) {
+  async function reschedule(id: string) {
+    await act(id, 'reschedule', { date: rescheduleDate, time: rescheduleTime });
+    setRescheduleId(null);
+  }
+
+  async function act(id: string, action: string, extra?: { date?: string; time?: string }) {
     setBusy(id + action);
     setError(null);
     const response = await fetch('/api/appointments', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, action }),
+      body: JSON.stringify({ id, action, ...extra }),
     });
     const payload = (await response.json()) as { error?: string; visitId?: string };
     setBusy(null);
@@ -147,16 +163,72 @@ export function DayBoard({
                           </button>
                         ) : null}
                         {row.status === 'scheduled' || row.status === 'confirmed' || row.status === 'waiting' ? (
-                          <button
-                            type="button"
-                            className="pe-btn-ghost px-2 py-1 text-xs"
-                            disabled={busy !== null}
-                            onClick={() => act(row.id, 'no_show')}
-                          >
-                            No-show
-                          </button>
+                          <>
+                            <button
+                              type="button"
+                              className="pe-btn-ghost px-2 py-1 text-xs"
+                              disabled={busy !== null}
+                              onClick={() => act(row.id, 'no_show')}
+                            >
+                              No-show
+                            </button>
+                            <button
+                              type="button"
+                              className="pe-btn-ghost px-2 py-1 text-xs"
+                              disabled={busy !== null}
+                              onClick={() => act(row.id, 'cancel')}
+                            >
+                              Cancelar
+                            </button>
+                            <button
+                              type="button"
+                              className="pe-btn-ghost px-2 py-1 text-xs"
+                              disabled={busy !== null}
+                              onClick={() => {
+                                setRescheduleId(row.id);
+                                setRescheduleDate(row.starts_at.slice(0, 10));
+                                setRescheduleTime(formatMexicoTime(row.starts_at).replace(/[^\d:]/g, '').slice(0, 5) || '10:00');
+                              }}
+                            >
+                              Reagendar
+                            </button>
+                          </>
                         ) : null}
+                        <WhatsAppLink
+                          phone={client?.phone}
+                          text={appointmentWhatsAppText({
+                            tutorName: client?.full_name ?? 'tutor',
+                            patientName: patient?.name ?? 'tu mascota',
+                            clinicName,
+                            when: formatMexicoDateTime(row.starts_at),
+                          })}
+                        />
                       </div>
+                      {rescheduleId === row.id ? (
+                        <form
+                          className="mt-2 grid gap-1"
+                          onSubmit={(event) => {
+                            event.preventDefault();
+                            void reschedule(row.id);
+                          }}
+                        >
+                          <input
+                            type="date"
+                            className="pe-input"
+                            value={rescheduleDate}
+                            onChange={(e) => setRescheduleDate(e.target.value)}
+                          />
+                          <input
+                            type="time"
+                            className="pe-input"
+                            value={rescheduleTime}
+                            onChange={(e) => setRescheduleTime(e.target.value)}
+                          />
+                          <button type="submit" className="pe-btn-primary px-2 py-1 text-xs">
+                            Guardar horario
+                          </button>
+                        </form>
+                      ) : null}
                     </li>
                   );
                 })}

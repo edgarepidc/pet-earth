@@ -157,3 +157,31 @@ textarea.pe-input {
   min-height: 5.5rem;
   resize: vertical;
 }
+
+.pe-print-sheet {
+  background: #fff;
+  border: 1px solid var(--pe-line);
+  border-radius: 0.75rem;
+}
+
+.pe-no-print {
+  display: flex;
+}
+
+@media print {
+  .pe-no-print,
+  .pe-sidebar,
+  .pe-glass-header {
+    display: none !important;
+  }
+
+  .pe-app {
+    background: #fff;
+  }
+
+  .pe-print-sheet {
+    border: 0;
+    max-width: none;
+    padding: 0;
+  }
+}

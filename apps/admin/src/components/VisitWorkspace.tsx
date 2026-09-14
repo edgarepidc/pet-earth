@@ -14,7 +14,13 @@ import {
   type PaymentMethod,
   type Species,
   splitInvoiceTotals,
+  vaccineWhatsAppText,
+  todayMexicoYmd,
 } from '@petearth/shared';
+
+import { ClinicalMedia } from '@/components/ClinicalMedia';
+import { DictationButton } from '@/components/DictationButton';
+import { WhatsAppLink } from '@/components/WhatsAppLink';
 
 type CatalogItem = {
   id: string;
@@ -71,7 +77,13 @@ type VisitPayload = {
   catalog: CatalogItem[];
 };
 
-export function VisitWorkspace({ initial }: { initial: VisitPayload }) {
+export function VisitWorkspace({
+  initial,
+  clinicName,
+}: {
+  initial: VisitPayload;
+  clinicName: string;
+}) {
   const router = useRouter();
   const [visit, setVisit] = useState(initial.visit);
   const [invoice, setInvoice] = useState(initial.invoice);
@@ -214,7 +226,18 @@ export function VisitWorkspace({ initial }: { initial: VisitPayload }) {
           allergies={patient?.allergies}
           weightKg={visit.weight_kg}
           href={patient?.id ? `/pacientes/${patient.id}` : undefined}
+          clinicName={clinicName}
         />
+        <div className="flex flex-wrap gap-2">
+          <a href={`/consultas/${visit.id}/receta`} className="pe-btn-secondary px-3 py-1.5 text-sm">
+            Receta / alta
+          </a>
+          {patient?.id ? (
+            <a href={`/pacientes/${patient.id}/cartilla`} className="pe-btn-secondary px-3 py-1.5 text-sm">
+              Cartilla
+            </a>
+          ) : null}
+        </div>
         {error ? <p className="pe-callout-amber p-3 text-sm">{error}</p> : null}
         <div className="grid gap-3 sm:grid-cols-4">
           <label className="text-sm">
@@ -239,7 +262,13 @@ export function VisitWorkspace({ initial }: { initial: VisitPayload }) {
           const setter = [setSubjective, setObjective, setAssessment, setPlan][index];
           return (
             <label key={label} className="block text-sm font-medium">
-              {label}
+              <span className="flex items-center justify-between gap-2">
+                {label}
+                <DictationButton
+                  disabled={closed}
+                  onTranscript={(text) => setter((current) => (current ? `${current} ${text}` : text))}
+                />
+              </span>
               <textarea className="pe-input mt-1" value={value} onChange={(e) => setter(e.target.value)} disabled={closed} />
             </label>
           );
@@ -253,8 +282,32 @@ export function VisitWorkspace({ initial }: { initial: VisitPayload }) {
             Cerrar consulta y generar seguimiento
           </button>
         ) : (
-          <p className="text-sm font-medium text-emerald-800">Consulta cerrada. El tutor ya puede ver el alta en su portal.</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-sm font-medium text-emerald-800">Consulta cerrada. El tutor ya puede ver el alta en su portal.</p>
+            <a href={`/consultas/${visit.id}/receta`} className="pe-btn-secondary px-3 py-1.5 text-sm">
+              Receta / alta
+            </a>
+            {patient?.id ? (
+              <a href={`/pacientes/${patient.id}/cartilla`} className="pe-btn-secondary px-3 py-1.5 text-sm">
+                Cartilla
+              </a>
+            ) : null}
+            <WhatsAppLink
+              phone={client?.phone}
+              className="pe-btn-secondary px-3 py-1.5 text-sm"
+              text={vaccineWhatsAppText({
+                tutorName: client?.full_name ?? 'tutor',
+                patientName: patient?.name ?? 'tu mascota',
+                clinicName,
+                title: 'el alta y las indicaciones de consulta',
+                dueOn: todayMexicoYmd(),
+              })}
+            >
+              WhatsApp al tutor
+            </WhatsAppLink>
+          </div>
         )}
+        {patient?.id ? <ClinicalMedia patientId={patient.id} visitId={visit.id} canUpload={!closed} /> : null}
       </section>
 
       <aside className="space-y-4">

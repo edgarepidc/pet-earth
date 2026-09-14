@@ -40,7 +40,7 @@ export async function loadOpenInvoices(organizationId: string, branchId: string)
   const supabase = createAdminClient();
   const { data: invoices, error } = await supabase
     .from('invoices')
-    .select('id, total, status, visit_id, created_at, client_id')
+    .select('id, total, status, visit_id, created_at, client_id, cfdi_status')
     .eq('organization_id', organizationId)
     .eq('branch_id', branchId)
     .eq('status', 'open')
@@ -70,10 +70,76 @@ export async function loadFollowUps(organizationId: string) {
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from('reminders')
-    .select('id, kind, title, due_on, status, client_id, patient_id, clients(full_name), patients(name)')
+    .select('id, kind, title, due_on, status, client_id, patient_id, clients(full_name, phone), patients(name)')
     .eq('organization_id', organizationId)
     .eq('status', 'pending')
     .order('due_on');
   if (error) throw new Error(error.message);
   return data ?? [];
+}
+
+export async function loadLowStock(organizationId: string) {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from('catalog_items')
+    .select('id, name, stock, min_stock, kind')
+    .eq('organization_id', organizationId)
+    .eq('kind', 'product')
+    .eq('is_active', true)
+    .order('name');
+  if (error) throw new Error(error.message);
+  return (data ?? []).filter((item) => item.min_stock != null && Number(item.stock ?? 0) <= Number(item.min_stock));
+}
+
+export async function loadClinicReports(organizationId: string, startIso: string, endIso: string) {
+  const supabase = createAdminClient();
+  const { data: invoices, error } = await supabase
+    .from('invoices')
+    .select('id, total, services_total, products_total, visit_id, created_at, cfdi_status')
+    .eq('organization_id', organizationId)
+    .eq('status', 'paid')
+    .gte('created_at', startIso)
+    .lt('created_at', endIso);
+  if (error) throw new Error(error.message);
+
+  const paid = invoices ?? [];
+  const visitIds = paid.map((row) => row.visit_id).filter((id): id is string => Boolean(id));
+  const { data: visits } = visitIds.length
+    ? await supabase.from('visits').select('id, vet_id').in('id', visitIds)
+    : { data: [] as { id: string; vet_id: string | null }[] };
+
+  const vetIds = [...new Set((visits ?? []).map((visit) => visit.vet_id).filter((id): id is string => Boolean(id)))];
+  const { data: profiles } = vetIds.length
+    ? await supabase.from('profiles').select('id, full_name').in('id', vetIds)
+    : { data: [] as { id: string; full_name: string | null }[] };
+
+  const visitVet = new Map((visits ?? []).map((visit) => [visit.id, visit.vet_id]));
+  const vetName = new Map((profiles ?? []).map((profile) => [profile.id, profile.full_name ?? 'Sin nombre']));
+
+  const byVet = new Map<string, { name: string; total: number; count: number }>();
+  for (const invoice of paid) {
+    const vetId = invoice.visit_id ? visitVet.get(invoice.visit_id) : null;
+    const key = vetId ?? 'sin-asignar';
+    const current = byVet.get(key) ?? {
+      name: vetId ? (vetName.get(vetId) ?? 'MVZ') : 'Sin MVZ asignado',
+      total: 0,
+      count: 0,
+    };
+    current.total += Number(invoice.total);
+    current.count += 1;
+    byVet.set(key, current);
+  }
+
+  const services = paid.reduce((sum, row) => sum + Number(row.services_total), 0);
+  const products = paid.reduce((sum, row) => sum + Number(row.products_total), 0);
+  const cfdiReady = paid.filter((row) => row.cfdi_status === 'requested' || row.cfdi_status === 'stamped').length;
+
+  return {
+    invoiceCount: paid.length,
+    services,
+    products,
+    total: services + products,
+    cfdiReady,
+    byVet: [...byVet.values()].sort((a, b) => b.total - a.total),
+  };
 }

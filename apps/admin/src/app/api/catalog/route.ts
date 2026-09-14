@@ -30,6 +30,7 @@ export async function POST(request: Request) {
     name?: string;
     unitPrice?: number;
     stock?: number | null;
+    minStock?: number | null;
   };
   if (!body.name?.trim() || !body.kind) {
     return NextResponse.json({ error: 'Nombre y tipo son obligatorios.' }, { status: 400 });
@@ -43,9 +44,35 @@ export async function POST(request: Request) {
       name: body.name.trim(),
       unit_price: body.unitPrice ?? 0,
       stock: body.kind === 'product' ? (body.stock ?? 0) : null,
+      min_stock: body.kind === 'product' ? (body.minStock ?? 4) : null,
     })
     .select('id')
     .single();
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   return NextResponse.json({ id: data.id });
+}
+
+export async function PATCH(request: Request) {
+  const auth = await requireStaffApi();
+  if (auth instanceof NextResponse) return auth;
+  if (!canManageCatalog(auth.role) && auth.role !== 'vet' && !auth.isPlatformAdmin) {
+    return NextResponse.json({ error: 'Sin permiso para editar el catálogo.' }, { status: 403 });
+  }
+  const body = (await request.json()) as {
+    id?: string;
+    stock?: number | null;
+    minStock?: number | null;
+  };
+  if (!body.id) return NextResponse.json({ error: 'Falta el ítem.' }, { status: 400 });
+  const supabase = createAdminClient();
+  const { error } = await supabase
+    .from('catalog_items')
+    .update({
+      stock: body.stock ?? undefined,
+      min_stock: body.minStock ?? undefined,
+    })
+    .eq('id', body.id)
+    .eq('organization_id', auth.organizationId);
+  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  return NextResponse.json({ ok: true });
 }

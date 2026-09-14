@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 
+import { ClientFiscalForm } from '@/components/ClientFiscalForm';
 import { SPECIES_LABELS, type Species } from '@petearth/shared';
 
 type Patient = {
@@ -20,6 +21,10 @@ type Client = {
   full_name: string;
   phone: string | null;
   email: string | null;
+  rfc?: string | null;
+  tax_zip?: string | null;
+  uso_cfdi?: string | null;
+  fiscal_name?: string | null;
   patients: Patient[] | null;
 };
 
@@ -28,11 +33,13 @@ export function PatientsDirectory({
   title = 'Pacientes',
   kicker = 'Clínico',
   description = 'Tutor y mascota van separados. Busca por cualquiera de los dos.',
+  showFiscal = false,
 }: {
   clients: Client[];
   title?: string;
   kicker?: string;
   description?: string;
+  showFiscal?: boolean;
 }) {
   const router = useRouter();
   const [query, setQuery] = useState('');
@@ -138,6 +145,15 @@ export function PatientsDirectory({
             <p className="text-sm text-slate-500">
               {client.phone ?? 'Sin teléfono'} {client.email ? `· ${client.email}` : ''}
             </p>
+            {showFiscal ? (
+              <ClientFiscalForm
+                clientId={client.id}
+                rfc={client.rfc ?? null}
+                taxZip={client.tax_zip ?? null}
+                usoCfdi={client.uso_cfdi ?? null}
+                fiscalName={client.fiscal_name ?? null}
+              />
+            ) : null}
             <ul className="mt-3 grid gap-2 sm:grid-cols-2">
               {(client.patients ?? []).map((pet) => (
                 <li key={pet.id}>

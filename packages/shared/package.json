@@ -10,7 +10,7 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test src/money.test.ts src/clinical.test.ts src/dates.test.ts"
+    "test": "tsx --test src/money.test.ts src/clinical.test.ts src/dates.test.ts src/whatsapp.test.ts"
   },
   "devDependencies": {
     "tsx": "^4.20.3",

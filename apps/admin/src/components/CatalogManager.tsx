@@ -11,6 +11,7 @@ type Item = {
   name: string;
   unit_price: number;
   stock: number | null;
+  min_stock: number | null;
   is_active: boolean;
 };
 
@@ -20,6 +21,7 @@ export function CatalogManager({ items }: { items: Item[] }) {
   const [name, setName] = useState('');
   const [price, setPrice] = useState('0');
   const [stock, setStock] = useState('0');
+  const [minStock, setMinStock] = useState('4');
   const [error, setError] = useState<string | null>(null);
 
   async function submit(event: React.FormEvent) {
@@ -33,6 +35,7 @@ export function CatalogManager({ items }: { items: Item[] }) {
         name,
         unitPrice: Number(price),
         stock: kind === 'product' ? Number(stock) : null,
+        minStock: kind === 'product' ? Number(minStock) : null,
       }),
     });
     const payload = (await response.json()) as { error?: string };
@@ -59,7 +62,10 @@ export function CatalogManager({ items }: { items: Item[] }) {
         <input className="pe-input md:col-span-2" required placeholder="Nombre" value={name} onChange={(e) => setName(e.target.value)} />
         <input className="pe-input" type="number" min="0" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)} />
         {kind === 'product' ? (
-          <input className="pe-input" type="number" min="0" value={stock} onChange={(e) => setStock(e.target.value)} />
+          <>
+            <input className="pe-input" type="number" min="0" value={stock} onChange={(e) => setStock(e.target.value)} placeholder="Stock" />
+            <input className="pe-input" type="number" min="0" value={minStock} onChange={(e) => setMinStock(e.target.value)} placeholder="Mínimo" />
+          </>
         ) : (
           <div />
         )}
@@ -75,6 +81,7 @@ export function CatalogManager({ items }: { items: Item[] }) {
             <th>Tipo</th>
             <th>Precio</th>
             <th>Stock</th>
+            <th>Mínimo</th>
           </tr>
         </thead>
         <tbody>
@@ -83,7 +90,13 @@ export function CatalogManager({ items }: { items: Item[] }) {
               <td className="py-2 font-medium">{item.name}</td>
               <td>{CATALOG_KIND_LABELS[item.kind]}</td>
               <td>{formatMoney(Number(item.unit_price))}</td>
-              <td>{item.stock ?? '—'}</td>
+              <td>
+                {item.stock ?? '—'}
+                {item.kind === 'product' && item.min_stock != null && Number(item.stock ?? 0) <= Number(item.min_stock) ? (
+                  <span className="ml-2 text-xs font-semibold text-[#8f4328]">bajo</span>
+                ) : null}
+              </td>
+              <td>{item.min_stock ?? '—'}</td>
             </tr>
           ))}
         </tbody>

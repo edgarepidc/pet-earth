@@ -6,6 +6,7 @@ import { createAdminClient } from '@petearth/supabase/admin';
 
 import { PatientHeader } from '@/components/PatientHeader';
 import { AdminShell } from '@/components/AdminShell';
+import { ClinicalMedia } from '@/components/ClinicalMedia';
 import { NewAppointmentForm } from '@/components/NewAppointmentForm';
 import { loadClinicSession } from '@/lib/auth';
 
@@ -46,7 +47,13 @@ export default async function PatientPage({ params }: { params: Promise<{ id: st
             tutorPhone={client?.phone}
             alerts={patient.alerts}
             allergies={patient.allergies}
+            clinicName={staff.organizationName}
           />
+          <div className="flex flex-wrap gap-2">
+            <Link href={`/pacientes/${patient.id}/cartilla`} className="pe-btn-secondary px-3 py-1.5 text-sm">
+              Imprimir cartilla
+            </Link>
+          </div>
           <div className="pe-glass-card p-4">
             <h2 className="font-semibold">Consultas</h2>
             <ul className="mt-3 space-y-2 text-sm">
@@ -72,6 +79,7 @@ export default async function PatientPage({ params }: { params: Promise<{ id: st
               ))}
             </ul>
           </div>
+          <ClinicalMedia patientId={patient.id} />
         </section>
         <aside className="space-y-4">
           <NewAppointmentForm patientId={patient.id} />

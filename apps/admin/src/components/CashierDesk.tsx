@@ -4,12 +4,13 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
-import { formatMoney, PAYMENT_METHOD_LABELS, type PaymentMethod } from '@petearth/shared';
+import { CFDI_STATUS_LABELS, formatMoney, PAYMENT_METHOD_LABELS, type CfdiStatus, type PaymentMethod } from '@petearth/shared';
 
 type Invoice = {
   id: string;
   total: number;
   visit_id: string | null;
+  cfdi_status?: CfdiStatus;
   clients: { full_name: string } | { full_name: string }[] | null;
   visits: { patients: { name: string } | { name: string }[] | null } | { patients: { name: string } | { name: string }[] | null }[] | null;
 };
@@ -41,6 +42,23 @@ export function CashierDesk({ invoices }: { invoices: Invoice[] }) {
     router.refresh();
   }
 
+  async function requestCfdi(invoiceId: string) {
+    setBusy(invoiceId + 'cfdi');
+    setError(null);
+    const response = await fetch('/api/invoices', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ invoiceId, action: 'request-cfdi' }),
+    });
+    const payload = (await response.json()) as { error?: string };
+    setBusy(null);
+    if (!response.ok) {
+      setError(payload.error ?? 'No se pudo marcar la factura.');
+      return;
+    }
+    router.refresh();
+  }
+
   return (
     <section className="space-y-4">
       <div>
@@ -63,11 +81,22 @@ export function CashierDesk({ invoices }: { invoices: Invoice[] }) {
                   <div>
                     <p className="font-semibold">{patient?.name ?? 'Consulta'}</p>
                     <p className="text-sm text-[#6b5e55]">{client?.full_name ?? 'Tutor'}</p>
+                    <p className="text-xs text-[#6b5e55]">
+                      CFDI: {CFDI_STATUS_LABELS[invoice.cfdi_status ?? 'none']}
+                    </p>
                     {invoice.visit_id ? (
                       <Link href={`/consultas/${invoice.visit_id}`} className="text-sm text-[#b85c38] underline">
                         Ver consulta
                       </Link>
                     ) : null}
+                    <button
+                      type="button"
+                      className="pe-btn-secondary px-3 py-1.5 text-sm"
+                      disabled={busy !== null || invoice.cfdi_status === 'requested' || invoice.cfdi_status === 'stamped'}
+                      onClick={() => requestCfdi(invoice.id)}
+                    >
+                      Solicitar CFDI 4.0
+                    </button>
                   </div>
                   <p className="font-semibold tabular-nums">{formatMoney(Number(invoice.total))}</p>
                 </div>

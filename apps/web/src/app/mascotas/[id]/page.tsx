@@ -67,7 +67,12 @@ export default async function PetProfilePage({ params }: { params: Promise<{ id:
       </section>
 
       <section className="pe-card mt-4 p-4">
-        <h3 className="font-semibold">Cartilla de vacunas</h3>
+        <div className="flex items-center justify-between gap-3">
+          <h3 className="font-semibold">Cartilla de vacunas</h3>
+          <Link href={`/mascotas/${id}/cartilla`} className="text-sm font-medium text-[#b85c38] underline">
+            Imprimir
+          </Link>
+        </div>
         <ol className="mt-3 space-y-3 border-l border-[rgba(42,34,28,0.15)] pl-4 text-sm">
           {(vaccines ?? []).map((row, index) => (
             <li key={`${row.name}-${index}`}>

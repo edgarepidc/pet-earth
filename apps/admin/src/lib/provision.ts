@@ -58,6 +58,7 @@ export async function seedDefaultCatalog(organizationId: string) {
       sku: item.sku,
       unit_price: item.unit_price,
       stock: item.stock,
+      min_stock: item.kind === 'product' ? 4 : null,
       is_active: true,
     })),
   );

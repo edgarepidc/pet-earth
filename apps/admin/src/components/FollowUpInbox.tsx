@@ -3,16 +3,17 @@
 import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 
-import { REMINDER_KIND_LABELS, todayMexicoYmd, type ReminderKind } from '@petearth/shared';
+import { REMINDER_KIND_LABELS, todayMexicoYmd, vaccineWhatsAppText, type ReminderKind } from '@petearth/shared';
 
 import { ReminderPill } from '@/components/StatusPill';
+import { WhatsAppLink } from '@/components/WhatsAppLink';
 
 type Reminder = {
   id: string;
   kind: ReminderKind;
   title: string;
   due_on: string;
-  clients: { full_name: string } | { full_name: string }[] | null;
+  clients: { full_name: string; phone?: string | null } | { full_name: string; phone?: string | null }[] | null;
   patients: { name: string } | { name: string }[] | null;
 };
 
@@ -21,7 +22,13 @@ function one<T>(value: T | T[] | null): T | null {
   return Array.isArray(value) ? value[0] ?? null : value;
 }
 
-export function FollowUpInbox({ reminders }: { reminders: Reminder[] }) {
+export function FollowUpInbox({
+  reminders,
+  clinicName,
+}: {
+  reminders: Reminder[];
+  clinicName: string;
+}) {
   const router = useRouter();
   const today = todayMexicoYmd();
   const [filter, setFilter] = useState<'all' | 'overdue' | ReminderKind>('all');
@@ -75,7 +82,18 @@ export function FollowUpInbox({ reminders }: { reminders: Reminder[] }) {
                   {overdue ? ' · vencido' : ''}
                 </p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
+                <WhatsAppLink
+                  phone={one(row.clients)?.phone}
+                  className="pe-btn-secondary px-3 py-1.5 text-sm"
+                  text={vaccineWhatsAppText({
+                    tutorName: one(row.clients)?.full_name ?? 'tutor',
+                    patientName: one(row.patients)?.name ?? 'tu mascota',
+                    clinicName,
+                    title: row.title,
+                    dueOn: row.due_on,
+                  })}
+                />
                 <button type="button" className="pe-btn-primary px-3 py-1.5 text-sm" onClick={() => mark(row.id, 'done')}>
                   Hecho
                 </button>

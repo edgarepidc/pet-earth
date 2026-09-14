@@ -10,7 +10,7 @@ export default async function SeguimientoPage() {
   const reminders = await loadFollowUps(staff.organizationId);
   return (
     <AdminShell>
-      <FollowUpInbox reminders={reminders as never} />
+      <FollowUpInbox reminders={reminders as never} clinicName={staff.organizationName} />
     </AdminShell>
   );
 }

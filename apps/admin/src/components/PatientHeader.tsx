@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-import { patientAgeLabel, SEX_LABELS, SPECIES_LABELS, type Sex, type Species } from '@petearth/shared';
+import { patientAgeLabel, SEX_LABELS, SPECIES_LABELS, type Sex, type Species, whatsappHref } from '@petearth/shared';
 
 export function PatientHeader({
   name,
@@ -14,6 +14,7 @@ export function PatientHeader({
   allergies,
   weightKg,
   href,
+  clinicName,
 }: {
   name: string;
   species: Species;
@@ -26,6 +27,7 @@ export function PatientHeader({
   allergies?: string | null;
   weightKg?: number | null;
   href?: string;
+  clinicName?: string;
 }) {
   const title = href ? (
     <Link href={href} className="font-serif text-2xl font-semibold text-[#2a221c] no-underline hover:underline">
@@ -33,6 +35,10 @@ export function PatientHeader({
     </Link>
   ) : (
     <h1 className="font-serif text-2xl font-semibold text-[#2a221c]">{name}</h1>
+  );
+  const wa = whatsappHref(
+    tutorPhone,
+    `Hola ${tutorName ?? 'tutor'}, te escribe ${clinicName ?? 'la clínica'} por ${name}.`,
   );
 
   return (
@@ -49,6 +55,14 @@ export function PatientHeader({
       <p className="text-sm text-[#6b5e55]">
         Tutor: {tutorName ?? '—'}
         {tutorPhone ? ` · ${tutorPhone}` : ''}
+        {wa ? (
+          <>
+            {' · '}
+            <a href={wa} target="_blank" rel="noreferrer" className="text-[#b85c38] underline">
+              WhatsApp
+            </a>
+          </>
+        ) : null}
       </p>
       <div className="mt-3 flex flex-wrap gap-2">
         {alerts ? <span className="pe-pill bg-amber-100 text-amber-900">Alerta: {alerts}</span> : null}

@@ -102,6 +102,10 @@ export interface Database {
           phone: string | null;
           email: string | null;
           notes: string | null;
+          rfc: string | null;
+          tax_zip: string | null;
+          uso_cfdi: string;
+          fiscal_name: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -113,6 +117,10 @@ export interface Database {
           phone?: string | null;
           email?: string | null;
           notes?: string | null;
+          rfc?: string | null;
+          tax_zip?: string | null;
+          uso_cfdi?: string;
+          fiscal_name?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -202,6 +210,7 @@ export interface Database {
           sku: string | null;
           unit_price: number;
           stock: number | null;
+          min_stock: number | null;
           is_active: boolean;
           created_at: string;
           updated_at: string;
@@ -214,11 +223,40 @@ export interface Database {
           sku?: string | null;
           unit_price?: number;
           stock?: number | null;
+          min_stock?: number | null;
           is_active?: boolean;
           created_at?: string;
           updated_at?: string;
         };
         Update: Partial<Database['public']['Tables']['catalog_items']['Insert']>;
+        Relationships: [];
+      };
+      clinical_media: {
+        Row: {
+          id: string;
+          organization_id: string;
+          patient_id: string;
+          visit_id: string | null;
+          kind: 'photo' | 'study';
+          storage_path: string;
+          caption: string | null;
+          content_type: string | null;
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          patient_id: string;
+          visit_id?: string | null;
+          kind?: 'photo' | 'study';
+          storage_path: string;
+          caption?: string | null;
+          content_type?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['clinical_media']['Insert']>;
         Relationships: [];
       };
       appointments: {
@@ -400,6 +438,13 @@ export interface Database {
           services_total: number;
           products_total: number;
           total: number;
+          cfdi_status: 'none' | 'requested' | 'stamped' | 'error';
+          cfdi_uuid: string | null;
+          receptor_rfc: string | null;
+          receptor_name: string | null;
+          receptor_zip: string | null;
+          uso_cfdi: string | null;
+          cfdi_requested_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -413,6 +458,13 @@ export interface Database {
           services_total?: number;
           products_total?: number;
           total?: number;
+          cfdi_status?: 'none' | 'requested' | 'stamped' | 'error';
+          cfdi_uuid?: string | null;
+          receptor_rfc?: string | null;
+          receptor_name?: string | null;
+          receptor_zip?: string | null;
+          uso_cfdi?: string | null;
+          cfdi_requested_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
