@@ -1,14 +1,10 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
-import {
-  formatMexicoDateTime,
-  patientAgeLabel,
-  SEX_LABELS,
-  SPECIES_LABELS,
-} from '@petearth/shared';
+import { formatMexicoDateTime } from '@petearth/shared';
 import { createAdminClient } from '@petearth/supabase/admin';
 
+import { PatientHeader } from '@/components/PatientHeader';
 import { AdminShell } from '@/components/AdminShell';
 import { NewAppointmentForm } from '@/components/NewAppointmentForm';
 import { getStaffSession } from '@/lib/auth';
@@ -41,24 +37,23 @@ export default async function PatientPage({ params }: { params: Promise<{ id: st
     <AdminShell>
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
         <section className="space-y-4">
-          <div>
-            <p className="text-xs uppercase tracking-wide text-slate-500">Ficha</p>
-            <h1 className="text-2xl font-bold">{patient.name}</h1>
-            <p className="text-sm text-slate-500">
-              {SPECIES_LABELS[patient.species]} · {SEX_LABELS[patient.sex]}
-              {patient.breed ? ` · ${patient.breed}` : ''}
-              {patientAgeLabel(patient.birth_date) ? ` · ${patientAgeLabel(patient.birth_date)}` : ''}
-            </p>
-            <p className="text-sm text-slate-500">Tutor: {client?.full_name}</p>
-            {patient.alerts ? <p className="mt-2 text-sm text-amber-800">Alerta: {patient.alerts}</p> : null}
-            {patient.allergies ? <p className="text-sm text-red-700">Alergias: {patient.allergies}</p> : null}
-          </div>
+          <PatientHeader
+            name={patient.name}
+            species={patient.species}
+            sex={patient.sex}
+            breed={patient.breed}
+            birthDate={patient.birth_date}
+            tutorName={client?.full_name}
+            tutorPhone={client?.phone}
+            alerts={patient.alerts}
+            allergies={patient.allergies}
+          />
           <div className="pe-glass-card p-4">
             <h2 className="font-semibold">Consultas</h2>
             <ul className="mt-3 space-y-2 text-sm">
               {(visits ?? []).map((visit) => (
                 <li key={visit.id}>
-                  <Link href={`/consultas/${visit.id}`} className="font-medium text-[#245a4c] underline">
+                  <Link href={`/consultas/${visit.id}`} className="font-medium text-[#b85c38] underline">
                     {formatMexicoDateTime(visit.started_at)} · {visit.status === 'completed' ? 'Alta' : 'En curso'}
                   </Link>
                   {visit.plan ? <p className="text-slate-500">{visit.plan}</p> : null}

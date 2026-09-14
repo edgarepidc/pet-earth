@@ -4,7 +4,7 @@ import { notFound, redirect } from 'next/navigation';
 import { formatMexicoDateTime, patientAgeLabel, SEX_LABELS, SPECIES_LABELS } from '@petearth/shared';
 import { createAdminClient } from '@petearth/supabase/admin';
 
-import { LogoutButton } from '@/components/LogoutButton';
+import { TutorShell } from '@/components/TutorShell';
 import { getTutorContext } from '@/lib/tutor';
 
 export const dynamic = 'force-dynamic';
@@ -43,58 +43,59 @@ export default async function PetProfilePage({ params }: { params: Promise<{ id:
   ]);
 
   return (
-    <main className="mx-auto min-h-screen max-w-3xl px-4 py-8">
-      <header className="mb-6 flex items-center justify-between">
-        <Link href="/" className="text-sm font-medium text-[#245a4c] underline">
-          Volver
-        </Link>
-        <LogoutButton />
-      </header>
-      <h1 className="text-3xl font-bold">{patient.name}</h1>
-      <p className="text-slate-500">
+    <TutorShell clinicName={tutor.clinicName} tutorName={tutor.clientName}>
+      <Link href="/" className="text-sm font-medium text-[#b85c38] underline">
+        Todas las mascotas
+      </Link>
+      <h2 className="mt-4 font-serif text-3xl font-semibold">{patient.name}</h2>
+      <p className="text-[#6b5e55]">
         {SPECIES_LABELS[patient.species]} · {SEX_LABELS[patient.sex]}
         {patientAgeLabel(patient.birth_date) ? ` · ${patientAgeLabel(patient.birth_date)}` : ''}
       </p>
-      {patient.allergies ? <p className="mt-2 text-sm text-red-700">Alergias: {patient.allergies}</p> : null}
+      {patient.allergies ? <p className="mt-2 text-sm text-red-800">Alergias: {patient.allergies}</p> : null}
 
-      <section className="pe-glass-card mt-6 p-4">
-        <h2 className="font-semibold">Próximas citas</h2>
+      <section className="pe-card mt-6 p-4">
+        <h3 className="font-semibold">Próximas citas</h3>
         <ul className="mt-2 space-y-1 text-sm">
           {(appointments ?? []).map((row) => (
             <li key={row.starts_at}>
               {formatMexicoDateTime(row.starts_at)} {row.reason ? `· ${row.reason}` : ''}
             </li>
           ))}
-          {(appointments ?? []).length === 0 ? <li className="text-slate-500">Sin citas abiertas.</li> : null}
+          {(appointments ?? []).length === 0 ? <li className="text-[#6b5e55]">Sin citas abiertas.</li> : null}
         </ul>
       </section>
 
-      <section className="pe-glass-card mt-4 p-4">
-        <h2 className="font-semibold">Cartilla de vacunas</h2>
-        <ul className="mt-2 space-y-1 text-sm">
+      <section className="pe-card mt-4 p-4">
+        <h3 className="font-semibold">Cartilla de vacunas</h3>
+        <ol className="mt-3 space-y-3 border-l border-[rgba(42,34,28,0.15)] pl-4 text-sm">
           {(vaccines ?? []).map((row, index) => (
             <li key={`${row.name}-${index}`}>
-              {row.name} · aplicada {row.applied_on}
-              {row.next_due ? ` · próxima ${row.next_due}` : ''}
+              <p className="font-medium">{row.name}</p>
+              <p className="text-[#6b5e55]">
+                Aplicada {row.applied_on}
+                {row.next_due ? ` · próxima ${row.next_due}` : ''}
+              </p>
             </li>
           ))}
-        </ul>
+          {(vaccines ?? []).length === 0 ? <li className="text-[#6b5e55]">Aún no hay vacunas registradas.</li> : null}
+        </ol>
       </section>
 
-      <section className="pe-glass-card mt-4 p-4">
-        <h2 className="font-semibold">Historial de altas</h2>
+      <section className="pe-card mt-4 p-4">
+        <h3 className="font-semibold">Altas de consulta</h3>
         <ul className="mt-2 space-y-3 text-sm">
           {(visits ?? []).map((visit) => (
             <li key={visit.id}>
               <p className="font-medium">{formatMexicoDateTime(visit.started_at)}</p>
-              {visit.weight_kg ? <p className="text-slate-500">Peso: {Number(visit.weight_kg)} kg</p> : null}
+              {visit.weight_kg ? <p className="text-[#6b5e55]">Peso: {Number(visit.weight_kg)} kg</p> : null}
               {visit.assessment ? <p>{visit.assessment}</p> : null}
-              {visit.plan ? <p className="text-slate-600">Plan: {visit.plan}</p> : null}
+              {visit.plan ? <p className="text-[#6b5e55]">Plan: {visit.plan}</p> : null}
             </li>
           ))}
-          {(visits ?? []).length === 0 ? <li className="text-slate-500">Aún no hay altas para mostrar.</li> : null}
+          {(visits ?? []).length === 0 ? <li className="text-[#6b5e55]">Aún no hay altas para mostrar.</li> : null}
         </ul>
       </section>
-    </main>
+    </TutorShell>
   );
 }

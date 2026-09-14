@@ -46,15 +46,16 @@ export function FollowUpInbox({ reminders }: { reminders: Reminder[] }) {
   return (
     <section className="space-y-4">
       <div>
-        <h1 className="text-2xl font-bold">Seguimiento</h1>
-        <p className="text-sm text-slate-500">Citas, vacunas, controles y desparasitación pendientes.</p>
+        <p className="pe-kicker">Clínico</p>
+        <h1 className="font-serif text-2xl font-semibold">Seguimiento</h1>
+        <p className="text-sm text-[#6b5e55]">Citas, vacunas, controles y desparasitación pendientes.</p>
       </div>
       <div className="flex flex-wrap gap-2">
         {(['all', 'overdue', 'appointment', 'vaccine', 'followup', 'deworming'] as const).map((key) => (
           <button
             key={key}
             type="button"
-            className={`pe-btn-ghost px-3 py-1.5 text-sm ${filter === key ? 'pe-nav-active' : ''}`}
+            className={`pe-btn-ghost px-3 py-1.5 text-sm ${filter === key ? 'pe-chip-active' : ''}`}
             onClick={() => setFilter(key)}
           >
             {key === 'all' ? 'Todos' : key === 'overdue' ? 'Vencidos' : REMINDER_KIND_LABELS[key]}

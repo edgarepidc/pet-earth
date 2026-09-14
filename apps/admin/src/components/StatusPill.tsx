@@ -8,18 +8,18 @@ import {
 export function appointmentTone(status: AppointmentStatus): string {
   switch (status) {
     case 'waiting':
-      return 'bg-amber-100 text-amber-800';
+      return 'bg-amber-100 text-amber-900';
     case 'in_consult':
-      return 'bg-sky-100 text-sky-800';
+      return 'bg-[#f3e4da] text-[#8f4328]';
     case 'completed':
-      return 'bg-emerald-100 text-emerald-800';
+      return 'bg-emerald-100 text-emerald-900';
     case 'cancelled':
     case 'no_show':
-      return 'bg-slate-200 text-slate-600';
+      return 'bg-[#ebe4da] text-[#6b5e55]';
     case 'confirmed':
-      return 'bg-teal-100 text-teal-800';
+      return 'bg-[#efe8de] text-[#3c322c]';
     default:
-      return 'bg-slate-100 text-slate-700';
+      return 'bg-[#efe8de] text-[#3c322c]';
   }
 }
 
@@ -30,5 +30,5 @@ export function StatusPill({ status }: { status: AppointmentStatus }) {
 }
 
 export function ReminderPill({ kind }: { kind: ReminderKind }) {
-  return <span className="pe-pill bg-slate-100 text-slate-700">{REMINDER_KIND_LABELS[kind]}</span>;
+  return <span className="pe-pill bg-[#efe8de] text-[#3c322c]">{REMINDER_KIND_LABELS[kind]}</span>;
 }

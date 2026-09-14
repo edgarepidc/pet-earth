@@ -74,16 +74,16 @@ export function AgendaCalendar({
     <section className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">Agenda</h1>
-          <p className="text-sm text-slate-500">
+          <h1 className="font-serif text-2xl font-semibold">Agenda</h1>
+          <p className="text-sm text-[#6b5e55]">
             {view === 'week' ? 'Capacidad de la semana' : 'Planeación del mes'}
           </p>
         </div>
         <div className="flex gap-2">
-          <button type="button" className={`pe-btn-ghost px-3 py-1.5 text-sm ${view === 'week' ? 'pe-nav-active' : ''}`} onClick={() => setView('week')}>
+          <button type="button" className={`pe-btn-ghost px-3 py-1.5 text-sm ${view === 'week' ? 'pe-chip-active' : ''}`} onClick={() => setView('week')}>
             Semana
           </button>
-          <button type="button" className={`pe-btn-ghost px-3 py-1.5 text-sm ${view === 'month' ? 'pe-nav-active' : ''}`} onClick={() => setView('month')}>
+          <button type="button" className={`pe-btn-ghost px-3 py-1.5 text-sm ${view === 'month' ? 'pe-chip-active' : ''}`} onClick={() => setView('month')}>
             Mes
           </button>
           <button type="button" className="pe-btn-secondary px-3 py-1.5 text-sm" onClick={() => go(-1)}>
@@ -98,15 +98,15 @@ export function AgendaCalendar({
         {days.map((day) => {
           const rows = byDay.get(day) ?? [];
           return (
-            <div key={day} className={`pe-glass-card p-3 ${day === today ? 'ring-1 ring-[#2f6f5e]' : ''}`}>
-              <Link href="/" className="text-xs font-semibold text-slate-700">
+            <div key={day} className={`pe-card p-3 ${day === today ? 'ring-1 ring-[#b85c38]' : ''}`}>
+              <Link href="/" className="text-xs font-semibold text-[#3c322c]">
                 {formatMexicoDate(day, { weekday: 'short', day: 'numeric', month: 'short' })}
               </Link>
               <ul className="mt-2 space-y-2">
                 {rows.map((row) => {
                   const patient = one(row.patients);
                   return (
-                    <li key={row.id} className="rounded-xl bg-slate-50 p-2 text-xs">
+                    <li key={row.id} className="rounded-md bg-white p-2 text-xs">
                       <p className="font-semibold">
                         {formatMexicoTime(row.starts_at)} {patient?.name}
                       </p>

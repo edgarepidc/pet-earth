@@ -43,18 +43,21 @@ export function LoginForm() {
   }
 
   return (
-    <main className="relative flex min-h-screen items-center justify-center px-4">
-      <div className="pe-glass-panel w-full max-w-md p-8 sm:p-10">
-        <div className="mb-6 flex flex-col items-center">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Admin</p>
-          <BrandLogo href="/login" subtitle="Clínica" />
-        </div>
-        <h1 className="text-center text-xl font-bold text-slate-900">Acceso al panel</h1>
-        <p className="mt-2 text-center text-sm text-slate-500">
-          Prueba con la cuenta de veterinaria o recepcion y la contraseña del piloto.
+    <main className="pe-app flex min-h-screen">
+      <aside className="pe-sidebar hidden w-[280px] flex-col justify-between p-8 md:flex">
+        <BrandLogo href="/login" subtitle="Consultorio" inverted />
+        <p className="font-serif text-2xl leading-snug text-[#f3eee6]">
+          Sala, consulta y ticket en el mismo circuito.
         </p>
-        <form onSubmit={handleSubmit} className="mt-8 space-y-4">
-          <label className="block text-sm font-medium text-slate-700">
+      </aside>
+      <div className="flex flex-1 items-center justify-center px-4 py-10">
+        <form onSubmit={handleSubmit} className="pe-panel w-full max-w-md p-8">
+          <p className="pe-kicker">Staff</p>
+          <h1 className="mt-2 font-serif text-2xl font-semibold">Entrar a la clínica</h1>
+          <p className="mt-2 text-sm text-[#6b5e55]">
+            Veterinaria o recepción. Contraseña del piloto: piloto123.
+          </p>
+          <label className="mt-6 block text-sm font-medium">
             Correo
             <input
               type="email"
@@ -65,7 +68,7 @@ export function LoginForm() {
               onChange={(e) => setEmail(e.target.value)}
             />
           </label>
-          <label className="block text-sm font-medium text-slate-700">
+          <label className="mt-4 block text-sm font-medium">
             Contraseña
             <input
               type="password"
@@ -76,8 +79,8 @@ export function LoginForm() {
               onChange={(e) => setPassword(e.target.value)}
             />
           </label>
-          {error ? <p className="text-sm text-red-700">{error}</p> : null}
-          <button type="submit" disabled={loading} className="pe-btn-primary w-full py-2.5 text-sm">
+          {error ? <p className="mt-3 text-sm text-red-700">{error}</p> : null}
+          <button type="submit" disabled={loading} className="pe-btn-primary mt-6 w-full py-2.5 text-sm">
             {loading ? 'Entrando…' : 'Entrar'}
           </button>
         </form>

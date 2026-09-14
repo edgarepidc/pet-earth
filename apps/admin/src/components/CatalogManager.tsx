@@ -47,8 +47,9 @@ export function CatalogManager({ items }: { items: Item[] }) {
   return (
     <section className="space-y-4">
       <div>
-        <h1 className="text-2xl font-bold">Catálogo</h1>
-        <p className="text-sm text-slate-500">Servicios y medicamentos. El ticket se desglosa con este tipo.</p>
+        <p className="pe-kicker">Farmacia</p>
+        <h1 className="font-serif text-2xl font-semibold">Catálogo</h1>
+        <p className="text-sm text-[#6b5e55]">Servicios y medicamentos. El ticket se desglosa con este tipo.</p>
       </div>
       <form onSubmit={submit} className="pe-glass-card grid gap-3 p-4 md:grid-cols-5">
         <select className="pe-input" value={kind} onChange={(e) => setKind(e.target.value as CatalogKind)}>

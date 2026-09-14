@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 
-export function LogoutButton() {
+export function LogoutButton({ className = 'pe-btn-ghost px-4 py-2 text-sm' }: { className?: string }) {
   const router = useRouter();
 
   async function logout() {
@@ -12,7 +12,7 @@ export function LogoutButton() {
   }
 
   return (
-    <button type="button" onClick={logout} className="pe-btn-ghost px-4 py-2 text-sm">
+    <button type="button" onClick={logout} className={className}>
       Salir
     </button>
   );

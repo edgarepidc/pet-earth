@@ -85,6 +85,10 @@ export function formatMexicoTime(iso: string): string {
   }).format(new Date(iso));
 }
 
+export function formatMexicoClock(date = new Date()): string {
+  return formatMexicoTime(date.toISOString());
+}
+
 export function formatMexicoDateTime(iso: string): string {
   return new Intl.DateTimeFormat('es-MX', {
     timeZone: MEXICO_TZ,

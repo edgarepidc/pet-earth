@@ -23,7 +23,17 @@ type Client = {
   patients: Patient[] | null;
 };
 
-export function PatientsDirectory({ clients }: { clients: Client[] }) {
+export function PatientsDirectory({
+  clients,
+  title = 'Pacientes',
+  kicker = 'Clínico',
+  description = 'Tutor y mascota van separados. Busca por cualquiera de los dos.',
+}: {
+  clients: Client[];
+  title?: string;
+  kicker?: string;
+  description?: string;
+}) {
   const router = useRouter();
   const [query, setQuery] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -81,8 +91,9 @@ export function PatientsDirectory({ clients }: { clients: Client[] }) {
   return (
     <section className="space-y-5">
       <div>
-        <h1 className="text-2xl font-bold">Pacientes</h1>
-        <p className="text-sm text-slate-500">Tutor y mascota van separados. Busca por cualquiera de los dos.</p>
+        <p className="pe-kicker">{kicker}</p>
+        <h1 className="font-serif text-2xl font-semibold">{title}</h1>
+        <p className="text-sm text-[#6b5e55]">{description}</p>
       </div>
       <input
         className="pe-input max-w-md"

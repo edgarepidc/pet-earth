@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 
+import { PatientHeader } from '@/components/PatientHeader';
 import {
   CATALOG_KIND_LABELS,
   formatMoney,
@@ -11,6 +12,7 @@ import {
   type CatalogKind,
   type InvoiceStatus,
   type PaymentMethod,
+  type Species,
   splitInvoiceTotals,
 } from '@petearth/shared';
 
@@ -44,7 +46,16 @@ type VisitPayload = {
     heart_rate: number | null;
     respiratory_rate: number | null;
     followup_at: string | null;
-    patients: { name: string; species: string; breed: string | null; alerts: string | null } | null;
+    patients: {
+      id?: string;
+      name: string;
+      species: string;
+      breed: string | null;
+      sex?: string | null;
+      birth_date?: string | null;
+      alerts: string | null;
+      allergies?: string | null;
+    } | null;
     clients: { full_name: string; phone: string | null } | null;
     visit_lines: Line[] | null;
     vaccine_records: { id: string; name: string; lot: string | null; next_due: string | null }[] | null;
@@ -191,14 +202,19 @@ export function VisitWorkspace({ initial }: { initial: VisitPayload }) {
   return (
     <div className="grid gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.9fr)]">
       <section className="space-y-4">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Consulta SOAP</p>
-          <h1 className="text-2xl font-bold">{patient?.name}</h1>
-          <p className="text-sm text-slate-500">
-            Tutor: {client?.full_name} {client?.phone ? `· ${client.phone}` : ''}
-          </p>
-          {patient?.alerts ? <p className="mt-1 text-sm text-amber-800">Alerta: {patient.alerts}</p> : null}
-        </div>
+        <PatientHeader
+          name={patient?.name ?? 'Paciente'}
+          species={(patient?.species as Species) ?? 'other'}
+          sex={(patient?.sex as 'male' | 'female' | 'unknown' | null) ?? null}
+          breed={patient?.breed}
+          birthDate={patient?.birth_date}
+          tutorName={client?.full_name}
+          tutorPhone={client?.phone}
+          alerts={patient?.alerts}
+          allergies={patient?.allergies}
+          weightKg={visit.weight_kg}
+          href={patient?.id ? `/pacientes/${patient.id}` : undefined}
+        />
         {error ? <p className="pe-callout-amber p-3 text-sm">{error}</p> : null}
         <div className="grid gap-3 sm:grid-cols-4">
           <label className="text-sm">

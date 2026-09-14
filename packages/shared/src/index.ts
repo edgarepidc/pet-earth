@@ -38,6 +38,7 @@ export {
   daysInMexicoMonth,
   formatMexicoDate,
   formatMexicoDateTime,
+  formatMexicoClock,
   formatMexicoTime,
   isValidYmd,
   mexicoDayGreeting,

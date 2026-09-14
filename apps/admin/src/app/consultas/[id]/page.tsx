@@ -15,7 +15,7 @@ export default async function ConsultaPage({ params }: { params: Promise<{ id: s
   const { data: visit } = await supabase
     .from('visits')
     .select(
-      '*, patients(name, species, breed, alerts), clients(full_name, phone), visit_lines(*), vaccine_records(id, name, lot, next_due)',
+      '*, patients(id, name, species, breed, sex, birth_date, alerts, allergies), clients(full_name, phone), visit_lines(*), vaccine_records(id, name, lot, next_due)',
     )
     .eq('id', id)
     .eq('organization_id', staff.organizationId)

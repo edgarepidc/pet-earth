@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 import { REMINDER_KIND_LABELS, SPECIES_LABELS, todayMexicoYmd } from '@petearth/shared';
 import { createAdminClient } from '@petearth/supabase/admin';
 
-import { LogoutButton } from '@/components/LogoutButton';
+import { TutorShell } from '@/components/TutorShell';
 import { getTutorContext } from '@/lib/tutor';
 
 export const dynamic = 'force-dynamic';
@@ -31,45 +31,39 @@ export default async function TutorHomePage() {
   const today = todayMexicoYmd();
 
   return (
-    <main className="mx-auto min-h-screen max-w-3xl px-4 py-8">
-      <header className="mb-8 flex items-center justify-between">
-        <div>
-          <p className="text-xs uppercase tracking-wide text-slate-500">{tutor.clinicName}</p>
-          <h1 className="text-2xl font-bold">Hola, {tutor.clientName}</h1>
-        </div>
-        <LogoutButton />
-      </header>
+    <TutorShell clinicName={tutor.clinicName} tutorName={tutor.clientName}>
       <section className="space-y-3">
-        <h2 className="font-semibold">Tus mascotas</h2>
+        <h2 className="font-serif text-xl font-semibold">Tus mascotas</h2>
         <div className="grid gap-3 sm:grid-cols-2">
           {(patients ?? []).map((pet) => (
-            <Link key={pet.id} href={`/mascotas/${pet.id}`} className="pe-glass-card block p-4">
-              <p className="text-lg font-semibold">{pet.name}</p>
-              <p className="text-sm text-slate-500">
+            <Link key={pet.id} href={`/mascotas/${pet.id}`} className="pe-card block p-4">
+              <p className="font-serif text-xl font-semibold">{pet.name}</p>
+              <p className="text-sm text-[#6b5e55]">
                 {SPECIES_LABELS[pet.species]} {pet.breed ? `· ${pet.breed}` : ''}
               </p>
+              {pet.alerts ? <p className="mt-2 text-xs text-amber-800">{pet.alerts}</p> : null}
             </Link>
           ))}
         </div>
       </section>
       <section className="mt-8">
-        <h2 className="font-semibold">Pendientes</h2>
+        <h2 className="font-serif text-xl font-semibold">Pendientes</h2>
         <ul className="mt-3 space-y-2">
           {(reminders ?? []).map((row) => {
             const pet = Array.isArray(row.patients) ? row.patients[0] : row.patients;
             return (
-              <li key={row.id} className="pe-glass-card p-4 text-sm">
+              <li key={row.id} className="pe-card p-4 text-sm">
                 <p className="font-medium">{row.title}</p>
-                <p className="text-slate-500">
+                <p className="text-[#6b5e55]">
                   {pet?.name} · {REMINDER_KIND_LABELS[row.kind]} · {row.due_on}
-                  {row.due_on <= today ? ' · pendiente' : ''}
+                  {row.due_on <= today ? ' · por atender' : ''}
                 </p>
               </li>
             );
           })}
-          {(reminders ?? []).length === 0 ? <li className="text-sm text-slate-500">Nada pendiente.</li> : null}
+          {(reminders ?? []).length === 0 ? <li className="text-sm text-[#6b5e55]">Nada pendiente.</li> : null}
         </ul>
       </section>
-    </main>
+    </TutorShell>
   );
 }

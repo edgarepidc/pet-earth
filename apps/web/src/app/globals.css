@@ -1,2 +1,8 @@
 @import "tailwindcss";
 @import "@petearth/shared/theme.css";
+
+body {
+  min-height: 100vh;
+  background: var(--pe-bone);
+  color: var(--pe-ink);
+}
