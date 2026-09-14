@@ -3,8 +3,8 @@
 Producción piloto:
 
 - Supabase: [pet-earth-prod](https://supabase.com/dashboard/project/uhqybgptqhaycrkhqxnp) (`uhqybgptqhaycrkhqxnp`, `us-east-1`)
-- Vercel admin: `pet-earth-admin` (root `apps/admin`)
-- Vercel portal: `pet-earth-web` (root `apps/web`)
+- Vercel admin: https://pet-earth-admin.vercel.app (root `apps/admin`)
+- Vercel portal: https://pet-earth-web.vercel.app (root `apps/web`)
 
 ## Recrear (como Puerta Verde / Veka)
 
