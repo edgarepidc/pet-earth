@@ -50,6 +50,7 @@ npm run dev:web     # http://localhost:3001
 
 | Rol | Correo | App |
 |-----|--------|-----|
+| Super admin | `plataforma@petearth.local` | Admin → /plataforma |
 | Veterinaria | `vet@petearth.local` | Admin |
 | Recepción | `recepcion@petearth.local` | Admin |
 | Tutor (Ana) | `ana@petearth.local` | Portal |

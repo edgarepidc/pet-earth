@@ -7,13 +7,12 @@ import { createAdminClient } from '@petearth/supabase/admin';
 import { PatientHeader } from '@/components/PatientHeader';
 import { AdminShell } from '@/components/AdminShell';
 import { NewAppointmentForm } from '@/components/NewAppointmentForm';
-import { getStaffSession } from '@/lib/auth';
+import { loadClinicSession } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
 export default async function PatientPage({ params }: { params: Promise<{ id: string }> }) {
-  const staff = await getStaffSession();
-  if (!staff) return null;
+  const staff = await loadClinicSession();
   const { id } = await params;
   const supabase = createAdminClient();
   const { data: patient } = await supabase

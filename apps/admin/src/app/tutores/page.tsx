@@ -1,13 +1,12 @@
 import { AdminShell } from '@/components/AdminShell';
 import { PatientsDirectory } from '@/components/PatientsDirectory';
-import { getStaffSession } from '@/lib/auth';
+import { loadClinicSession } from '@/lib/auth';
 import { createAdminClient } from '@petearth/supabase/admin';
 
 export const dynamic = 'force-dynamic';
 
 export default async function TutoresPage() {
-  const staff = await getStaffSession();
-  if (!staff) return null;
+  const staff = await loadClinicSession();
   const { data } = await createAdminClient()
     .from('clients')
     .select('id, full_name, phone, email, patients(id, name, species, breed, alerts, is_active)')

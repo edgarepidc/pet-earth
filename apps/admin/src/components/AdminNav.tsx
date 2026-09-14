@@ -39,7 +39,13 @@ function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function AdminNav({ role }: { role: StaffRole }) {
+export function AdminNav({
+  role,
+  isPlatformAdmin = false,
+}: {
+  role: StaffRole;
+  isPlatformAdmin?: boolean;
+}) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
@@ -51,6 +57,13 @@ export function AdminNav({ role }: { role: StaffRole }) {
     ...group,
     items: group.items.filter((item) => !item.show || item.show(role)),
   })).filter((group) => group.items.length > 0);
+
+  if (isPlatformAdmin) {
+    groups.unshift({
+      label: 'SaaS',
+      items: [{ href: '/plataforma', label: 'Veterinarias' }],
+    });
+  }
 
   return (
     <>

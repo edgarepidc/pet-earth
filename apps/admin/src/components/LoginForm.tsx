@@ -28,12 +28,15 @@ export function LoginForm() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email.trim(), password }),
       });
-      const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+      const payload = (await response.json().catch(() => null)) as {
+        error?: string;
+        redirect?: string;
+      } | null;
       if (!response.ok) {
         setError(payload?.error ?? 'No se pudo entrar.');
         return;
       }
-      router.push(safeNextPath(searchParams.get('next')));
+      router.push(safeNextPath(searchParams.get('next') || payload?.redirect || '/'));
       router.refresh();
     } catch {
       setError('No se pudo conectar.');
@@ -55,7 +58,7 @@ export function LoginForm() {
           <p className="pe-kicker">Staff</p>
           <h1 className="mt-2 font-serif text-2xl font-semibold">Entrar a la clínica</h1>
           <p className="mt-2 text-sm text-[#6b5e55]">
-            Veterinaria o recepción. Contraseña del piloto: piloto123.
+            Clínica, recepción o super admin. Contraseña del piloto: piloto123.
           </p>
           <label className="mt-6 block text-sm font-medium">
             Correo

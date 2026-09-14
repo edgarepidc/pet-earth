@@ -35,6 +35,15 @@ values
     '{"provider":"email","providers":["email"]}'::jsonb,
     '{"full_name":"Ana Ruiz"}'::jsonb,
     now(), now(), '', '', '', ''
+  ),
+  (
+    '00000000-0000-0000-0000-000000000000',
+    '44444444-4444-4444-8444-444444444444',
+    'authenticated', 'authenticated', 'plataforma@petearth.local',
+    crypt('piloto123', gen_salt('bf')), now(),
+    '{"provider":"email","providers":["email"]}'::jsonb,
+    '{"full_name":"Super admin Pet Earth"}'::jsonb,
+    now(), now(), '', '', '', ''
   )
 on conflict (id) do nothing;
 
@@ -62,15 +71,25 @@ values
     'ana@petearth.local',
     jsonb_build_object('sub', '33333333-3333-4333-8333-333333333333', 'email', 'ana@petearth.local'),
     'email', now(), now(), now()
+  ),
+  (
+    '44444444-4444-4444-8444-444444444441',
+    '44444444-4444-4444-8444-444444444444',
+    'plataforma@petearth.local',
+    jsonb_build_object('sub', '44444444-4444-4444-8444-444444444444', 'email', 'plataforma@petearth.local'),
+    'email', now(), now(), now()
   )
 on conflict (id) do nothing;
 
 insert into public.profiles (id, full_name, is_platform_admin)
 values
-  ('11111111-1111-4111-8111-111111111111', 'Dra. Marina Solís', true),
+  ('11111111-1111-4111-8111-111111111111', 'Dra. Marina Solís', false),
   ('22222222-2222-4222-8222-222222222222', 'Luis Ortega', false),
-  ('33333333-3333-4333-8333-333333333333', 'Ana Ruiz', false)
-on conflict (id) do update set full_name = excluded.full_name;
+  ('33333333-3333-4333-8333-333333333333', 'Ana Ruiz', false),
+  ('44444444-4444-4444-8444-444444444444', 'Super admin Pet Earth', true)
+on conflict (id) do update set
+  full_name = excluded.full_name,
+  is_platform_admin = excluded.is_platform_admin;
 
 -- ---------------------------------------------------------------------------
 -- Clínica

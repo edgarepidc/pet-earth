@@ -35,5 +35,6 @@ organizations
 ## Seguridad
 
 - Staff autenticado: RLS por `organization_id`.
+- Super admin (`profiles.is_platform_admin`): consola `/plataforma`, puede entrar a cualquier clínica.
 - Tutor: lectura de su `client`, mascotas, altas, vacunas y recordatorios.
 - RPCs `pe_*` comprueban `is_staff_of_branch` con `auth.uid()`.

@@ -1,6 +1,11 @@
+import { cookies } from 'next/headers';
+
 import { createAdminClient } from '@petearth/supabase/admin';
 
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+
+export const PE_ORG_COOKIE = 'pe_org';
+export const PE_BRANCH_COOKIE = 'pe_branch';
 
 export interface TenantContext {
   organizationId: string;
@@ -8,6 +13,43 @@ export interface TenantContext {
   branchId: string;
   branchName: string;
   branchSlug: string;
+}
+
+export function tenantCookieOptions() {
+  return {
+    httpOnly: true,
+    sameSite: 'lax' as const,
+    secure: process.env.NODE_ENV === 'production',
+    path: '/',
+    maxAge: 60 * 60 * 24 * 14,
+  };
+}
+
+export async function resolveTenantByIds(
+  organizationId: string,
+  branchId: string,
+): Promise<TenantContext | null> {
+  const supabase = createAdminClient();
+  const { data: org } = await supabase
+    .from('organizations')
+    .select('id, name')
+    .eq('id', organizationId)
+    .maybeSingle();
+  if (!org) return null;
+  const { data: branch } = await supabase
+    .from('branches')
+    .select('id, name, slug, organization_id')
+    .eq('id', branchId)
+    .eq('organization_id', organizationId)
+    .maybeSingle();
+  if (!branch) return null;
+  return {
+    organizationId: org.id,
+    organizationName: org.name,
+    branchId: branch.id,
+    branchName: branch.name,
+    branchSlug: branch.slug,
+  };
 }
 
 export async function resolveTenantForUser(userId: string): Promise<TenantContext | null> {
@@ -22,42 +64,31 @@ export async function resolveTenantForUser(userId: string): Promise<TenantContex
   const membership = memberships?.[0];
   if (!membership) return null;
 
-  const { data: org } = await supabase
-    .from('organizations')
-    .select('id, name')
-    .eq('id', membership.organization_id)
-    .single();
-  if (!org) return null;
-
-  let branch: { id: string; name: string; slug: string } | null = null;
   if (membership.branch_id) {
-    const { data } = await supabase
-      .from('branches')
-      .select('id, name, slug')
-      .eq('id', membership.branch_id)
-      .maybeSingle();
-    branch = data;
+    return resolveTenantByIds(membership.organization_id, membership.branch_id);
   }
-  if (!branch) {
-    const { data } = await supabase
-      .from('branches')
-      .select('id, name, slug')
-      .eq('organization_id', org.id)
-      .eq('is_active', true)
-      .order('created_at', { ascending: true })
-      .limit(1)
-      .maybeSingle();
-    branch = data;
-  }
-  if (!branch) return null;
 
-  return {
-    organizationId: org.id,
-    organizationName: org.name,
-    branchId: branch.id,
-    branchName: branch.name,
-    branchSlug: branch.slug,
-  };
+  const { data: branch } = await supabase
+    .from('branches')
+    .select('id')
+    .eq('organization_id', membership.organization_id)
+    .eq('is_active', true)
+    .order('created_at', { ascending: true })
+    .limit(1)
+    .maybeSingle();
+  if (!branch) return null;
+  return resolveTenantByIds(membership.organization_id, branch.id);
+}
+
+export async function readImpersonationCookies(): Promise<{
+  organizationId: string;
+  branchId: string;
+} | null> {
+  const store = await cookies();
+  const organizationId = store.get(PE_ORG_COOKIE)?.value;
+  const branchId = store.get(PE_BRANCH_COOKIE)?.value;
+  if (!organizationId || !branchId) return null;
+  return { organizationId, branchId };
 }
 
 export async function getDefaultTenant(): Promise<TenantContext> {

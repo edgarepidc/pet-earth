@@ -3,7 +3,7 @@ import { addMexicoDays, mexicoWeekStart, todayMexicoYmd } from '@petearth/shared
 import { AdminShell } from '@/components/AdminShell';
 import { AgendaCalendar } from '@/components/AgendaCalendar';
 import type { AppointmentRow } from '@/components/DayBoard';
-import { getStaffSession } from '@/lib/auth';
+import { loadClinicSession } from '@/lib/auth';
 import { loadAppointmentsInRange } from '@/lib/queries';
 
 export const dynamic = 'force-dynamic';
@@ -13,8 +13,7 @@ export default async function AgendaPage({
 }: {
   searchParams: Promise<{ view?: string; start?: string; end?: string }>;
 }) {
-  const staff = await getStaffSession();
-  if (!staff) return null;
+  const staff = await loadClinicSession();
   const params = await searchParams;
   const today = todayMexicoYmd();
   const start = params.start ?? mexicoWeekStart(today);

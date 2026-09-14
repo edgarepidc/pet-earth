@@ -4,14 +4,13 @@ import { todayMexicoYmd } from '@petearth/shared';
 import { AdminShell } from '@/components/AdminShell';
 import { DayBoard, type AppointmentRow, type OpenInvoiceRow } from '@/components/DayBoard';
 import { ReminderPill } from '@/components/StatusPill';
-import { getStaffSession } from '@/lib/auth';
+import { loadClinicSession } from '@/lib/auth';
 import { loadDayAppointments, loadFollowUps, loadOpenInvoices } from '@/lib/queries';
 
 export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
-  const staff = await getStaffSession();
-  if (!staff) return null;
+  const staff = await loadClinicSession();
   const ymd = todayMexicoYmd();
   const [appointments, reminders, invoices] = await Promise.all([
     loadDayAppointments(staff.branchId, ymd),

@@ -3,13 +3,12 @@ import { notFound } from 'next/navigation';
 
 import { AdminShell } from '@/components/AdminShell';
 import { VisitWorkspace } from '@/components/VisitWorkspace';
-import { getStaffSession } from '@/lib/auth';
+import { loadClinicSession } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
 export default async function ConsultaPage({ params }: { params: Promise<{ id: string }> }) {
-  const staff = await getStaffSession();
-  if (!staff) return null;
+  const staff = await loadClinicSession();
   const { id } = await params;
   const supabase = createAdminClient();
   const { data: visit } = await supabase

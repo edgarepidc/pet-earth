@@ -27,6 +27,17 @@ export function canManageCatalog(role: StaffRole): boolean {
   return role === 'owner' || role === 'admin';
 }
 
+export function slugify(value: string): string {
+  const slug = value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 48);
+  return slug || 'clinica';
+}
+
 export const SPECIES = ['dog', 'cat', 'other'] as const;
 export type Species = (typeof SPECIES)[number];
 export const SPECIES_LABELS: Record<Species, string> = {

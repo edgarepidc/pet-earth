@@ -1,8 +1,9 @@
-import { createServerClient } from '@supabase/ssr';
+import { createAdminClient } from '@petearth/supabase/admin';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
 import type { Database } from '@petearth/supabase';
+import { createServerClient } from '@supabase/ssr';
 
 import { resolveTenantForUser } from '@/lib/tenant';
 
@@ -43,8 +44,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Correo o contraseña incorrectos.' }, { status: 401 });
   }
 
+  const admin = createAdminClient();
+  const { data: profile } = await admin
+    .from('profiles')
+    .select('is_platform_admin')
+    .eq('id', data.user.id)
+    .maybeSingle();
+  const isPlatformAdmin = Boolean(profile?.is_platform_admin);
   const tenant = await resolveTenantForUser(data.user.id);
-  if (!tenant) {
+
+  if (!tenant && !isPlatformAdmin) {
     await supabase.auth.signOut();
     return NextResponse.json(
       { error: 'Tu cuenta no tiene acceso al panel. Entra por el portal de tutores.' },
@@ -52,5 +61,8 @@ export async function POST(request: Request) {
     );
   }
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({
+    ok: true,
+    redirect: isPlatformAdmin && !tenant ? '/plataforma' : '/',
+  });
 }

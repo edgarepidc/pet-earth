@@ -21,6 +21,7 @@ export {
   canManageCatalog,
   canTakePayment,
   normalizeStaffRole,
+  slugify,
   type AppointmentStatus,
   type CatalogKind,
   type InvoiceStatus,
