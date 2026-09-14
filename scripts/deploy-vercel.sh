@@ -39,10 +39,10 @@ add_env pet-earth-admin NEXT_PUBLIC_WEB_URL "$WEB_URL"
 add_env pet-earth-web NEXT_PUBLIC_APP_URL "$WEB_URL"
 
 echo "→ Deploying admin..."
-npx vercel deploy --prod --yes --local-config vercel.admin.json --scope "$TEAM" --project pet-earth-admin
+npx vercel deploy --prod --yes --scope "$TEAM" --project pet-earth-admin
 
 echo "→ Deploying web..."
-npx vercel deploy --prod --yes --local-config vercel.web.json --scope "$TEAM" --project pet-earth-web
+npx vercel deploy --prod --yes --scope "$TEAM" --project pet-earth-web
 
 echo "Done."
 echo "  Admin: $ADMIN_URL/login"
