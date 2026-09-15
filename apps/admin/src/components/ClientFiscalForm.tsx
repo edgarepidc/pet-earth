@@ -66,7 +66,7 @@ export function ClientFiscalForm({
               </option>
             ))}
           </select>
-          {error ? <p className="text-sm text-red-700 md:col-span-2">{error}</p> : null}
+          {error ? <p className="text-sm text-pe-danger md:col-span-2">{error}</p> : null}
           <button type="submit" className="pe-btn-secondary px-3 py-1.5 text-sm">
             Guardar fiscales
           </button>

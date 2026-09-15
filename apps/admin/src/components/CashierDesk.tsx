@@ -84,13 +84,13 @@ export function CashierDesk({
     <section className="space-y-4">
       <div>
         <p className="pe-kicker">Recepción{branchName ? ` · ${branchName}` : ''}</p>
-        <h1 className="font-serif text-2xl font-semibold">Caja</h1>
-        <p className="text-sm text-[#6b5e55]">Tickets abiertos de esta sucursal. El CFDI se pide después de cobrar.</p>
+        <h1 className="text-2xl font-semibold tracking-tight">Caja</h1>
+        <p className="text-sm text-pe-muted">Tickets abiertos de esta sucursal. El CFDI se pide después de cobrar.</p>
       </div>
       {error ? <p className="pe-callout-amber p-3 text-sm">{error}</p> : null}
       {notice ? <p className="pe-card p-3 text-sm">{notice}</p> : null}
       {invoices.length === 0 ? (
-        <div className="pe-card p-6 text-sm text-[#6b5e55]">
+        <div className="pe-card p-6 text-sm text-pe-muted">
           No hay tickets por cobrar{branchName ? ` en ${branchName}` : ''}.
         </div>
       ) : (
@@ -104,9 +104,9 @@ export function CashierDesk({
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <p className="font-semibold">{patient?.name ?? 'Consulta'}</p>
-                    <p className="text-sm text-[#6b5e55]">{client?.full_name ?? 'Tutor'}</p>
+                    <p className="text-sm text-pe-muted">{client?.full_name ?? 'Tutor'}</p>
                     {invoice.visit_id ? (
-                      <Link href={`/consultas/${invoice.visit_id}`} className="text-sm text-[#b85c38] underline">
+                      <Link href={`/consultas/${invoice.visit_id}`} className="pe-link text-sm">
                         Ver consulta
                       </Link>
                     ) : null}
@@ -133,11 +133,11 @@ export function CashierDesk({
       )}
 
       <div>
-        <h2 className="font-serif text-xl font-semibold">CFDI 4.0</h2>
-        <p className="text-sm text-[#6b5e55]">Tickets cobrados de esta sucursal, pendientes de UUID.</p>
+        <h2 className="text-xl font-semibold tracking-tight">CFDI 4.0</h2>
+        <p className="text-sm text-pe-muted">Tickets cobrados de esta sucursal, pendientes de UUID.</p>
       </div>
       {cfdiQueue.length === 0 ? (
-        <div className="pe-card p-4 text-sm text-[#6b5e55]">Nada pendiente de timbrar.</div>
+        <div className="pe-card p-4 text-sm text-pe-muted">Nada pendiente de timbrar.</div>
       ) : (
         <ul className="space-y-3">
           {cfdiQueue.map((invoice) => {
@@ -149,12 +149,12 @@ export function CashierDesk({
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <p className="font-semibold">{patient?.name ?? 'Consulta'}</p>
-                    <p className="text-sm text-[#6b5e55]">{client?.full_name ?? 'Tutor'}</p>
-                    <p className="text-xs text-[#6b5e55]">
+                    <p className="text-sm text-pe-muted">{client?.full_name ?? 'Tutor'}</p>
+                    <p className="text-xs text-pe-muted">
                       {CFDI_STATUS_LABELS[invoice.cfdi_status ?? 'none']}
                       {client?.rfc ? ` · ${client.rfc}` : ' · falta RFC'}
                     </p>
-                    {invoice.cfdi_error ? <p className="text-xs text-[#8f4328]">{invoice.cfdi_error}</p> : null}
+                    {invoice.cfdi_error ? <p className="text-xs text-pe-clay-700">{invoice.cfdi_error}</p> : null}
                   </div>
                   <p className="font-semibold tabular-nums">{formatMoney(Number(invoice.total))}</p>
                 </div>

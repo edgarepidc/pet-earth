@@ -45,7 +45,7 @@ export default async function CartillaPage({ params }: { params: Promise<{ id: s
       </section>
       <table className="mt-6 w-full text-left text-sm">
         <thead>
-          <tr className="border-b border-[var(--pe-line)]">
+          <tr className="border-b border-pe-line">
             <th className="py-2">Vacuna</th>
             <th>Aplicada</th>
             <th>Lote</th>
@@ -54,7 +54,7 @@ export default async function CartillaPage({ params }: { params: Promise<{ id: s
         </thead>
         <tbody>
           {(vaccines ?? []).map((row, index) => (
-            <tr key={`${row.name}-${index}`} className="border-b border-[var(--pe-line)]">
+            <tr key={`${row.name}-${index}`} className="border-b border-pe-line">
               <td className="py-2">{row.name}</td>
               <td>{formatMexicoDate(row.applied_on)}</td>
               <td>{row.lot || '—'}</td>
@@ -63,7 +63,7 @@ export default async function CartillaPage({ params }: { params: Promise<{ id: s
           ))}
         </tbody>
       </table>
-      {(vaccines ?? []).length === 0 ? <p className="mt-4 text-sm text-[#6b5e55]">Aún no hay vacunas registradas.</p> : null}
+      {(vaccines ?? []).length === 0 ? <p className="mt-4 text-sm text-pe-muted">Aún no hay vacunas registradas.</p> : null}
     </PrintSheet>
   );
 }

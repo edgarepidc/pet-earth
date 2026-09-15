@@ -10,16 +10,16 @@ export function TutorShell({
   children: React.ReactNode;
 }) {
   return (
-    <main className="pe-app mx-auto min-h-screen max-w-3xl px-4 py-8">
-      <header className="mb-8 flex items-start justify-between gap-4">
+    <main className="pe-app min-h-screen px-5 py-10 sm:px-10 lg:px-16">
+      <header className="mb-8 flex max-w-2xl items-start justify-between gap-4">
         <div>
           <p className="pe-kicker">{clinicName}</p>
-          <h1 className="font-serif text-3xl font-semibold">Cartilla</h1>
-          <p className="mt-1 text-sm text-[#6b5e55]">{tutorName}</p>
+          <h1 className="font-serif text-3xl font-semibold tracking-tight">Cartilla</h1>
+          <p className="mt-1 text-sm text-pe-muted">{tutorName}</p>
         </div>
         <LogoutButton />
       </header>
-      {children}
+      <div className="max-w-2xl">{children}</div>
     </main>
   );
 }

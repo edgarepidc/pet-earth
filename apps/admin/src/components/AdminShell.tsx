@@ -22,7 +22,7 @@ export async function AdminShell({ children }: { children: React.ReactNode }) {
             <BranchSwitcher currentBranchId={staff.branchId} branches={staff.branches} inverted />
           </div>
         ) : (
-          <p className="mt-2 truncate px-2 text-[11px] text-[#d7cfc4]">{staff.branchName}</p>
+          <p className="mt-2 truncate px-2 text-[11px] text-pe-sidebar-muted">{staff.branchName}</p>
         )}
         <div className="mt-5">
           <ClinicClock />
@@ -31,15 +31,15 @@ export async function AdminShell({ children }: { children: React.ReactNode }) {
           <AdminNav role={staff.role} isPlatformAdmin={staff.isPlatformAdmin} />
         </div>
         <div className="mt-4 border-t border-white/10 pt-3">
-          <p className="truncate px-2 text-sm font-medium text-[#faf7f2]">{displayName}</p>
-          <p className="px-2 text-[11px] text-[#a89b90]">
+          <p className="truncate px-2 text-sm font-medium text-white">{displayName}</p>
+          <p className="px-2 text-[11px] text-pe-sidebar-muted">
             {staff.viaPlatform ? 'Soporte de plataforma' : STAFF_ROLE_LABELS[staff.role]}
           </p>
           <div className="mt-2 space-y-1 px-1">
             {staff.viaPlatform ? (
-              <ExitClinicButton className="w-full rounded-md border border-white/15 px-3 py-1.5 text-left text-sm text-[#d7cfc4] hover:bg-white/5 hover:text-[#faf7f2]" />
+              <ExitClinicButton className="w-full rounded-md border border-white/15 px-3 py-1.5 text-left text-sm text-pe-sidebar-muted hover:bg-white/5 hover:text-white" />
             ) : null}
-            <LogoutButton className="w-full rounded-md border border-white/15 px-3 py-1.5 text-left text-sm text-[#d7cfc4] hover:bg-white/5 hover:text-[#faf7f2]" />
+            <LogoutButton className="w-full rounded-md border border-white/15 px-3 py-1.5 text-left text-sm text-pe-sidebar-muted hover:bg-white/5 hover:text-white" />
           </div>
         </div>
       </aside>
@@ -57,12 +57,12 @@ export async function AdminShell({ children }: { children: React.ReactNode }) {
           ) : null}
         </header>
         {staff.branches.length > 1 ? (
-          <div className="border-b border-[var(--pe-line)] bg-[#f7efe6] px-3 py-2 lg:hidden">
+          <div className="border-b border-pe-line bg-pe-wash px-3 py-2 lg:hidden">
             <BranchSwitcher currentBranchId={staff.branchId} branches={staff.branches} />
           </div>
         ) : null}
         {staff.viaPlatform ? (
-          <div className="border-b border-[var(--pe-line)] bg-[#f7efe6] px-3 py-2 text-sm text-[#6b5e55] lg:px-5">
+          <div className="border-b border-pe-line bg-pe-wash px-3 py-2 text-sm text-pe-muted lg:px-5">
             Viendo {staff.organizationName} · {staff.branchName} como soporte. Los cambios quedan en esa sucursal.
           </div>
         ) : null}

@@ -51,8 +51,8 @@ export function CatalogManager({ items }: { items: Item[] }) {
     <section className="space-y-4">
       <div>
         <p className="pe-kicker">Farmacia</p>
-        <h1 className="font-serif text-2xl font-semibold">Catálogo</h1>
-        <p className="text-sm text-[#6b5e55]">Servicios y medicamentos. El ticket se desglosa con este tipo.</p>
+        <h1 className="text-2xl font-semibold tracking-tight">Catálogo</h1>
+        <p className="text-sm text-pe-muted">Servicios y medicamentos. El ticket se desglosa con este tipo.</p>
       </div>
       <form onSubmit={submit} className="pe-glass-card grid gap-3 p-4 md:grid-cols-5">
         <select className="pe-input" value={kind} onChange={(e) => setKind(e.target.value as CatalogKind)}>
@@ -72,11 +72,11 @@ export function CatalogManager({ items }: { items: Item[] }) {
         <button type="submit" className="pe-btn-primary px-4 py-2 text-sm md:col-span-5">
           Agregar
         </button>
-        {error ? <p className="text-sm text-red-700 md:col-span-5">{error}</p> : null}
+        {error ? <p className="text-sm text-pe-danger md:col-span-5">{error}</p> : null}
       </form>
       <table className="w-full text-left text-sm">
         <thead>
-          <tr className="border-b text-slate-500">
+          <tr className="border-b text-pe-muted">
             <th className="py-2">Ítem</th>
             <th>Tipo</th>
             <th>Precio</th>
@@ -86,14 +86,14 @@ export function CatalogManager({ items }: { items: Item[] }) {
         </thead>
         <tbody>
           {items.map((item) => (
-            <tr key={item.id} className="border-b border-slate-100">
+            <tr key={item.id} className="border-b border-pe-line">
               <td className="py-2 font-medium">{item.name}</td>
               <td>{CATALOG_KIND_LABELS[item.kind]}</td>
               <td>{formatMoney(Number(item.unit_price))}</td>
               <td>
                 {item.stock ?? '—'}
                 {item.kind === 'product' && item.min_stock != null && Number(item.stock ?? 0) <= Number(item.min_stock) ? (
-                  <span className="ml-2 text-xs font-semibold text-[#8f4328]">bajo</span>
+                  <span className="ml-2 text-xs font-semibold text-pe-clay-700">bajo</span>
                 ) : null}
               </td>
               <td>{item.min_stock ?? '—'}</td>

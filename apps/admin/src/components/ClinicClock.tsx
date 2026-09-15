@@ -13,8 +13,8 @@ export function ClinicClock() {
   }, []);
 
   return (
-    <p className="text-[11px] leading-snug text-[#d7cfc4]">
-      <span className="block font-semibold tabular-nums text-[#faf7f2]">{formatMexicoClock(now)}</span>
+    <p className="text-[11px] leading-snug text-pe-sidebar-muted">
+      <span className="block font-semibold tabular-nums text-white">{formatMexicoClock(now)}</span>
       <span className="capitalize">{formatMexicoDate(todayMexicoYmd(now), { weekday: 'short' })}</span>
     </p>
   );

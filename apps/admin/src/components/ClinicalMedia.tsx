@@ -64,8 +64,8 @@ export function ClinicalMedia({
   return (
     <section className="pe-card p-4">
       <h2 className="font-semibold">Fotos y estudios</h2>
-      <p className="mt-1 text-sm text-[#6b5e55]">Radiografías, laboratorios o fotos de lesión. Quedan en el expediente.</p>
-      {error ? <p className="mt-2 text-sm text-red-700">{error}</p> : null}
+      <p className="mt-1 text-sm text-pe-muted">Radiografías, laboratorios o fotos de lesión. Quedan en el expediente.</p>
+      {error ? <p className="mt-2 text-sm text-pe-danger">{error}</p> : null}
       {canUpload ? (
         <form onSubmit={(event) => void upload(event)} className="mt-3 grid gap-2 md:grid-cols-[1fr_auto_auto]">
           <input className="pe-input" type="file" name="file" required accept="image/jpeg,image/png,image/webp,application/pdf" />
@@ -81,7 +81,7 @@ export function ClinicalMedia({
       ) : null}
       <ul className="mt-4 grid gap-3 sm:grid-cols-2">
         {items.map((item) => (
-          <li key={item.id} className="overflow-hidden rounded-md border border-[var(--pe-line)] bg-white">
+          <li key={item.id} className="overflow-hidden rounded-md border border-pe-line bg-white">
             {item.url && item.content_type?.startsWith('image/') ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={item.url} alt={item.caption || 'Evidencia clínica'} className="h-40 w-full object-cover" />
@@ -90,7 +90,7 @@ export function ClinicalMedia({
                 Abrir PDF
               </a>
             ) : null}
-            <p className="p-2 text-xs text-[#6b5e55]">
+            <p className="p-2 text-xs text-pe-muted">
               {item.kind === 'study' ? 'Estudio' : 'Foto'}
               {item.caption ? ` · ${item.caption}` : ''}
             </p>

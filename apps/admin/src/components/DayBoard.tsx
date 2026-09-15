@@ -108,8 +108,8 @@ export function DayBoard({
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="pe-kicker">Sala de espera · {branchName ?? clinicName}</p>
-          <h1 className="font-serif text-2xl font-semibold">{title}</h1>
-          <p className="text-sm text-[#6b5e55]">
+          <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
+          <p className="text-sm text-pe-muted">
             Check-in → consulta → cobro. El piso de esta sucursal en un vistazo.
           </p>
         </div>
@@ -124,8 +124,8 @@ export function DayBoard({
           return (
             <div key={col.key} className="pe-card min-h-48 p-3">
               <div className="mb-2 flex items-baseline justify-between">
-                <h2 className="text-xs font-bold uppercase tracking-[0.12em] text-[#6b5e55]">{col.title}</h2>
-                <span className="text-xs tabular-nums text-[#6b5e55]">{rows.length}</span>
+                <h2 className="text-xs font-bold uppercase tracking-[0.12em] text-pe-muted">{col.title}</h2>
+                <span className="text-xs tabular-nums text-pe-muted">{rows.length}</span>
               </div>
               <ul className="space-y-2">
                 {rows.map((row) => {
@@ -137,7 +137,7 @@ export function DayBoard({
                       <p className="text-sm font-semibold">
                         {formatMexicoTime(row.starts_at)} · {patient?.name ?? 'Paciente'}
                       </p>
-                      <p className="text-xs text-[#6b5e55]">
+                      <p className="text-xs text-pe-muted">
                         {client?.full_name ?? '—'}
                         {row.reason ? ` · ${row.reason}` : ''}
                       </p>
@@ -242,8 +242,8 @@ export function DayBoard({
         })}
         <div className="pe-card min-h-48 p-3">
           <div className="mb-2 flex items-baseline justify-between">
-            <h2 className="text-xs font-bold uppercase tracking-[0.12em] text-[#6b5e55]">Por cobrar</h2>
-            <span className="text-xs tabular-nums text-[#6b5e55]">{invoices.length}</span>
+            <h2 className="text-xs font-bold uppercase tracking-[0.12em] text-pe-muted">Por cobrar</h2>
+            <span className="text-xs tabular-nums text-pe-muted">{invoices.length}</span>
           </div>
           <ul className="space-y-2">
             {invoices.map((invoice) => {
@@ -254,7 +254,7 @@ export function DayBoard({
                 <li key={invoice.id}>
                   <Link href={invoice.visit_id ? `/consultas/${invoice.visit_id}` : '/caja'} className="block rounded-md border border-[rgba(42,34,28,0.1)] bg-white p-2.5">
                     <p className="text-sm font-semibold">{patient?.name ?? 'Ticket'}</p>
-                    <p className="text-xs text-[#6b5e55]">{client?.full_name ?? '—'}</p>
+                    <p className="text-xs text-pe-muted">{client?.full_name ?? '—'}</p>
                   </Link>
                 </li>
               );

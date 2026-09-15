@@ -46,21 +46,18 @@ export function LoginForm() {
   }
 
   return (
-    <main className="pe-app flex min-h-screen">
-      <aside className="pe-sidebar hidden w-[280px] flex-col justify-between p-8 md:flex">
-        <BrandLogo href="/login" subtitle="Consultorio" inverted />
-        <p className="font-serif text-2xl leading-snug text-[#f3eee6]">
+    <main className="pe-app flex min-h-screen flex-col">
+      <header className="px-5 py-5 lg:px-8">
+        <BrandLogo href="/login" subtitle="Consultorio" />
+      </header>
+      <div className="flex flex-1 flex-col items-center justify-center px-4 pb-16">
+        <p className="mb-8 max-w-sm text-center text-lg leading-snug text-pe-muted">
           Sala, consulta y ticket en el mismo circuito.
         </p>
-      </aside>
-      <div className="flex flex-1 items-center justify-center px-4 py-10">
         <form onSubmit={handleSubmit} className="pe-panel w-full max-w-md p-8">
           <p className="pe-kicker">Staff</p>
-          <h1 className="mt-2 font-serif text-2xl font-semibold">Entrar a la clínica</h1>
-          <p className="mt-2 text-sm text-[#6b5e55]">
-            Clínica, recepción o super admin. Contraseña del piloto: piloto123.
-            Segunda clínica: sofia@petearth.local / marta@petearth.local.
-          </p>
+          <h1 className="mt-2 text-2xl font-semibold tracking-tight">Entrar a la clínica</h1>
+          <p className="mt-2 text-sm text-pe-muted">Clínica, recepción o super admin.</p>
           <label className="mt-6 block text-sm font-medium">
             Correo
             <input
@@ -83,7 +80,7 @@ export function LoginForm() {
               onChange={(e) => setPassword(e.target.value)}
             />
           </label>
-          {error ? <p className="mt-3 text-sm text-red-700">{error}</p> : null}
+          {error ? <p className="mt-3 text-sm text-pe-danger">{error}</p> : null}
           <button type="submit" disabled={loading} className="pe-btn-primary mt-6 w-full py-2.5 text-sm">
             {loading ? 'Entrando…' : 'Entrar'}
           </button>

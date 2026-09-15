@@ -30,11 +30,11 @@ export function PatientHeader({
   clinicName?: string;
 }) {
   const title = href ? (
-    <Link href={href} className="font-serif text-2xl font-semibold text-[#2a221c] no-underline hover:underline">
+    <Link href={href} className="text-2xl font-semibold tracking-tight text-pe-ink no-underline hover:underline">
       {name}
     </Link>
   ) : (
-    <h1 className="font-serif text-2xl font-semibold text-[#2a221c]">{name}</h1>
+    <h1 className="text-2xl font-semibold tracking-tight text-pe-ink">{name}</h1>
   );
   const wa = whatsappHref(
     tutorPhone,
@@ -45,20 +45,20 @@ export function PatientHeader({
     <header className="pe-card p-4">
       <p className="pe-kicker">Paciente</p>
       {title}
-      <p className="mt-1 text-sm text-[#6b5e55]">
+      <p className="mt-1 text-sm text-pe-muted">
         {SPECIES_LABELS[species]}
         {sex ? ` · ${SEX_LABELS[sex]}` : ''}
         {breed ? ` · ${breed}` : ''}
         {patientAgeLabel(birthDate ?? null) ? ` · ${patientAgeLabel(birthDate ?? null)}` : ''}
         {weightKg != null ? ` · ${weightKg} kg` : ''}
       </p>
-      <p className="text-sm text-[#6b5e55]">
+      <p className="text-sm text-pe-muted">
         Tutor: {tutorName ?? '—'}
         {tutorPhone ? ` · ${tutorPhone}` : ''}
         {wa ? (
           <>
             {' · '}
-            <a href={wa} target="_blank" rel="noreferrer" className="text-[#b85c38] underline">
+            <a href={wa} target="_blank" rel="noreferrer" className="pe-link">
               WhatsApp
             </a>
           </>

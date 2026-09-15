@@ -48,12 +48,12 @@ export function GlobalSearch() {
       />
       {open && (hits.length > 0 || empty) ? (
         <ul className="pe-card absolute z-30 mt-1 w-full overflow-hidden py-1">
-          {empty ? <li className="px-3 py-2 text-sm text-[#6b5e55]">Sin coincidencias.</li> : null}
+          {empty ? <li className="px-3 py-2 text-sm text-pe-muted">Sin coincidencias.</li> : null}
           {hits.map((hit) => (
             <li key={hit.href}>
-              <Link href={hit.href} className="block px-3 py-2 text-sm hover:bg-[#efe8de]">
+              <Link href={hit.href} className="block px-3 py-2 text-sm hover:bg-pe-wash">
                 <span className="font-medium">{hit.title}</span>
-                <span className="ml-2 text-[#6b5e55]">{hit.subtitle}</span>
+                <span className="ml-2 text-pe-muted">{hit.subtitle}</span>
               </Link>
             </li>
           ))}

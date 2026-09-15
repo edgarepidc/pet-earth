@@ -32,11 +32,11 @@ export function NewAppointmentForm({ patientId, branchName }: { patientId: strin
   return (
     <form onSubmit={submit} className="pe-glass-card space-y-3 p-4">
       <h2 className="font-semibold">Agendar cita</h2>
-      {branchName ? <p className="text-sm text-[#6b5e55]">Se guarda en {branchName}.</p> : null}
+      {branchName ? <p className="text-sm text-pe-muted">Se guarda en {branchName}.</p> : null}
       <input type="date" className="pe-input" value={date} onChange={(e) => setDate(e.target.value)} />
       <input type="time" className="pe-input" value={time} onChange={(e) => setTime(e.target.value)} />
       <input className="pe-input" placeholder="Motivo" value={reason} onChange={(e) => setReason(e.target.value)} />
-      {error ? <p className="text-sm text-red-700">{error}</p> : null}
+      {error ? <p className="text-sm text-pe-danger">{error}</p> : null}
       <button type="submit" className="pe-btn-primary px-4 py-2 text-sm">
         Guardar en agenda
       </button>

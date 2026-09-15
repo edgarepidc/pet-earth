@@ -30,26 +30,34 @@ export function TutorLoginForm() {
   }
 
   return (
-    <main className="pe-app flex min-h-screen items-center justify-center px-4">
-      <form onSubmit={submit} className="pe-panel w-full max-w-md space-y-4 p-8">
-        <p className="pe-kicker text-center">Cartilla del tutor</p>
-        <h1 className="text-center font-serif text-3xl font-semibold">Pet Earth</h1>
-        <p className="text-center text-sm text-[#6b5e55]">
-          Vacunas, altas y citas de tu mascota. Contraseña del piloto: piloto123.
+    <main className="pe-app min-h-screen px-5 py-12 sm:px-10 lg:px-16">
+      <div className="max-w-lg">
+        <p className="pe-kicker">Cartilla del tutor</p>
+        <h1 className="mt-2 font-serif text-4xl font-semibold tracking-tight">Pet Earth</h1>
+        <p className="mt-3 max-w-sm text-sm leading-relaxed text-pe-muted">
+          Vacunas, altas y citas de tu mascota. El expediente que te llevas a casa.
         </p>
-        <label className="block text-sm">
-          Correo
-          <input className="pe-input mt-1" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-        </label>
-        <label className="block text-sm">
-          Contraseña
-          <input className="pe-input mt-1" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-        </label>
-        {error ? <p className="text-sm text-red-700">{error}</p> : null}
-        <button type="submit" className="pe-btn-primary w-full py-2.5 text-sm" disabled={loading}>
-          {loading ? 'Entrando…' : 'Ver cartilla'}
-        </button>
-      </form>
+        <form onSubmit={submit} className="pe-panel mt-8 space-y-4 p-6">
+          <label className="block text-sm font-medium">
+            Correo
+            <input className="pe-input mt-1" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+          </label>
+          <label className="block text-sm font-medium">
+            Contraseña
+            <input
+              className="pe-input mt-1"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </label>
+          {error ? <p className="text-sm text-pe-danger">{error}</p> : null}
+          <button type="submit" className="pe-btn-primary w-full py-2.5 text-sm" disabled={loading}>
+            {loading ? 'Entrando…' : 'Ver cartilla'}
+          </button>
+        </form>
+      </div>
     </main>
   );
 }

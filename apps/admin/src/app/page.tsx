@@ -34,39 +34,39 @@ export default async function HomePage() {
           <div className="pe-card p-4">
             <h2 className="text-sm font-semibold">Seguimiento vencido</h2>
             {overdue.length === 0 ? (
-              <p className="mt-2 text-sm text-[#6b5e55]">Nada vencido.</p>
+              <p className="mt-2 text-sm text-pe-muted">Nada vencido.</p>
             ) : (
               <ul className="mt-3 space-y-2">
                 {overdue.map((row) => (
                   <li key={row.id} className="text-sm">
                     <ReminderPill kind={row.kind} />
                     <p className="mt-1 font-medium">{row.title}</p>
-                    <p className="text-xs text-[#6b5e55]">{row.due_on}</p>
+                    <p className="text-xs text-pe-muted">{row.due_on}</p>
                   </li>
                 ))}
               </ul>
             )}
-            <Link href="/seguimiento" className="mt-3 inline-block text-sm font-medium text-[#b85c38] underline">
+            <Link href="/seguimiento" className="mt-3 inline-block text-sm pe-link">
               Ver bandeja
             </Link>
           </div>
           <div className="pe-card p-4">
             <h2 className="text-sm font-semibold">Stock bajo</h2>
             {lowStock.length === 0 ? (
-              <p className="mt-2 text-sm text-[#6b5e55]">Sin alertas.</p>
+              <p className="mt-2 text-sm text-pe-muted">Sin alertas.</p>
             ) : (
               <ul className="mt-3 space-y-2">
                 {lowStock.slice(0, 5).map((item) => (
                   <li key={item.id} className="text-sm">
                     <p className="font-medium">{item.name}</p>
-                    <p className="text-xs text-[#8f4328]">
+                    <p className="text-xs text-pe-clay-700">
                       {Number(item.stock ?? 0)} / mín {Number(item.min_stock)}
                     </p>
                   </li>
                 ))}
               </ul>
             )}
-            <Link href="/catalogo" className="mt-3 inline-block text-sm font-medium text-[#b85c38] underline">
+            <Link href="/catalogo" className="mt-3 inline-block text-sm pe-link">
               Catálogo
             </Link>
           </div>

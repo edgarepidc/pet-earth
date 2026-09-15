@@ -51,8 +51,8 @@ export function CreateClinicForm() {
   return (
     <form onSubmit={(event) => void handleSubmit(event)} className="pe-panel max-w-xl p-6">
       <p className="pe-kicker">Nueva veterinaria</p>
-      <h1 className="mt-2 font-serif text-2xl font-semibold">Alta de clínica</h1>
-      <p className="mt-2 text-sm text-[#6b5e55]">
+      <h1 className="mt-2 text-2xl font-semibold tracking-tight">Alta de clínica</h1>
+      <p className="mt-2 text-sm text-pe-muted">
         Crea la organización, la primera sucursal y el usuario dueño. El catálogo arranca con consulta y vacunas.
       </p>
 
@@ -69,7 +69,7 @@ export function CreateClinicForm() {
         <input className="pe-input mt-1" value={address} onChange={(e) => setAddress(e.target.value)} />
       </label>
 
-      <p className="mt-6 text-[10px] font-bold uppercase tracking-[0.16em] text-[#6b5e55]">Dueño / owner</p>
+      <p className="mt-6 text-[10px] font-bold uppercase tracking-[0.16em] text-pe-muted">Dueño / owner</p>
       <label className="mt-3 block text-sm font-medium">
         Nombre
         <input className="pe-input mt-1" required value={ownerName} onChange={(e) => setOwnerName(e.target.value)} />
@@ -98,7 +98,7 @@ export function CreateClinicForm() {
         />
       </label>
 
-      {error ? <p className="mt-3 text-sm text-red-700">{error}</p> : null}
+      {error ? <p className="mt-3 text-sm text-pe-danger">{error}</p> : null}
       <button type="submit" disabled={loading} className="pe-btn-primary mt-6 px-4 py-2.5 text-sm">
         {loading ? 'Creando…' : 'Crear veterinaria'}
       </button>

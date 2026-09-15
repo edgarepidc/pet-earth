@@ -30,8 +30,8 @@ export default async function PlataformaPage() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="pe-kicker">Super admin</p>
-          <h1 className="font-serif text-3xl font-semibold">Veterinarias</h1>
-          <p className="mt-1 text-sm text-[#6b5e55]">
+          <h1 className="text-3xl font-semibold tracking-tight">Veterinarias</h1>
+          <p className="mt-1 text-sm text-pe-muted">
             Alta de clínicas y sucursales. Entra al panel de una para dar soporte.
           </p>
         </div>
@@ -47,15 +47,15 @@ export default async function PlataformaPage() {
           return (
             <li key={org.id} className="pe-card flex flex-wrap items-center justify-between gap-3 p-4">
               <div>
-                <Link href={`/plataforma/${org.id}`} className="font-serif text-lg font-semibold no-underline">
+                <Link href={`/plataforma/${org.id}`} className="text-lg font-semibold tracking-tight no-underline">
                   {org.name}
                 </Link>
-                <p className="text-sm text-[#6b5e55]">
+                <p className="text-sm text-pe-muted">
                   {org.slug} · {orgBranches.length === 1 ? '1 sucursal' : `${orgBranches.length} sucursales`} · alta{' '}
                   {formatMexicoDate(org.created_at.slice(0, 10))}
                 </p>
                 {orgBranches.length > 0 ? (
-                  <p className="mt-1 text-sm text-[#6b5e55]">{orgBranches.map((branch) => branch.name).join(' · ')}</p>
+                  <p className="mt-1 text-sm text-pe-muted">{orgBranches.map((branch) => branch.name).join(' · ')}</p>
                 ) : null}
               </div>
               <div className="flex flex-wrap items-center gap-2">

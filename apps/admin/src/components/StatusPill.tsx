@@ -10,16 +10,16 @@ export function appointmentTone(status: AppointmentStatus): string {
     case 'waiting':
       return 'bg-amber-100 text-amber-900';
     case 'in_consult':
-      return 'bg-[#f3e4da] text-[#8f4328]';
+      return 'bg-[rgba(196,92,50,0.12)] text-pe-clay-700';
     case 'completed':
       return 'bg-emerald-100 text-emerald-900';
     case 'cancelled':
     case 'no_show':
-      return 'bg-[#ebe4da] text-[#6b5e55]';
+      return 'bg-pe-wash text-pe-muted';
     case 'confirmed':
-      return 'bg-[#efe8de] text-[#3c322c]';
+      return 'bg-pe-wash text-pe-ink';
     default:
-      return 'bg-[#efe8de] text-[#3c322c]';
+      return 'bg-pe-wash text-pe-ink';
   }
 }
 
@@ -30,5 +30,5 @@ export function StatusPill({ status }: { status: AppointmentStatus }) {
 }
 
 export function ReminderPill({ kind }: { kind: ReminderKind }) {
-  return <span className="pe-pill bg-[#efe8de] text-[#3c322c]">{REMINDER_KIND_LABELS[kind]}</span>;
+  return <span className="pe-pill bg-pe-wash text-pe-ink">{REMINDER_KIND_LABELS[kind]}</span>;
 }

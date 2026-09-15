@@ -59,13 +59,13 @@ export default async function PatientPage({ params }: { params: Promise<{ id: st
             <ul className="mt-3 space-y-2 text-sm">
               {(visits ?? []).map((visit) => (
                 <li key={visit.id}>
-                  <Link href={`/consultas/${visit.id}`} className="font-medium text-[#b85c38] underline">
+                  <Link href={`/consultas/${visit.id}`} className="pe-link">
                     {formatMexicoDateTime(visit.started_at)} · {visit.status === 'completed' ? 'Alta' : 'En curso'}
                   </Link>
-                  {visit.plan ? <p className="text-slate-500">{visit.plan}</p> : null}
+                  {visit.plan ? <p className="text-pe-muted">{visit.plan}</p> : null}
                 </li>
               ))}
-              {(visits ?? []).length === 0 ? <li className="text-slate-500">Sin consultas aún.</li> : null}
+              {(visits ?? []).length === 0 ? <li className="text-pe-muted">Sin consultas aún.</li> : null}
             </ul>
           </div>
           <div className="pe-glass-card p-4">
@@ -85,7 +85,7 @@ export default async function PatientPage({ params }: { params: Promise<{ id: st
           <NewAppointmentForm patientId={patient.id} branchName={staff.branchName} />
           <div className="pe-glass-card p-4">
             <h2 className="font-semibold">Peso</h2>
-            <ul className="mt-2 space-y-1 text-sm text-slate-600">
+            <ul className="mt-2 space-y-1 text-sm text-pe-muted">
               {(weights ?? []).map((row) => (
                 <li key={row.recorded_at}>
                   {Number(row.weight_kg)} kg · {formatMexicoDateTime(row.recorded_at)}

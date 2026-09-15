@@ -44,11 +44,11 @@ export default async function PetProfilePage({ params }: { params: Promise<{ id:
 
   return (
     <TutorShell clinicName={tutor.clinicName} tutorName={tutor.clientName}>
-      <Link href="/" className="text-sm font-medium text-[#b85c38] underline">
+      <Link href="/" className="text-sm pe-link">
         Todas las mascotas
       </Link>
       <h2 className="mt-4 font-serif text-3xl font-semibold">{patient.name}</h2>
-      <p className="text-[#6b5e55]">
+      <p className="text-pe-muted">
         {SPECIES_LABELS[patient.species]} · {SEX_LABELS[patient.sex]}
         {patientAgeLabel(patient.birth_date) ? ` · ${patientAgeLabel(patient.birth_date)}` : ''}
       </p>
@@ -62,14 +62,14 @@ export default async function PetProfilePage({ params }: { params: Promise<{ id:
               {formatMexicoDateTime(row.starts_at)} {row.reason ? `· ${row.reason}` : ''}
             </li>
           ))}
-          {(appointments ?? []).length === 0 ? <li className="text-[#6b5e55]">Sin citas abiertas.</li> : null}
+          {(appointments ?? []).length === 0 ? <li className="text-pe-muted">Sin citas abiertas.</li> : null}
         </ul>
       </section>
 
       <section className="pe-card mt-4 p-4">
         <div className="flex items-center justify-between gap-3">
           <h3 className="font-semibold">Cartilla de vacunas</h3>
-          <Link href={`/mascotas/${id}/cartilla`} className="text-sm font-medium text-[#b85c38] underline">
+          <Link href={`/mascotas/${id}/cartilla`} className="text-sm pe-link">
             Imprimir
           </Link>
         </div>
@@ -77,13 +77,13 @@ export default async function PetProfilePage({ params }: { params: Promise<{ id:
           {(vaccines ?? []).map((row, index) => (
             <li key={`${row.name}-${index}`}>
               <p className="font-medium">{row.name}</p>
-              <p className="text-[#6b5e55]">
+              <p className="text-pe-muted">
                 Aplicada {row.applied_on}
                 {row.next_due ? ` · próxima ${row.next_due}` : ''}
               </p>
             </li>
           ))}
-          {(vaccines ?? []).length === 0 ? <li className="text-[#6b5e55]">Aún no hay vacunas registradas.</li> : null}
+          {(vaccines ?? []).length === 0 ? <li className="text-pe-muted">Aún no hay vacunas registradas.</li> : null}
         </ol>
       </section>
 
@@ -93,12 +93,12 @@ export default async function PetProfilePage({ params }: { params: Promise<{ id:
           {(visits ?? []).map((visit) => (
             <li key={visit.id}>
               <p className="font-medium">{formatMexicoDateTime(visit.started_at)}</p>
-              {visit.weight_kg ? <p className="text-[#6b5e55]">Peso: {Number(visit.weight_kg)} kg</p> : null}
+              {visit.weight_kg ? <p className="text-pe-muted">Peso: {Number(visit.weight_kg)} kg</p> : null}
               {visit.assessment ? <p>{visit.assessment}</p> : null}
-              {visit.plan ? <p className="text-[#6b5e55]">Plan: {visit.plan}</p> : null}
+              {visit.plan ? <p className="text-pe-muted">Plan: {visit.plan}</p> : null}
             </li>
           ))}
-          {(visits ?? []).length === 0 ? <li className="text-[#6b5e55]">Aún no hay altas para mostrar.</li> : null}
+          {(visits ?? []).length === 0 ? <li className="text-pe-muted">Aún no hay altas para mostrar.</li> : null}
         </ul>
       </section>
     </TutorShell>

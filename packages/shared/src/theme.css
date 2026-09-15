@@ -1,27 +1,39 @@
-/* Pet Earth — consultorio: hueso, terracota, tinta. No es la familia Puerta Verde. */
+/* Pet Earth — Pizarra: piso claro, sidebar tinta, cobre solo en el CTA. */
 
 @theme {
-  --font-sans: var(--font-ibm-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-serif: var(--font-source-serif), ui-serif, Georgia, serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 
-  --color-pe-bone: #f3eee6;
-  --color-pe-paper: #faf7f2;
-  --color-pe-ink: #2a221c;
-  --color-pe-soil: #3c322c;
-  --color-pe-clay: #b85c38;
-  --color-pe-clay-700: #8f4328;
-  --color-pe-muted: #6b5e55;
+  --color-pe-bone: #f4f1ec;
+  --color-pe-paper: #ffffff;
+  --color-pe-ink: #1f2428;
+  --color-pe-soil: #1f2428;
+  --color-pe-clay: #c45c32;
+  --color-pe-clay-700: #9a4324;
+  --color-pe-muted: #5c656c;
+  --color-pe-wash: #ede8e1;
+  --color-pe-sidebar-muted: #9aa3ab;
+  --color-pe-danger: #b42318;
+  --color-pe-line: rgb(31 36 40 / 0.1);
+  --color-pe-line-strong: rgb(31 36 40 / 0.16);
 }
 
 :root {
-  --pe-bone: #f3eee6;
-  --pe-paper: #faf7f2;
-  --pe-ink: #2a221c;
-  --pe-soil: #3c322c;
-  --pe-clay: #b85c38;
-  --pe-clay-700: #8f4328;
-  --pe-line: rgba(42, 34, 28, 0.12);
-  --pe-line-strong: rgba(42, 34, 28, 0.2);
+  --pe-bone: #f4f1ec;
+  --pe-paper: #ffffff;
+  --pe-ink: #1f2428;
+  --pe-soil: #1f2428;
+  --pe-clay: #c45c32;
+  --pe-clay-700: #9a4324;
+  --pe-muted: #5c656c;
+  --pe-wash: #ede8e1;
+  --pe-line: rgba(31, 36, 40, 0.1);
+  --pe-line-strong: rgba(31, 36, 40, 0.16);
+  --pe-sidebar-muted: #9aa3ab;
+  --pe-danger: #b42318;
+  --pe-shadow: 0 1px 2px rgb(16 18 22 / 0.06), 0 4px 12px rgb(16 18 22 / 0.04);
+  --pe-radius: 0.5rem;
 }
 
 .pe-ambient {
@@ -35,21 +47,23 @@
 
 .pe-sidebar {
   background: var(--pe-soil);
-  color: var(--pe-bone);
+  color: #e8eaec;
 }
 
 .pe-glass-card,
 .pe-card {
-  border-radius: 0.625rem;
+  border-radius: var(--pe-radius);
   background: var(--pe-paper);
   border: 1px solid var(--pe-line);
+  box-shadow: var(--pe-shadow);
 }
 
 .pe-glass-panel,
 .pe-panel {
-  border-radius: 0.75rem;
+  border-radius: var(--pe-radius);
   background: var(--pe-paper);
   border: 1px solid var(--pe-line);
+  box-shadow: var(--pe-shadow);
 }
 
 .pe-glass-header {
@@ -63,7 +77,7 @@
 }
 
 .pe-btn-primary {
-  border-radius: 0.5rem;
+  border-radius: var(--pe-radius);
   background: var(--pe-clay);
   color: #fffaf6;
   font-weight: 600;
@@ -79,7 +93,7 @@
 }
 
 .pe-btn-secondary {
-  border-radius: 0.5rem;
+  border-radius: var(--pe-radius);
   background: var(--pe-paper);
   border: 1px solid var(--pe-line-strong);
   color: var(--pe-ink);
@@ -87,11 +101,11 @@
 }
 
 .pe-btn-secondary:hover {
-  background: #efe8de;
+  background: var(--pe-wash);
 }
 
 .pe-btn-ghost {
-  border-radius: 0.5rem;
+  border-radius: var(--pe-radius);
   background: transparent;
   border: 1px solid var(--pe-line);
   color: var(--pe-muted);
@@ -99,13 +113,13 @@
 }
 
 .pe-btn-ghost:hover {
-  background: #efe8de;
+  background: var(--pe-wash);
   color: var(--pe-ink);
 }
 
 .pe-input {
   width: 100%;
-  border-radius: 0.5rem;
+  border-radius: var(--pe-radius);
   background: #fff;
   border: 1px solid var(--pe-line-strong);
   padding: 0.5rem 0.75rem;
@@ -115,11 +129,11 @@
 .pe-input:focus {
   outline: none;
   border-color: var(--pe-clay);
-  box-shadow: 0 0 0 3px rgba(184, 92, 56, 0.18);
+  box-shadow: 0 0 0 3px rgba(196, 92, 50, 0.18);
 }
 
 .pe-pill {
-  border-radius: 0.375rem;
+  border-radius: 0.25rem;
   padding: 0.12rem 0.5rem;
   font-size: 0.68rem;
   font-weight: 700;
@@ -128,21 +142,21 @@
 }
 
 .pe-nav-active {
-  background: rgba(250, 247, 242, 0.12);
-  color: #fffaf6;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
 }
 
 .pe-chip-active {
-  background: var(--pe-soil);
+  background: var(--pe-ink);
   color: var(--pe-bone);
-  border-color: var(--pe-soil);
+  border-color: var(--pe-ink);
 }
 
 .pe-callout-amber {
-  border-radius: 0.5rem;
-  border: 1px solid rgba(184, 92, 56, 0.35);
-  background: rgba(184, 92, 56, 0.08);
-  color: #8f4328;
+  border-radius: var(--pe-radius);
+  border: 1px solid rgba(196, 92, 50, 0.28);
+  background: rgba(196, 92, 50, 0.08);
+  color: var(--pe-clay-700);
 }
 
 .pe-kicker {
@@ -151,6 +165,12 @@
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--pe-muted);
+}
+
+.pe-link {
+  color: var(--pe-clay);
+  font-weight: 500;
+  text-decoration: underline;
 }
 
 textarea.pe-input {
@@ -162,6 +182,7 @@ textarea.pe-input {
   background: #fff;
   border: 1px solid var(--pe-line);
   border-radius: 0.75rem;
+  font-family: var(--font-serif), Georgia, serif;
 }
 
 .pe-no-print {
@@ -181,6 +202,7 @@ textarea.pe-input {
 
   .pe-print-sheet {
     border: 0;
+    box-shadow: none;
     max-width: none;
     padding: 0;
   }

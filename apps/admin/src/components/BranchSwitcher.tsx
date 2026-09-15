@@ -54,7 +54,7 @@ export function BranchSwitcher({
       <label className="block">
         <span
           className={`mb-1 block text-[10px] font-bold uppercase tracking-[0.16em] ${
-            inverted ? 'text-[#a89b90]' : 'text-[#6b5e55]'
+            inverted ? 'text-pe-sidebar-muted' : 'text-pe-muted'
           }`}
         >
           Sucursal
@@ -62,7 +62,7 @@ export function BranchSwitcher({
         <select
           className={
             inverted
-              ? 'w-full rounded-md border border-white/15 bg-white/5 px-2 py-1.5 text-sm text-[#faf7f2] outline-none focus:border-[#b85c38]'
+              ? 'w-full rounded-md border border-white/15 bg-white/5 px-2 py-1.5 text-sm text-white outline-none focus:border-pe-clay'
               : 'pe-input py-1.5 text-sm'
           }
           value={selected}
@@ -71,13 +71,13 @@ export function BranchSwitcher({
           onChange={(event) => void switchTo(event.target.value)}
         >
           {branches.map((branch) => (
-            <option key={branch.id} value={branch.id} className="text-[#2a221c]">
+            <option key={branch.id} value={branch.id} className="text-pe-ink">
               {branch.name}
             </option>
           ))}
         </select>
       </label>
-      {error ? <p className={`mt-1 text-xs ${inverted ? 'text-[#f3c4b0]' : 'text-red-700'}`}>{error}</p> : null}
+      {error ? <p className={`mt-1 text-xs ${inverted ? 'text-amber-200' : 'text-pe-danger'}`}>{error}</p> : null}
     </div>
   );
 }

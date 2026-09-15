@@ -76,8 +76,8 @@ export function AgendaCalendar({
     <section className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="font-serif text-2xl font-semibold">Agenda</h1>
-          <p className="text-sm text-[#6b5e55]">
+          <h1 className="text-2xl font-semibold tracking-tight">Agenda</h1>
+          <p className="text-sm text-pe-muted">
             {branchName ? `${branchName} · ` : ''}
             {view === 'week' ? 'Capacidad de la semana' : 'Planeación del mes'}
           </p>
@@ -101,8 +101,8 @@ export function AgendaCalendar({
         {days.map((day) => {
           const rows = byDay.get(day) ?? [];
           return (
-            <div key={day} className={`pe-card p-3 ${day === today ? 'ring-1 ring-[#b85c38]' : ''}`}>
-              <Link href="/" className="text-xs font-semibold text-[#3c322c]">
+            <div key={day} className={`pe-card p-3 ${day === today ? 'ring-1 ring-pe-clay' : ''}`}>
+              <Link href="/" className="text-xs font-semibold text-pe-ink">
                 {formatMexicoDate(day, { weekday: 'short', day: 'numeric', month: 'short' })}
               </Link>
               <ul className="mt-2 space-y-2">

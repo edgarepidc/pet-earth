@@ -81,8 +81,8 @@ export function FollowUpInbox({
     <section className="space-y-4">
       <div>
         <p className="pe-kicker">Clínico</p>
-        <h1 className="font-serif text-2xl font-semibold">Seguimiento</h1>
-        <p className="text-sm text-[#6b5e55]">Citas, vacunas, controles y desparasitación pendientes. WhatsApp o correo.</p>
+        <h1 className="text-2xl font-semibold tracking-tight">Seguimiento</h1>
+        <p className="text-sm text-pe-muted">Citas, vacunas, controles y desparasitación pendientes. WhatsApp o correo.</p>
       </div>
       {error ? <p className="pe-callout-amber p-3 text-sm">{error}</p> : null}
       <div className="flex flex-wrap gap-2">
@@ -105,7 +105,7 @@ export function FollowUpInbox({
               <div>
                 <ReminderPill kind={row.kind} />
                 <p className="mt-1 font-medium">{row.title}</p>
-                <p className="text-sm text-slate-500">
+                <p className="text-sm text-pe-muted">
                   {one(row.patients)?.name} · {one(row.clients)?.full_name} · {row.due_on}
                   {overdue ? ' · vencido' : ''}
                   {row.last_emailed_at ? ' · correo enviado' : ''}

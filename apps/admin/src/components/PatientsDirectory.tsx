@@ -99,8 +99,8 @@ export function PatientsDirectory({
     <section className="space-y-5">
       <div>
         <p className="pe-kicker">{kicker}</p>
-        <h1 className="font-serif text-2xl font-semibold">{title}</h1>
-        <p className="text-sm text-[#6b5e55]">{description}</p>
+        <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
+        <p className="text-sm text-pe-muted">{description}</p>
       </div>
       <input
         className="pe-input max-w-md"
@@ -141,8 +141,8 @@ export function PatientsDirectory({
       <div className="space-y-3">
         {filtered.map((client) => (
           <article key={client.id} className="pe-glass-card p-4">
-            <h2 className="font-semibold text-slate-900">{client.full_name}</h2>
-            <p className="text-sm text-slate-500">
+            <h2 className="font-semibold text-pe-ink">{client.full_name}</h2>
+            <p className="text-sm text-pe-muted">
               {client.phone ?? 'Sin teléfono'} {client.email ? `· ${client.email}` : ''}
             </p>
             {showFiscal ? (
@@ -157,9 +157,9 @@ export function PatientsDirectory({
             <ul className="mt-3 grid gap-2 sm:grid-cols-2">
               {(client.patients ?? []).map((pet) => (
                 <li key={pet.id}>
-                  <Link href={`/pacientes/${pet.id}`} className="block rounded-xl border border-slate-200 p-3 hover:bg-slate-50">
+                  <Link href={`/pacientes/${pet.id}`} className="block rounded-lg border border-pe-line p-3 hover:bg-pe-wash">
                     <p className="font-medium">{pet.name}</p>
-                    <p className="text-xs text-slate-500">
+                    <p className="text-xs text-pe-muted">
                       {SPECIES_LABELS[pet.species]} {pet.breed ? `· ${pet.breed}` : ''}
                     </p>
                     {pet.alerts ? <p className="mt-1 text-xs text-amber-800">{pet.alerts}</p> : null}

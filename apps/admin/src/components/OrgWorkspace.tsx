@@ -96,24 +96,24 @@ export function OrgWorkspace({
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="pe-kicker">Veterinaria</p>
-          <h1 className="font-serif text-3xl font-semibold">{organization.name}</h1>
-          <p className="mt-1 text-sm text-[#6b5e55]">{organization.slug}</p>
+          <h1 className="text-3xl font-semibold tracking-tight">{organization.name}</h1>
+          <p className="mt-1 text-sm text-pe-muted">{organization.slug}</p>
         </div>
         {branches[0] ? (
           <EnterClinicButton organizationId={organization.id} branchId={branches[0].id} />
         ) : null}
       </div>
 
-      {error ? <p className="text-sm text-red-700">{error}</p> : null}
+      {error ? <p className="text-sm text-pe-danger">{error}</p> : null}
 
       <section className="pe-card p-5">
-        <h2 className="font-serif text-xl font-semibold">Sucursales</h2>
+        <h2 className="text-xl font-semibold tracking-tight">Sucursales</h2>
         <ul className="mt-3 divide-y divide-[var(--pe-line)]">
           {branches.map((branch) => (
             <li key={branch.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
               <div>
                 <p className="font-medium">{branch.name}</p>
-                <p className="text-sm text-[#6b5e55]">{branch.address || 'Sin dirección'}</p>
+                <p className="text-sm text-pe-muted">{branch.address || 'Sin dirección'}</p>
               </div>
               <EnterClinicButton organizationId={organization.id} branchId={branch.id} label="Abrir sucursal" />
             </li>
@@ -140,12 +140,12 @@ export function OrgWorkspace({
       </section>
 
       <section className="pe-card p-5">
-        <h2 className="font-serif text-xl font-semibold">Staff</h2>
+        <h2 className="text-xl font-semibold tracking-tight">Staff</h2>
         <ul className="mt-3 divide-y divide-[var(--pe-line)]">
           {staff.map((row) => (
             <li key={row.id} className="py-3">
               <p className="font-medium">{row.fullName || row.email || 'Sin nombre'}</p>
-              <p className="text-sm text-[#6b5e55]">
+              <p className="text-sm text-pe-muted">
                 {row.email} · {STAFF_ROLE_LABELS[row.role]} ·{' '}
                 {branches.find((branch) => branch.id === row.branch_id)?.name ?? 'Sin sucursal habitual'}
               </p>
@@ -195,7 +195,7 @@ export function OrgWorkspace({
             {busy === 'staff' ? 'Guardando…' : 'Agregar staff'}
           </button>
         </form>
-        <p className="mt-2 text-xs text-[#6b5e55]">
+        <p className="mt-2 text-xs text-pe-muted">
           La sucursal habitual es el piso al entrar. El equipo puede cambiar a otra sucursal de la misma clínica.
         </p>
       </section>

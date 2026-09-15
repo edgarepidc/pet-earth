@@ -70,7 +70,7 @@ export function AdminNav({
     <>
       <button
         type="button"
-        className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-[#5a4e46] text-[#f3eee6] lg:hidden"
+        className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-pe-line text-pe-ink lg:hidden"
         aria-label={open ? 'Cerrar menú' : 'Abrir menú'}
         onClick={() => setOpen((value) => !value)}
       >
@@ -79,14 +79,14 @@ export function AdminNav({
       <nav className="hidden min-h-0 flex-1 flex-col gap-5 overflow-y-auto lg:flex" aria-label="Navegación">
         {groups.map((group) => (
           <div key={group.label}>
-            <p className="px-2 text-[10px] font-bold uppercase tracking-[0.16em] text-[#a89b90]">{group.label}</p>
+            <p className="px-2 text-[10px] font-bold uppercase tracking-[0.16em] text-pe-sidebar-muted">{group.label}</p>
             <ul className="mt-1 space-y-0.5">
               {group.items.map((item) => (
                 <li key={item.href}>
                   <Link
                     href={item.href}
                     className={`block rounded-md px-2 py-1.5 text-sm ${
-                      isActive(pathname, item.href) ? 'pe-nav-active' : 'text-[#d7cfc4] hover:bg-white/5 hover:text-[#faf7f2]'
+                      isActive(pathname, item.href) ? 'pe-nav-active' : 'text-pe-sidebar-muted hover:bg-white/5 hover:text-white'
                     }`}
                   >
                     {item.label}
@@ -104,13 +104,13 @@ export function AdminNav({
             <nav className="grid gap-4" aria-label="Navegación móvil">
               {groups.map((group) => (
                 <div key={group.label}>
-                  <p className="px-1 text-[10px] font-bold uppercase tracking-[0.16em] text-[#a89b90]">{group.label}</p>
+                  <p className="px-1 text-[10px] font-bold uppercase tracking-[0.16em] text-pe-sidebar-muted">{group.label}</p>
                   {group.items.map((item) => (
                     <Link
                       key={item.href}
                       href={item.href}
                       className={`mt-1 block rounded-md px-3 py-2 text-sm ${
-                        isActive(pathname, item.href) ? 'pe-nav-active' : 'text-[#d7cfc4]'
+                        isActive(pathname, item.href) ? 'pe-nav-active' : 'text-pe-sidebar-muted'
                       }`}
                     >
                       {item.label}

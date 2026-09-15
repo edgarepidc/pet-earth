@@ -30,7 +30,7 @@ export default async function TutorCartillaPage({ params }: { params: Promise<{ 
   return (
     <div className="pe-app min-h-screen px-4 py-6">
       <div className="pe-no-print mx-auto mb-4 flex max-w-3xl items-center justify-between">
-        <Link href={`/mascotas/${id}`} className="text-sm font-medium text-[#b85c38] underline">
+        <Link href={`/mascotas/${id}`} className="text-sm pe-link">
           Volver
         </Link>
         <PrintButton />
@@ -44,7 +44,7 @@ export default async function TutorCartillaPage({ params }: { params: Promise<{ 
         </p>
         <table className="mt-6 w-full text-left text-sm">
           <thead>
-            <tr className="border-b border-[var(--pe-line)]">
+            <tr className="border-b border-pe-line">
               <th className="py-2">Vacuna</th>
               <th>Aplicada</th>
               <th>Lote</th>
@@ -53,7 +53,7 @@ export default async function TutorCartillaPage({ params }: { params: Promise<{ 
           </thead>
           <tbody>
             {(vaccines ?? []).map((row, index) => (
-              <tr key={`${row.name}-${index}`} className="border-b border-[var(--pe-line)]">
+              <tr key={`${row.name}-${index}`} className="border-b border-pe-line">
                 <td className="py-2">{row.name}</td>
                 <td>{formatMexicoDate(row.applied_on)}</td>
                 <td>{row.lot || '—'}</td>

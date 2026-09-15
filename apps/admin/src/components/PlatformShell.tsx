@@ -13,10 +13,10 @@ export async function PlatformShell({ children }: { children: React.ReactNode })
         <BrandLogo href="/plataforma" subtitle="Plataforma" inverted />
         <PlatformNav />
         <div className="mt-4 border-t border-white/10 pt-3">
-          <p className="truncate px-2 text-sm font-medium text-[#faf7f2]">{displayName}</p>
-          <p className="px-2 text-[11px] text-[#a89b90]">Super admin</p>
+          <p className="truncate px-2 text-sm font-medium text-white">{displayName}</p>
+          <p className="px-2 text-[11px] text-pe-sidebar-muted">Super admin</p>
           <div className="mt-2 px-1">
-            <LogoutButton className="w-full rounded-md border border-white/15 px-3 py-1.5 text-left text-sm text-[#d7cfc4] hover:bg-white/5 hover:text-[#faf7f2]" />
+            <LogoutButton className="w-full rounded-md border border-white/15 px-3 py-1.5 text-left text-sm text-pe-sidebar-muted hover:bg-white/5 hover:text-white" />
           </div>
         </div>
       </aside>

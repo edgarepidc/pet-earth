@@ -13,17 +13,17 @@ export function BrandLogo({
     <Link href={href} className="flex min-w-0 items-center gap-2.5 no-underline">
       <span
         className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-xs font-bold ${
-          inverted ? 'bg-[#faf7f2] text-[#3c322c]' : 'bg-[#3c322c] text-[#faf7f2]'
+          inverted ? 'bg-white text-pe-ink' : 'bg-pe-ink text-white'
         }`}
       >
         PE
       </span>
       <span className="min-w-0 leading-tight">
-        <span className={`block font-serif text-base font-semibold ${inverted ? 'text-[#f3eee6]' : 'text-[#2a221c]'}`}>
+        <span className={`block text-base font-semibold tracking-tight ${inverted ? 'text-white' : 'text-pe-ink'}`}>
           Pet Earth
         </span>
         {subtitle ? (
-          <span className={`block truncate text-[11px] ${inverted ? 'text-[#d7cfc4]' : 'text-[#6b5e55]'}`}>
+          <span className={`block truncate text-[11px] ${inverted ? 'text-pe-sidebar-muted' : 'text-pe-muted'}`}>
             {subtitle}
           </span>
         ) : null}

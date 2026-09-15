@@ -330,13 +330,13 @@ export function VisitWorkspace({
               <li key={line.id} className="flex justify-between gap-3">
                 <span>
                   {line.description}
-                  <span className="block text-xs text-slate-500">{CATALOG_KIND_LABELS[line.kind]}</span>
+                  <span className="block text-xs text-pe-muted">{CATALOG_KIND_LABELS[line.kind]}</span>
                 </span>
                 <span>{formatMoney(Number(line.line_total))}</span>
               </li>
             ))}
           </ul>
-          <div className="mt-3 space-y-1 border-t border-slate-100 pt-3 text-sm">
+          <div className="mt-3 space-y-1 border-t border-pe-line pt-3 text-sm">
             <p className="flex justify-between">
               <span>Servicios</span>
               <span>{formatMoney(split.services)}</span>
@@ -349,7 +349,7 @@ export function VisitWorkspace({
               <span>Total</span>
               <span>{formatMoney(split.total)}</span>
             </p>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-pe-muted">
               Ticket: {invoice ? INVOICE_STATUS_LABELS[invoice.status] : 'sin abrir'}
             </p>
           </div>
@@ -386,7 +386,7 @@ export function VisitWorkspace({
           <button type="button" className="pe-btn-secondary mt-3 px-4 py-2 text-sm" disabled={closed || busy} onClick={applyVaccine}>
             Aplicar y recordar refuerzo
           </button>
-          <ul className="mt-3 space-y-1 text-sm text-slate-600">
+          <ul className="mt-3 space-y-1 text-sm text-pe-muted">
             {(visit.vaccine_records ?? []).map((row) => (
               <li key={row.id}>
                 {row.name} {row.next_due ? `· próxima ${row.next_due}` : ''}

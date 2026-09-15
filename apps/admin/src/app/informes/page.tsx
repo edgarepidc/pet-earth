@@ -39,8 +39,8 @@ export default async function InformesPage({
   return (
     <AdminShell>
       <p className="pe-kicker">Dirección</p>
-      <h1 className="font-serif text-2xl font-semibold">Informes</h1>
-      <p className="text-sm text-[#6b5e55]">
+      <h1 className="text-2xl font-semibold tracking-tight">Informes</h1>
+      <p className="text-sm text-pe-muted">
         {staff.branchName}. Servicio vs medicamento y cobro por MVZ.
       </p>
       <form className="mt-4 flex flex-wrap items-end gap-2" method="get">
@@ -59,20 +59,20 @@ export default async function InformesPage({
 
       <div className="mt-5 grid gap-3 sm:grid-cols-4">
         <div className="pe-card p-4">
-          <p className="text-xs uppercase tracking-wide text-[#6b5e55]">Tickets cobrados</p>
-          <p className="mt-1 font-serif text-2xl">{report.invoiceCount}</p>
+          <p className="text-xs uppercase tracking-wide text-pe-muted">Tickets cobrados</p>
+          <p className="mt-1 text-2xl font-semibold tabular-nums tracking-tight">{report.invoiceCount}</p>
         </div>
         <div className="pe-card p-4">
-          <p className="text-xs uppercase tracking-wide text-[#6b5e55]">Servicios</p>
-          <p className="mt-1 font-serif text-2xl">{formatMoney(report.services)}</p>
+          <p className="text-xs uppercase tracking-wide text-pe-muted">Servicios</p>
+          <p className="mt-1 text-2xl font-semibold tabular-nums tracking-tight">{formatMoney(report.services)}</p>
         </div>
         <div className="pe-card p-4">
-          <p className="text-xs uppercase tracking-wide text-[#6b5e55]">Productos</p>
-          <p className="mt-1 font-serif text-2xl">{formatMoney(report.products)}</p>
+          <p className="text-xs uppercase tracking-wide text-pe-muted">Productos</p>
+          <p className="mt-1 text-2xl font-semibold tabular-nums tracking-tight">{formatMoney(report.products)}</p>
         </div>
         <div className="pe-card p-4">
-          <p className="text-xs uppercase tracking-wide text-[#6b5e55]">Total</p>
-          <p className="mt-1 font-serif text-2xl">{formatMoney(report.total)}</p>
+          <p className="text-xs uppercase tracking-wide text-pe-muted">Total</p>
+          <p className="mt-1 text-2xl font-semibold tabular-nums tracking-tight">{formatMoney(report.total)}</p>
         </div>
       </div>
 
@@ -82,12 +82,12 @@ export default async function InformesPage({
           {report.byVet.map((row) => (
             <li key={row.name} className="flex justify-between gap-3">
               <span>
-                {row.name} <span className="text-[#6b5e55]">· {row.count} altas</span>
+                {row.name} <span className="text-pe-muted">· {row.count} altas</span>
               </span>
               <span className="tabular-nums">{formatMoney(row.total)}</span>
             </li>
           ))}
-          {report.byVet.length === 0 ? <li className="text-[#6b5e55]">Aún no hay cobros en el periodo.</li> : null}
+          {report.byVet.length === 0 ? <li className="text-pe-muted">Aún no hay cobros en el periodo.</li> : null}
         </ul>
       </section>
 
@@ -97,12 +97,12 @@ export default async function InformesPage({
           {lowStock.map((item) => (
             <li key={item.id} className="flex justify-between gap-3">
               <span>{item.name}</span>
-              <span className="text-[#8f4328]">
+              <span className="text-pe-clay-700">
                 {Number(item.stock ?? 0)} / mín {Number(item.min_stock)}
               </span>
             </li>
           ))}
-          {lowStock.length === 0 ? <li className="text-[#6b5e55]">Nada por debajo del mínimo.</li> : null}
+          {lowStock.length === 0 ? <li className="text-pe-muted">Nada por debajo del mínimo.</li> : null}
         </ul>
       </section>
 

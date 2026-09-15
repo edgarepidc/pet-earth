@@ -38,7 +38,7 @@ export default async function TutorHomePage() {
           {(patients ?? []).map((pet) => (
             <Link key={pet.id} href={`/mascotas/${pet.id}`} className="pe-card block p-4">
               <p className="font-serif text-xl font-semibold">{pet.name}</p>
-              <p className="text-sm text-[#6b5e55]">
+              <p className="text-sm text-pe-muted">
                 {SPECIES_LABELS[pet.species]} {pet.breed ? `· ${pet.breed}` : ''}
               </p>
               {pet.alerts ? <p className="mt-2 text-xs text-amber-800">{pet.alerts}</p> : null}
@@ -54,14 +54,14 @@ export default async function TutorHomePage() {
             return (
               <li key={row.id} className="pe-card p-4 text-sm">
                 <p className="font-medium">{row.title}</p>
-                <p className="text-[#6b5e55]">
+                <p className="text-pe-muted">
                   {pet?.name} · {REMINDER_KIND_LABELS[row.kind]} · {row.due_on}
                   {row.due_on <= today ? ' · por atender' : ''}
                 </p>
               </li>
             );
           })}
-          {(reminders ?? []).length === 0 ? <li className="text-sm text-[#6b5e55]">Nada pendiente.</li> : null}
+          {(reminders ?? []).length === 0 ? <li className="text-sm text-pe-muted">Nada pendiente.</li> : null}
         </ul>
       </section>
     </TutorShell>

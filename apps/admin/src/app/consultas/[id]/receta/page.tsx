@@ -42,7 +42,7 @@ export default async function RecetaPage({ params }: { params: Promise<{ id: str
       fiscal={letterhead.fiscal}
     >
       <h1 className="mt-4 font-serif text-3xl font-semibold">Receta y alta</h1>
-      <p className="text-sm text-[#6b5e55]">
+      <p className="text-sm text-pe-muted">
         {dateLabel} · {staff.fullName ?? staff.email}
       </p>
       <section className="mt-6 grid gap-2 text-sm">
@@ -97,7 +97,7 @@ export default async function RecetaPage({ params }: { params: Promise<{ id: str
           </ul>
         </section>
       ) : null}
-      <p className="mt-10 text-sm text-[#6b5e55]">
+      <p className="mt-10 text-sm text-pe-muted">
         Firma y sello ________________________________ · {letterhead.fiscal.razonSocial || staff.organizationName}
       </p>
     </PrintSheet>
