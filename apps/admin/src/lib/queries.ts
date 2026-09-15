@@ -66,11 +66,44 @@ export async function loadOpenInvoices(organizationId: string, branchId: string)
   }));
 }
 
+export async function loadCfdiQueue(organizationId: string, branchId: string) {
+  const supabase = createAdminClient();
+  const { data: invoices, error } = await supabase
+    .from('invoices')
+    .select('id, total, status, visit_id, created_at, client_id, cfdi_status, cfdi_uuid, cfdi_error')
+    .eq('organization_id', organizationId)
+    .eq('branch_id', branchId)
+    .eq('status', 'paid')
+    .in('cfdi_status', ['none', 'requested', 'error'])
+    .order('created_at', { ascending: false })
+    .limit(20);
+  if (error) throw new Error(error.message);
+  const rows = invoices ?? [];
+  if (rows.length === 0) return [];
+  const clientIds = [...new Set(rows.map((row) => row.client_id))];
+  const visitIds = rows.map((row) => row.visit_id).filter((id): id is string => Boolean(id));
+  const [{ data: clients }, { data: visits }] = await Promise.all([
+    supabase.from('clients').select('id, full_name, rfc, tax_zip').in('id', clientIds),
+    visitIds.length
+      ? supabase.from('visits').select('id, patients(name)').in('id', visitIds)
+      : Promise.resolve({ data: [] as { id: string; patients: { name: string } | { name: string }[] | null }[] }),
+  ]);
+  const clientById = new Map((clients ?? []).map((client) => [client.id, client]));
+  const visitById = new Map((visits ?? []).map((visit) => [visit.id, visit]));
+  return rows.map((row) => ({
+    ...row,
+    clients: clientById.get(row.client_id) ?? null,
+    visits: row.visit_id ? (visitById.get(row.visit_id) ?? null) : null,
+  }));
+}
+
 export async function loadFollowUps(organizationId: string) {
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from('reminders')
-    .select('id, kind, title, due_on, status, client_id, patient_id, clients(full_name, phone), patients(name)')
+    .select(
+      'id, kind, title, due_on, status, last_emailed_at, client_id, patient_id, clients(full_name, phone, email), patients(name)',
+    )
     .eq('organization_id', organizationId)
     .eq('status', 'pending')
     .order('due_on');
@@ -143,5 +176,25 @@ export async function loadClinicReports(organizationId: string, startIso: string
     total: services + products,
     cfdiReady,
     byVet: [...byVet.values()].sort((a, b) => b.total - a.total),
+  };
+}
+
+export async function loadLetterhead(organizationId: string, branchId: string) {
+  const supabase = createAdminClient();
+  const [{ data: org }, { data: branch }] = await Promise.all([
+    supabase.from('organizations').select('name, settings').eq('id', organizationId).maybeSingle(),
+    supabase.from('branches').select('name, address').eq('id', branchId).maybeSingle(),
+  ]);
+  const fiscal = ((org?.settings as { fiscal?: Record<string, string | null> } | null)?.fiscal ?? {}) as {
+    rfc?: string | null;
+    razonSocial?: string | null;
+    regimen?: string | null;
+    codigoPostal?: string | null;
+  };
+  return {
+    clinicName: org?.name ?? 'Clínica',
+    branchName: branch?.name ?? '',
+    branchAddress: branch?.address ?? null,
+    fiscal,
   };
 }

@@ -445,6 +445,8 @@ export interface Database {
           receptor_zip: string | null;
           uso_cfdi: string | null;
           cfdi_requested_at: string | null;
+          cfdi_error: string | null;
+          cfdi_stamped_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -465,6 +467,8 @@ export interface Database {
           receptor_zip?: string | null;
           uso_cfdi?: string | null;
           cfdi_requested_at?: string | null;
+          cfdi_error?: string | null;
+          cfdi_stamped_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -566,6 +570,7 @@ export interface Database {
           title: string;
           due_on: string;
           status: 'pending' | 'done' | 'cancelled';
+          last_emailed_at: string | null;
           created_at: string;
         };
         Insert: {
@@ -578,6 +583,7 @@ export interface Database {
           title: string;
           due_on: string;
           status?: 'pending' | 'done' | 'cancelled';
+          last_emailed_at?: string | null;
           created_at?: string;
         };
         Update: Partial<Database['public']['Tables']['reminders']['Insert']>;

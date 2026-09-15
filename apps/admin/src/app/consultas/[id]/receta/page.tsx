@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 
 import { PrintSheet } from '@/components/PrintSheet';
 import { loadClinicSession } from '@/lib/auth';
+import { loadLetterhead } from '@/lib/queries';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,6 +12,7 @@ export default async function RecetaPage({ params }: { params: Promise<{ id: str
   const staff = await loadClinicSession();
   const { id } = await params;
   const supabase = createAdminClient();
+  const letterhead = await loadLetterhead(staff.organizationId, staff.branchId);
   const { data: visit } = await supabase
     .from('visits')
     .select(
@@ -32,10 +34,16 @@ export default async function RecetaPage({ params }: { params: Promise<{ id: str
   const dateLabel = formatMexicoDate((visit.completed_at ?? visit.started_at).slice(0, 10));
 
   return (
-    <PrintSheet backHref={`/consultas/${id}`} clinicName={staff.organizationName}>
+    <PrintSheet
+      backHref={`/consultas/${id}`}
+      clinicName={letterhead.clinicName}
+      branchName={letterhead.branchName}
+      branchAddress={letterhead.branchAddress}
+      fiscal={letterhead.fiscal}
+    >
       <h1 className="mt-4 font-serif text-3xl font-semibold">Receta y alta</h1>
       <p className="text-sm text-[#6b5e55]">
-        {staff.branchName} · {dateLabel} · {staff.fullName ?? staff.email}
+        {dateLabel} · {staff.fullName ?? staff.email}
       </p>
       <section className="mt-6 grid gap-2 text-sm">
         <p>
@@ -90,7 +98,7 @@ export default async function RecetaPage({ params }: { params: Promise<{ id: str
         </section>
       ) : null}
       <p className="mt-10 text-sm text-[#6b5e55]">
-        Firma y sello ________________________________ · {staff.organizationName}
+        Firma y sello ________________________________ · {letterhead.fiscal.razonSocial || staff.organizationName}
       </p>
     </PrintSheet>
   );

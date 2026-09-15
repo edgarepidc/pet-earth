@@ -59,6 +59,7 @@ export function LoginForm() {
           <h1 className="mt-2 font-serif text-2xl font-semibold">Entrar a la clínica</h1>
           <p className="mt-2 text-sm text-[#6b5e55]">
             Clínica, recepción o super admin. Contraseña del piloto: piloto123.
+            Segunda clínica: sofia@petearth.local / marta@petearth.local.
           </p>
           <label className="mt-6 block text-sm font-medium">
             Correo

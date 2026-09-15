@@ -19,6 +19,7 @@
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset",
     "db:types": "supabase gen types typescript --local > packages/supabase/src/database.types.ts",
+    "seed:second-clinic": "node scripts/seed-second-clinic.mjs",
     "create:supabase": "bash scripts/create-supabase-project.sh",
     "deploy:vercel": "bash scripts/deploy-vercel.sh"
   },

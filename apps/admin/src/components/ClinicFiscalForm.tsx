@@ -8,11 +8,13 @@ export function ClinicFiscalForm({
   razonSocial,
   regimen,
   codigoPostal,
+  pacReady = false,
 }: {
   rfc?: string | null;
   razonSocial?: string | null;
   regimen?: string | null;
   codigoPostal?: string | null;
+  pacReady?: boolean;
 }) {
   const router = useRouter();
   const [rfcValue, setRfcValue] = useState(rfc ?? '');
@@ -41,7 +43,9 @@ export function ClinicFiscalForm({
     <form onSubmit={(event) => void save(event)} className="pe-card mt-4 grid gap-3 p-4 md:grid-cols-2">
       <h2 className="font-semibold md:col-span-2">Emisor CFDI 4.0</h2>
       <p className="text-sm text-[#6b5e55] md:col-span-2">
-        Queda listo para timbrar con un PAC. Sin UUID hasta conectar Facturapi o el PAC de la clínica.
+        {pacReady
+          ? 'PAC conectado. Al pedir CFDI de un ticket cobrado se intenta timbrar y guardar el UUID.'
+          : 'Sin PAC aún (no hay Facturapi en Marketplace). Se guarda el pedido; el UUID llega cuando pongas FACTURAPI_SECRET_KEY.'}
       </p>
       <input className="pe-input" placeholder="RFC de la clínica" value={rfcValue} onChange={(e) => setRfcValue(e.target.value)} />
       <input className="pe-input" placeholder="Razón social" value={name} onChange={(e) => setName(e.target.value)} />

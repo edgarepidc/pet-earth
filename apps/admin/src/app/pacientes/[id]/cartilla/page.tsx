@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 
 import { PrintSheet } from '@/components/PrintSheet';
 import { loadClinicSession } from '@/lib/auth';
+import { loadLetterhead } from '@/lib/queries';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,6 +12,7 @@ export default async function CartillaPage({ params }: { params: Promise<{ id: s
   const staff = await loadClinicSession();
   const { id } = await params;
   const supabase = createAdminClient();
+  const letterhead = await loadLetterhead(staff.organizationId, staff.branchId);
   const { data: patient } = await supabase
     .from('patients')
     .select('id, name, species, breed, sex, birth_date, clients(full_name)')
@@ -26,9 +28,14 @@ export default async function CartillaPage({ params }: { params: Promise<{ id: s
   const client = Array.isArray(patient.clients) ? patient.clients[0] : patient.clients;
 
   return (
-    <PrintSheet backHref={`/pacientes/${id}`} clinicName={staff.organizationName}>
+    <PrintSheet
+      backHref={`/pacientes/${id}`}
+      clinicName={letterhead.clinicName}
+      branchName={letterhead.branchName}
+      branchAddress={letterhead.branchAddress}
+      fiscal={letterhead.fiscal}
+    >
       <h1 className="mt-4 font-serif text-3xl font-semibold">Cartilla de vacunación</h1>
-      <p className="text-sm text-[#6b5e55]">{staff.branchName}</p>
       <section className="mt-6 text-sm">
         <p>
           <strong>{patient.name}</strong>

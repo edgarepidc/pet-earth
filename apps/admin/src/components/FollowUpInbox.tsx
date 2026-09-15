@@ -13,7 +13,11 @@ type Reminder = {
   kind: ReminderKind;
   title: string;
   due_on: string;
-  clients: { full_name: string; phone?: string | null } | { full_name: string; phone?: string | null }[] | null;
+  last_emailed_at?: string | null;
+  clients:
+    | { full_name: string; phone?: string | null; email?: string | null }
+    | { full_name: string; phone?: string | null; email?: string | null }[]
+    | null;
   patients: { name: string } | { name: string }[] | null;
 };
 
@@ -33,6 +37,9 @@ export function FollowUpInbox({
   const today = todayMexicoYmd();
   const [filter, setFilter] = useState<'all' | 'overdue' | ReminderKind>('all');
 
+  const [busy, setBusy] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
   const rows = useMemo(() => {
     return reminders.filter((row) => {
       if (filter === 'all') return true;
@@ -42,11 +49,31 @@ export function FollowUpInbox({
   }, [reminders, filter, today]);
 
   async function mark(id: string, status: 'done' | 'cancelled') {
+    setBusy(id + status);
+    setError(null);
     await fetch('/api/reminders', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id, status }),
     });
+    setBusy(null);
+    router.refresh();
+  }
+
+  async function email(id: string) {
+    setBusy(id + 'email');
+    setError(null);
+    const response = await fetch('/api/reminders', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, action: 'email' }),
+    });
+    const payload = (await response.json()) as { error?: string };
+    setBusy(null);
+    if (!response.ok) {
+      setError(payload.error ?? 'No se pudo enviar el correo.');
+      return;
+    }
     router.refresh();
   }
 
@@ -55,8 +82,9 @@ export function FollowUpInbox({
       <div>
         <p className="pe-kicker">Clínico</p>
         <h1 className="font-serif text-2xl font-semibold">Seguimiento</h1>
-        <p className="text-sm text-[#6b5e55]">Citas, vacunas, controles y desparasitación pendientes.</p>
+        <p className="text-sm text-[#6b5e55]">Citas, vacunas, controles y desparasitación pendientes. WhatsApp o correo.</p>
       </div>
+      {error ? <p className="pe-callout-amber p-3 text-sm">{error}</p> : null}
       <div className="flex flex-wrap gap-2">
         {(['all', 'overdue', 'appointment', 'vaccine', 'followup', 'deworming'] as const).map((key) => (
           <button
@@ -80,6 +108,7 @@ export function FollowUpInbox({
                 <p className="text-sm text-slate-500">
                   {one(row.patients)?.name} · {one(row.clients)?.full_name} · {row.due_on}
                   {overdue ? ' · vencido' : ''}
+                  {row.last_emailed_at ? ' · correo enviado' : ''}
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -94,6 +123,14 @@ export function FollowUpInbox({
                     dueOn: row.due_on,
                   })}
                 />
+                <button
+                  type="button"
+                  className="pe-btn-secondary px-3 py-1.5 text-sm"
+                  disabled={busy !== null || !one(row.clients)?.email}
+                  onClick={() => void email(row.id)}
+                >
+                  Correo
+                </button>
                 <button type="button" className="pe-btn-primary px-3 py-1.5 text-sm" onClick={() => mark(row.id, 'done')}>
                   Hecho
                 </button>

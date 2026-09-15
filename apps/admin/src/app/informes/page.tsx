@@ -1,19 +1,31 @@
-import { addMexicoDays, formatMoney, todayMexicoYmd } from '@petearth/shared';
+import { addMexicoDays, formatMoney, isValidYmd, todayMexicoYmd } from '@petearth/shared';
 import { createAdminClient } from '@petearth/supabase/admin';
 
 import { AdminShell } from '@/components/AdminShell';
 import { ClinicFiscalForm } from '@/components/ClinicFiscalForm';
 import { loadClinicSession } from '@/lib/auth';
+import { pacConfigured } from '@/lib/cfdi';
 import { loadClinicReports, loadLowStock } from '@/lib/queries';
 
 export const dynamic = 'force-dynamic';
 
-export default async function InformesPage() {
+export default async function InformesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ start?: string; end?: string }>;
+}) {
   const staff = await loadClinicSession();
-  const end = addMexicoDays(todayMexicoYmd(), 1);
-  const start = addMexicoDays(todayMexicoYmd(), -30);
+  const params = await searchParams;
+  const today = todayMexicoYmd();
+  const start = params.start && isValidYmd(params.start) ? params.start : addMexicoDays(today, -30);
+  const end = params.end && isValidYmd(params.end) ? params.end : today;
   const [report, lowStock, org] = await Promise.all([
-    loadClinicReports(staff.organizationId, `${start}T00:00:00-06:00`, `${end}T00:00:00-06:00`, staff.branchId),
+    loadClinicReports(
+      staff.organizationId,
+      `${start}T00:00:00-06:00`,
+      `${addMexicoDays(end, 1)}T00:00:00-06:00`,
+      staff.branchId,
+    ),
     loadLowStock(staff.organizationId),
     createAdminClient().from('organizations').select('settings').eq('id', staff.organizationId).maybeSingle(),
   ]);
@@ -29,8 +41,21 @@ export default async function InformesPage() {
       <p className="pe-kicker">Dirección</p>
       <h1 className="font-serif text-2xl font-semibold">Informes</h1>
       <p className="text-sm text-[#6b5e55]">
-        Últimos 30 días en {staff.branchName}. Servicio vs medicamento y cobro por MVZ.
+        {staff.branchName}. Servicio vs medicamento y cobro por MVZ.
       </p>
+      <form className="mt-4 flex flex-wrap items-end gap-2" method="get">
+        <label className="text-sm">
+          Desde
+          <input type="date" name="start" defaultValue={start} className="pe-input mt-1" />
+        </label>
+        <label className="text-sm">
+          Hasta
+          <input type="date" name="end" defaultValue={end} className="pe-input mt-1" />
+        </label>
+        <button type="submit" className="pe-btn-secondary px-4 py-2 text-sm">
+          Ver periodo
+        </button>
+      </form>
 
       <div className="mt-5 grid gap-3 sm:grid-cols-4">
         <div className="pe-card p-4">
@@ -86,6 +111,7 @@ export default async function InformesPage() {
         razonSocial={fiscal.razonSocial}
         regimen={fiscal.regimen}
         codigoPostal={fiscal.codigoPostal}
+        pacReady={pacConfigured()}
       />
     </AdminShell>
   );

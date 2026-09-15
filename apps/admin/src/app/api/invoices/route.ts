@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 
-import { canTakePayment, normalizeRfc } from '@petearth/shared';
+import { canTakePayment } from '@petearth/shared';
 import { createAdminClient } from '@petearth/supabase/admin';
 
 import { requireStaffApi } from '@/lib/auth';
+import { stampInvoiceCfdi } from '@/lib/cfdi';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 export async function POST(request: Request) {
@@ -38,37 +39,17 @@ export async function PATCH(request: Request) {
   if (!body.invoiceId || body.action !== 'request-cfdi') {
     return NextResponse.json({ error: 'Acción no soportada.' }, { status: 400 });
   }
-  const supabase = createAdminClient();
-  const { data: invoice } = await supabase
-    .from('invoices')
-    .select('id, client_id, cfdi_status')
-    .eq('id', body.invoiceId)
-    .eq('organization_id', auth.organizationId)
-    .maybeSingle();
-  if (!invoice) return NextResponse.json({ error: 'Ticket no encontrado.' }, { status: 404 });
-  const { data: client } = await supabase
-    .from('clients')
-    .select('rfc, fiscal_name, tax_zip, uso_cfdi, full_name')
-    .eq('id', invoice.client_id)
-    .maybeSingle();
-  const rfc = normalizeRfc(client?.rfc);
-  if (!rfc || !client?.tax_zip) {
-    return NextResponse.json(
-      { error: 'Faltan RFC y código postal fiscal del tutor. Captúralos en Tutores.' },
-      { status: 400 },
-    );
+
+  const result = await stampInvoiceCfdi({
+    organizationId: auth.organizationId,
+    invoiceId: body.invoiceId,
+  });
+  if (!result.ok) {
+    const status = result.status === 'requested' ? 200 : 400;
+    if (status === 200) {
+      return NextResponse.json({ ok: true, stamped: false, message: result.error });
+    }
+    return NextResponse.json({ error: result.error }, { status });
   }
-  const { error } = await supabase
-    .from('invoices')
-    .update({
-      cfdi_status: 'requested',
-      receptor_rfc: rfc,
-      receptor_name: client.fiscal_name?.trim() || client.full_name,
-      receptor_zip: client.tax_zip,
-      uso_cfdi: client.uso_cfdi || 'G03',
-      cfdi_requested_at: new Date().toISOString(),
-    })
-    .eq('id', invoice.id);
-  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, stamped: true, uuid: result.uuid });
 }
