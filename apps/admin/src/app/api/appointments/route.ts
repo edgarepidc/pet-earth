@@ -92,6 +92,54 @@ export async function POST(request: Request) {
   return NextResponse.json({ id: data.id });
 }
 
+async function completeAppointmentVisit(
+  userClient: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+  appointmentId: string,
+  organizationId: string,
+) {
+  const admin = createAdminClient();
+  const { data: visit } = await admin
+    .from('visits')
+    .select(
+      'id, status, subjective, objective, assessment, plan, weight_kg, temperature_c, heart_rate, respiratory_rate, followup_at',
+    )
+    .eq('appointment_id', appointmentId)
+    .eq('organization_id', organizationId)
+    .maybeSingle();
+
+  let visitId = visit?.id ?? null;
+  if (!visitId) {
+    const started = await userClient.rpc('pe_start_visit', { p_appointment_id: appointmentId });
+    if (started.error) return { error: started.error.message };
+    visitId = started.data;
+  }
+  if (!visitId) return { error: 'No se pudo abrir la consulta' };
+
+  if (!visit || visit.status === 'in_progress') {
+    const completed = await userClient.rpc('pe_complete_visit', {
+      p_visit_id: visitId,
+      p_subjective: visit?.subjective ?? null,
+      p_objective: visit?.objective ?? null,
+      p_assessment: visit?.assessment ?? null,
+      p_plan: visit?.plan ?? null,
+      p_weight_kg: visit?.weight_kg ?? null,
+      p_temperature_c: visit?.temperature_c ?? null,
+      p_heart_rate: visit?.heart_rate ?? null,
+      p_respiratory_rate: visit?.respiratory_rate ?? null,
+      p_followup_on: visit?.followup_at ?? null,
+    });
+    if (completed.error) return { error: completed.error.message };
+  } else {
+    const { error } = await admin
+      .from('appointments')
+      .update({ status: 'completed' })
+      .eq('id', appointmentId)
+      .eq('organization_id', organizationId);
+    if (error) return { error: error.message };
+  }
+  return { ok: true as const };
+}
+
 export async function PATCH(request: Request) {
   const auth = await requireStaffApi();
   if (auth instanceof NextResponse) return auth;
@@ -100,6 +148,7 @@ export async function PATCH(request: Request) {
     action?: string;
     date?: string;
     time?: string;
+    status?: string;
   };
   if (!body.id || !body.action) {
     return NextResponse.json({ error: 'Falta la acción' }, { status: 400 });
@@ -115,6 +164,68 @@ export async function PATCH(request: Request) {
     const { data, error } = await userClient.rpc('pe_start_visit', { p_appointment_id: body.id });
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
     return NextResponse.json({ visitId: data });
+  }
+  if (body.action === 'move') {
+    const status = body.status;
+    if (!status) return NextResponse.json({ error: 'Falta la columna' }, { status: 400 });
+    const admin = createAdminClient();
+    const { data: appointment } = await admin
+      .from('appointments')
+      .select('id, status')
+      .eq('id', body.id)
+      .eq('organization_id', auth.organizationId)
+      .maybeSingle();
+    if (!appointment) return NextResponse.json({ error: 'Cita no encontrada' }, { status: 404 });
+
+    const alreadyThere =
+      appointment.status === status ||
+      (status === 'scheduled' && appointment.status === 'confirmed') ||
+      (status === 'no_show' && appointment.status === 'cancelled');
+    if (alreadyThere) return NextResponse.json({ ok: true });
+
+    if (status === 'waiting') {
+      if (appointment.status === 'completed' || appointment.status === 'cancelled' || appointment.status === 'no_show') {
+        const { error } = await admin
+          .from('appointments')
+          .update({ status: 'waiting' })
+          .eq('id', body.id)
+          .eq('organization_id', auth.organizationId);
+        if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+        return NextResponse.json({ ok: true });
+      }
+      const { error } = await userClient.rpc('pe_check_in_appointment', { p_appointment_id: body.id });
+      if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+      return NextResponse.json({ ok: true });
+    }
+    if (status === 'in_consult') {
+      const { error } = await userClient.rpc('pe_start_visit', { p_appointment_id: body.id });
+      if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+      if (appointment.status === 'completed' || appointment.status === 'cancelled' || appointment.status === 'no_show') {
+        const { error: statusError } = await admin
+          .from('appointments')
+          .update({ status: 'in_consult' })
+          .eq('id', body.id)
+          .eq('organization_id', auth.organizationId);
+        if (statusError) return NextResponse.json({ error: statusError.message }, { status: 400 });
+      }
+      return NextResponse.json({ ok: true });
+    }
+    if (status === 'completed') {
+      const result = await completeAppointmentVisit(userClient, body.id, auth.organizationId);
+      if ('error' in result) return NextResponse.json({ error: result.error }, { status: 400 });
+      return NextResponse.json({ ok: true });
+    }
+    if (status === 'no_show' || status === 'cancelled' || status === 'scheduled' || status === 'confirmed') {
+      const nextStatus = status === 'confirmed' ? 'scheduled' : status;
+      const { error } = await admin
+        .from('appointments')
+        .update({ status: nextStatus })
+        .eq('id', body.id)
+        .eq('organization_id', auth.organizationId);
+      if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+      return NextResponse.json({ ok: true });
+    }
+    return NextResponse.json({ error: 'Columna no soportada' }, { status: 400 });
   }
   if (body.action === 'cancel' || body.action === 'no_show') {
     const admin = createAdminClient();
