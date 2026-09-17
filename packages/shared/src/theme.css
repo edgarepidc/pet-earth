@@ -178,17 +178,27 @@
   width: 2.75rem;
   height: 2.75rem;
   flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
-  border-radius: 0.85rem;
-  border: 1px solid var(--pe-line);
-  box-shadow: var(--pe-shadow);
-  background: #fff8f1;
+  border-radius: 9999px;
+  background: #f3e8dc;
+}
+
+.pe-mark img {
+  width: 1.9rem;
+  height: 1.9rem;
+  object-fit: contain;
 }
 
 .pe-mark-sm {
-  width: 1.7rem;
-  height: 1.7rem;
-  border-radius: 0.5rem;
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+.pe-mark-sm img {
+  width: 1.15rem;
+  height: 1.15rem;
 }
 
 textarea.pe-input {
