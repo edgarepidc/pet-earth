@@ -18,27 +18,6 @@ export type SectionMarkName =
   | 'missed'
   | 'stock';
 
-const TONE: Record<SectionMarkName, string> = {
-  hoy: 'bg-amber-100',
-  agenda: 'bg-sky-100',
-  pacientes: 'bg-orange-100',
-  tutores: 'bg-stone-200',
-  seguimiento: 'bg-yellow-100',
-  caja: 'bg-orange-100',
-  catalogo: 'bg-rose-100',
-  informes: 'bg-teal-100',
-  clinicas: 'bg-emerald-100',
-  consulta: 'bg-sky-100',
-  cartilla: 'bg-lime-100',
-  perro: 'bg-orange-100',
-  gato: 'bg-amber-100',
-  otro: 'bg-stone-200',
-  sala: 'bg-amber-50',
-  alta: 'bg-emerald-100',
-  missed: 'bg-rose-100',
-  stock: 'bg-orange-100',
-};
-
 export function SectionMark({
   name,
   size = 'md',
@@ -47,8 +26,8 @@ export function SectionMark({
   size?: 'sm' | 'md';
 }) {
   return (
-    <span className={`${size === 'sm' ? 'pe-mark pe-mark-sm' : 'pe-mark'} ${TONE[name]}`} aria-hidden>
-      <img src={`/marks/${name}.png`} alt="" width={size === 'sm' ? 18 : 32} height={size === 'sm' ? 18 : 32} />
+    <span className={size === 'sm' ? 'pe-mark pe-mark-sm' : 'pe-mark'} aria-hidden>
+      <img src={`/marks/${name}.png`} alt="" />
     </span>
   );
 }

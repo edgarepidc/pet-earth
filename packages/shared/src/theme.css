@@ -178,27 +178,19 @@
   width: 2.75rem;
   height: 2.75rem;
   flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
   overflow: hidden;
   border-radius: 9999px;
-  background: #f3e8dc;
 }
 
 .pe-mark img {
-  width: 1.9rem;
-  height: 1.9rem;
-  object-fit: contain;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .pe-mark-sm {
   width: 1.75rem;
   height: 1.75rem;
-}
-
-.pe-mark-sm img {
-  width: 1.15rem;
-  height: 1.15rem;
 }
 
 textarea.pe-input {
