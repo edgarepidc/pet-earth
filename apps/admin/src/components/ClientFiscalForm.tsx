@@ -50,7 +50,7 @@ export function ClientFiscalForm({
   }
 
   return (
-    <div className="mt-3">
+    <div className="mt-2">
       <button type="button" className="pe-btn-ghost px-3 py-1.5 text-xs" onClick={() => setOpen((value) => !value)}>
         Datos fiscales CFDI
       </button>

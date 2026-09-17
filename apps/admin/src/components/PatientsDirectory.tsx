@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 
 import { ClientFiscalForm } from '@/components/ClientFiscalForm';
-import { PageHeading, SectionMark, type SectionMarkName } from '@/components/SectionTitle';
+import { PageHeading, SectionMark, petAvatarSrc, type SectionMarkName } from '@/components/SectionTitle';
 import { SPECIES_LABELS, type Species } from '@petearth/shared';
 
 type Patient = {
@@ -15,6 +15,7 @@ type Patient = {
   breed: string | null;
   alerts: string | null;
   is_active: boolean;
+  photo_url?: string | null;
 };
 
 type Client = {
@@ -143,12 +144,13 @@ export function PatientsDirectory({
           </button>
         </form>
       </div>
-      <div className="space-y-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {filtered.map((client) => (
-          <article key={client.id} className="pe-glass-card p-4">
-            <h2 className="font-semibold text-pe-ink">{client.full_name}</h2>
-            <p className="text-sm text-pe-muted">
-              {client.phone ?? 'Sin teléfono'} {client.email ? `· ${client.email}` : ''}
+          <article key={client.id} className="pe-glass-card p-3">
+            <h2 className="truncate text-sm font-semibold text-pe-ink">{client.full_name}</h2>
+            <p className="truncate text-xs text-pe-muted">
+              {client.phone ?? 'Sin teléfono'}
+              {client.email ? ` · ${client.email}` : ''}
             </p>
             {showFiscal ? (
               <ClientFiscalForm
@@ -159,15 +161,28 @@ export function PatientsDirectory({
                 fiscalName={client.fiscal_name ?? null}
               />
             ) : null}
-            <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+            <ul className="mt-2 space-y-1">
               {(client.patients ?? []).map((pet) => (
                 <li key={pet.id}>
-                  <Link href={`/pacientes/${pet.id}`} className="block rounded-lg border border-pe-line p-3 hover:bg-pe-wash">
-                    <p className="font-medium">{pet.name}</p>
-                    <p className="text-xs text-pe-muted">
-                      {SPECIES_LABELS[pet.species]} {pet.breed ? `· ${pet.breed}` : ''}
-                    </p>
-                    {pet.alerts ? <p className="mt-1 text-xs text-amber-800">{pet.alerts}</p> : null}
+                  <Link
+                    href={`/pacientes/${pet.id}`}
+                    className="flex items-start gap-2 rounded-lg px-1 py-1.5 hover:bg-pe-wash"
+                  >
+                    <span className="pe-avatar mt-0.5">
+                      <img src={petAvatarSrc(pet.species, pet.photo_url)} alt={pet.name} />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-medium">{pet.name}</span>
+                      <span className="block truncate text-xs text-pe-muted">
+                        {SPECIES_LABELS[pet.species]}
+                        {pet.breed ? ` · ${pet.breed}` : ''}
+                      </span>
+                      {pet.alerts ? (
+                        <span className="pe-pill mt-1 inline-block max-w-full truncate bg-amber-100 text-amber-900">
+                          {pet.alerts}
+                        </span>
+                      ) : null}
+                    </span>
                   </Link>
                 </li>
               ))}

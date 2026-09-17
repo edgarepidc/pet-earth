@@ -69,3 +69,10 @@ export function speciesMark(species: string | null | undefined): SectionMarkName
   if (species === 'other') return 'otro';
   return 'perro';
 }
+
+export function petAvatarSrc(species: string | null | undefined, photoUrl?: string | null) {
+  if (photoUrl) return photoUrl;
+  if (species === 'cat') return '/marks/gato.png';
+  if (species === 'other') return '/marks/conejo.png';
+  return '/marks/perro.png';
+}
