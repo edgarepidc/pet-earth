@@ -7,6 +7,7 @@ import { createAdminClient } from '@petearth/supabase/admin';
 import { AdminShell } from '@/components/AdminShell';
 import { ClinicalMedia } from '@/components/ClinicalMedia';
 import { NewAppointmentForm } from '@/components/NewAppointmentForm';
+import { PatientFileForm } from '@/components/PatientFileForm';
 import { PatientHeader } from '@/components/PatientHeader';
 import { SectionMark } from '@/components/SectionTitle';
 import { loadClinicSession } from '@/lib/auth';
@@ -49,6 +50,22 @@ export default async function PatientPage({ params }: { params: Promise<{ id: st
             alerts={patient.alerts}
             allergies={patient.allergies}
             clinicName={staff.organizationName}
+          />
+          {!patient.is_active ? <p className="pe-callout-amber p-3 text-sm">Esta mascota está dada de baja.</p> : null}
+          <PatientFileForm
+            key={patient.updated_at}
+            patientId={patient.id}
+            name={patient.name}
+            species={patient.species}
+            breed={patient.breed}
+            sex={patient.sex}
+            neutered={patient.neutered}
+            birthDate={patient.birth_date}
+            microchip={patient.microchip}
+            color={patient.color}
+            allergies={patient.allergies}
+            alerts={patient.alerts}
+            isActive={patient.is_active}
           />
           <div className="flex flex-wrap gap-2">
             <Link href={`/pacientes/${patient.id}/cartilla`} className="pe-btn-secondary px-3 py-1.5 text-sm">

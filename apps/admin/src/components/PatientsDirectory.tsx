@@ -176,6 +176,7 @@ export function PatientsDirectory({
                       <span className="block truncate text-xs text-pe-muted">
                         {SPECIES_LABELS[pet.species]}
                         {pet.breed ? ` · ${pet.breed}` : ''}
+                        {!pet.is_active ? ' · Baja' : ''}
                       </span>
                       {pet.alerts ? (
                         <span className="pe-pill mt-1 inline-block max-w-full truncate bg-amber-100 text-amber-900">
