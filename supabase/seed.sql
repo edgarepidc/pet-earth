@@ -154,62 +154,219 @@ values
     'c0000000-0000-4000-8000-000000000002',
     'Rocky', 'dog', 'Mestizo', 'male', false, '2020-11-08', '981000987654321',
     null, null
+  ),
+  (
+    'd0000000-0000-4000-8000-000000000004',
+    'a0000000-0000-4000-8000-000000000001',
+    'c0000000-0000-4000-8000-000000000002',
+    'Coco', 'other', 'Conejo holandés', 'male', false, '2024-02-14', null,
+    null, 'Muerde si lo sujetan del lomo'
+  ),
+  (
+    'd0000000-0000-4000-8000-000000000005',
+    'a0000000-0000-4000-8000-000000000001',
+    'c0000000-0000-4000-8000-000000000001',
+    'Kira', 'dog', 'Border collie', 'female', true, '2021-05-20', '981000555666777',
+    'Carne de res', null
   )
-on conflict (id) do update set name = excluded.name, alerts = excluded.alerts;
+on conflict (id) do update set name = excluded.name, species = excluded.species, breed = excluded.breed, alerts = excluded.alerts;
 
-insert into public.catalog_items (id, organization_id, kind, name, sku, unit_price, stock, is_active)
+insert into public.catalog_items (id, organization_id, kind, name, sku, unit_price, stock, min_stock, is_active)
 values
-  ('e0000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-000000000001', 'service', 'Consulta general', 'SRV-CON', 450, null, true),
-  ('e0000000-0000-4000-8000-000000000002', 'a0000000-0000-4000-8000-000000000001', 'service', 'Consulta de seguimiento', 'SRV-SEG', 280, null, true),
-  ('e0000000-0000-4000-8000-000000000003', 'a0000000-0000-4000-8000-000000000001', 'service', 'Aplicación de vacuna', 'SRV-VAC', 80, null, true),
-  ('e0000000-0000-4000-8000-000000000004', 'a0000000-0000-4000-8000-000000000001', 'product', 'Vacuna séxtuple', 'VAC-SEX', 650, 12, true),
-  ('e0000000-0000-4000-8000-000000000005', 'a0000000-0000-4000-8000-000000000001', 'product', 'Vacuna antirrábica', 'VAC-RAB', 380, 18, true),
-  ('e0000000-0000-4000-8000-000000000006', 'a0000000-0000-4000-8000-000000000001', 'product', 'Desparasitación', 'MED-DES', 220, 30, true),
-  ('e0000000-0000-4000-8000-000000000007', 'a0000000-0000-4000-8000-000000000001', 'product', 'Meloxicam 1.5 mg', 'MED-MEL', 185, 20, true)
-on conflict (id) do update set unit_price = excluded.unit_price, stock = excluded.stock;
+  ('e0000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-000000000001', 'service', 'Consulta general', 'SRV-CON', 450, null, null, true),
+  ('e0000000-0000-4000-8000-000000000002', 'a0000000-0000-4000-8000-000000000001', 'service', 'Consulta de seguimiento', 'SRV-SEG', 280, null, null, true),
+  ('e0000000-0000-4000-8000-000000000003', 'a0000000-0000-4000-8000-000000000001', 'service', 'Aplicación de vacuna', 'SRV-VAC', 80, null, null, true),
+  ('e0000000-0000-4000-8000-000000000004', 'a0000000-0000-4000-8000-000000000001', 'product', 'Vacuna séxtuple', 'VAC-SEX', 650, 12, 8, true),
+  ('e0000000-0000-4000-8000-000000000005', 'a0000000-0000-4000-8000-000000000001', 'product', 'Vacuna antirrábica', 'VAC-RAB', 380, 18, 8, true),
+  ('e0000000-0000-4000-8000-000000000006', 'a0000000-0000-4000-8000-000000000001', 'product', 'Desparasitación', 'MED-DES', 220, 30, 8, true),
+  ('e0000000-0000-4000-8000-000000000007', 'a0000000-0000-4000-8000-000000000001', 'product', 'Meloxicam 1.5 mg', 'MED-MEL', 185, 2, 8, true)
+on conflict (id) do update set unit_price = excluded.unit_price, stock = excluded.stock, min_stock = excluded.min_stock;
 
--- Agenda de hoy, mañana y la semana
+-- Piso de Hoy: se reancla al día local de México cada vez que se aplica el seed.
 insert into public.appointments (
   id, organization_id, branch_id, client_id, patient_id, vet_id, starts_at, ends_at, status, reason
 )
+select
+  slot.id,
+  'a0000000-0000-4000-8000-000000000001',
+  'b0000000-0000-4000-8000-000000000001',
+  slot.client_id,
+  slot.patient_id,
+  '11111111-1111-4111-8111-111111111111',
+  timezone('America/Mexico_City', mx.d + slot.day_offset + slot.start_t),
+  timezone('America/Mexico_City', mx.d + slot.day_offset + slot.end_t),
+  slot.status,
+  slot.reason
+from (select (timezone('America/Mexico_City', now()))::date as d) mx
+cross join (
+  values
+    (
+      'f0000000-0000-4000-8000-000000000001'::uuid,
+      'c0000000-0000-4000-8000-000000000001'::uuid,
+      'd0000000-0000-4000-8000-000000000001'::uuid,
+      0, time '16:00', time '16:30', 'scheduled'::public.appointment_status,
+      'Cojera pata trasera'
+    ),
+    (
+      'f0000000-0000-4000-8000-000000000002'::uuid,
+      'c0000000-0000-4000-8000-000000000001'::uuid,
+      'd0000000-0000-4000-8000-000000000002'::uuid,
+      0, time '10:15', time '10:45', 'waiting'::public.appointment_status,
+      'Vacuna anual'
+    ),
+    (
+      'f0000000-0000-4000-8000-000000000003'::uuid,
+      'c0000000-0000-4000-8000-000000000002'::uuid,
+      'd0000000-0000-4000-8000-000000000003'::uuid,
+      0, time '11:00', time '11:30', 'in_consult'::public.appointment_status,
+      'Control de piel'
+    ),
+    (
+      'f0000000-0000-4000-8000-000000000004'::uuid,
+      'c0000000-0000-4000-8000-000000000002'::uuid,
+      'd0000000-0000-4000-8000-000000000004'::uuid,
+      0, time '08:00', time '08:20', 'no_show'::public.appointment_status,
+      'Corte de uñas'
+    ),
+    (
+      'f0000000-0000-4000-8000-000000000005'::uuid,
+      'c0000000-0000-4000-8000-000000000001'::uuid,
+      'd0000000-0000-4000-8000-000000000005'::uuid,
+      0, time '08:30', time '09:00', 'completed'::public.appointment_status,
+      'Control post operatorio'
+    ),
+    (
+      'f0000000-0000-4000-8000-000000000006'::uuid,
+      'c0000000-0000-4000-8000-000000000002'::uuid,
+      'd0000000-0000-4000-8000-000000000003'::uuid,
+      1, time '16:00', time '16:30', 'scheduled'::public.appointment_status,
+      'Revisión de piel'
+    )
+) as slot(id, client_id, patient_id, day_offset, start_t, end_t, status, reason)
+on conflict (id) do update
+  set starts_at = excluded.starts_at,
+      ends_at = excluded.ends_at,
+      status = excluded.status,
+      reason = excluded.reason,
+      client_id = excluded.client_id,
+      patient_id = excluded.patient_id;
+
+insert into public.visits (
+  id, organization_id, branch_id, appointment_id, client_id, patient_id, vet_id,
+  status, subjective, objective, assessment, plan, weight_kg, temperature_c,
+  started_at, completed_at
+)
+select
+  slot.id,
+  'a0000000-0000-4000-8000-000000000001',
+  'b0000000-0000-4000-8000-000000000001',
+  slot.appointment_id,
+  slot.client_id,
+  slot.patient_id,
+  '11111111-1111-4111-8111-111111111111',
+  slot.status,
+  slot.subjective,
+  slot.objective,
+  slot.assessment,
+  slot.plan,
+  slot.weight_kg,
+  slot.temperature_c,
+  timezone('America/Mexico_City', mx.d + slot.started_t),
+  case
+    when slot.completed_t is null then null
+    else timezone('America/Mexico_City', mx.d + slot.completed_t)
+  end
+from (select (timezone('America/Mexico_City', now()))::date as d) mx
+cross join (
+  values
+    (
+      'ab000000-0000-4000-8000-000000000001'::uuid,
+      'f0000000-0000-4000-8000-000000000003'::uuid,
+      'c0000000-0000-4000-8000-000000000002'::uuid,
+      'd0000000-0000-4000-8000-000000000003'::uuid,
+      'in_progress'::public.visit_status,
+      'Prurito intenso desde hace 4 días. Se rasca de noche.',
+      'Placas eritematosas en dorso. Temperatura 38.6.',
+      null,
+      null,
+      22.4::numeric,
+      38.6::numeric,
+      time '11:05',
+      null::time
+    ),
+    (
+      'ab000000-0000-4000-8000-000000000002'::uuid,
+      'f0000000-0000-4000-8000-000000000005'::uuid,
+      'c0000000-0000-4000-8000-000000000001'::uuid,
+      'd0000000-0000-4000-8000-000000000005'::uuid,
+      'completed'::public.visit_status,
+      'Control a 10 días de ovariohisterectomía. Come y camina bien.',
+      'Herida limpia, sin dehiscencia. Sutura en buen estado.',
+      'Evolución post operatoria adecuada.',
+      'Retiro de puntos. Alta médica. Cobro en caja.',
+      18.2::numeric,
+      38.4::numeric,
+      time '08:35',
+      time '09:05'
+    )
+) as slot(
+  id, appointment_id, client_id, patient_id, status,
+  subjective, objective, assessment, plan, weight_kg, temperature_c, started_t, completed_t
+)
+on conflict (id) do update
+  set status = excluded.status,
+      appointment_id = excluded.appointment_id,
+      subjective = excluded.subjective,
+      objective = excluded.objective,
+      assessment = excluded.assessment,
+      plan = excluded.plan,
+      started_at = excluded.started_at,
+      completed_at = excluded.completed_at;
+
+insert into public.visit_lines (
+  id, visit_id, catalog_item_id, kind, description, quantity, unit_price, line_total
+)
 values
   (
-    'f0000000-0000-4000-8000-000000000001',
-    'a0000000-0000-4000-8000-000000000001',
-    'b0000000-0000-4000-8000-000000000001',
-    'c0000000-0000-4000-8000-000000000001',
-    'd0000000-0000-4000-8000-000000000001',
-    '11111111-1111-4111-8111-111111111111',
-    (current_date + time '09:30') at time zone 'America/Mexico_City',
-    (current_date + time '10:00') at time zone 'America/Mexico_City',
-    'scheduled',
-    'Cojera pata trasera'
-  ),
-  (
-    'f0000000-0000-4000-8000-000000000002',
-    'a0000000-0000-4000-8000-000000000001',
-    'b0000000-0000-4000-8000-000000000001',
-    'c0000000-0000-4000-8000-000000000001',
-    'd0000000-0000-4000-8000-000000000002',
-    '11111111-1111-4111-8111-111111111111',
-    (current_date + time '11:00') at time zone 'America/Mexico_City',
-    (current_date + time '11:30') at time zone 'America/Mexico_City',
-    'confirmed',
-    'Vacuna anual'
-  ),
-  (
-    'f0000000-0000-4000-8000-000000000003',
-    'a0000000-0000-4000-8000-000000000001',
-    'b0000000-0000-4000-8000-000000000001',
-    'c0000000-0000-4000-8000-000000000002',
-    'd0000000-0000-4000-8000-000000000003',
-    '11111111-1111-4111-8111-111111111111',
-    (current_date + 1 + time '16:00') at time zone 'America/Mexico_City',
-    (current_date + 1 + time '16:30') at time zone 'America/Mexico_City',
-    'scheduled',
-    'Control de piel'
+    'ac000000-0000-4000-8000-000000000001',
+    'ab000000-0000-4000-8000-000000000002',
+    'e0000000-0000-4000-8000-000000000002',
+    'service', 'Consulta de seguimiento', 1, 280, 280
   )
-on conflict (id) do update set starts_at = excluded.starts_at, status = excluded.status, reason = excluded.reason;
+on conflict (id) do update
+  set description = excluded.description, unit_price = excluded.unit_price, line_total = excluded.line_total;
+
+insert into public.invoices (
+  id, organization_id, branch_id, client_id, visit_id, status, services_total, products_total, total
+)
+values
+  (
+    'ad000000-0000-4000-8000-000000000001',
+    'a0000000-0000-4000-8000-000000000001',
+    'b0000000-0000-4000-8000-000000000001',
+    'c0000000-0000-4000-8000-000000000001',
+    'ab000000-0000-4000-8000-000000000002',
+    'open', 280, 0, 280
+  )
+on conflict (id) do update
+  set status = excluded.status,
+      visit_id = excluded.visit_id,
+      services_total = excluded.services_total,
+      products_total = excluded.products_total,
+      total = excluded.total;
+
+insert into public.invoice_lines (
+  id, invoice_id, visit_line_id, kind, description, quantity, unit_price, line_total
+)
+values
+  (
+    'ae000000-0000-4000-8000-000000000001',
+    'ad000000-0000-4000-8000-000000000001',
+    'ac000000-0000-4000-8000-000000000001',
+    'service', 'Consulta de seguimiento', 1, 280, 280
+  )
+on conflict (id) do update
+  set description = excluded.description, unit_price = excluded.unit_price, line_total = excluded.line_total;
 
 insert into public.vaccine_records (
   id, organization_id, patient_id, name, lot, applied_on, next_due
