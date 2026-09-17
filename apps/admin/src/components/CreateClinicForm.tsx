@@ -3,6 +3,8 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
+import { PageHeading } from '@/components/SectionTitle';
+
 export function CreateClinicForm() {
   const router = useRouter();
   const [clinicName, setClinicName] = useState('');
@@ -50,11 +52,12 @@ export function CreateClinicForm() {
 
   return (
     <form onSubmit={(event) => void handleSubmit(event)} className="pe-panel max-w-xl p-6">
-      <p className="pe-kicker">Nueva veterinaria</p>
-      <h1 className="mt-2 text-2xl font-semibold tracking-tight">Alta de clínica</h1>
-      <p className="mt-2 text-sm text-pe-muted">
-        Crea la organización, la primera sucursal y el usuario dueño. El catálogo arranca con consulta y vacunas.
-      </p>
+      <PageHeading
+        mark="clinicas"
+        kicker="Nueva veterinaria"
+        title="Alta de clínica"
+        description="Crea la organización, la primera sucursal y el usuario dueño. El catálogo arranca con consulta y vacunas."
+      />
 
       <label className="mt-6 block text-sm font-medium">
         Nombre de la veterinaria

@@ -16,6 +16,7 @@ export default async function TutoresPage() {
   return (
     <AdminShell>
       <PatientsDirectory
+        mark="tutores"
         title="Tutores"
         kicker="Recepción"
         description="Cuenta del tutor primero. Las mascotas cuelgan de aquí."

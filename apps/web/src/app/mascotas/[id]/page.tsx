@@ -4,6 +4,7 @@ import { notFound, redirect } from 'next/navigation';
 import { formatMexicoDateTime, patientAgeLabel, SEX_LABELS, SPECIES_LABELS } from '@petearth/shared';
 import { createAdminClient } from '@petearth/supabase/admin';
 
+import { SectionMark, speciesMark } from '@/components/SectionTitle';
 import { TutorShell } from '@/components/TutorShell';
 import { getTutorContext } from '@/lib/tutor';
 
@@ -47,7 +48,10 @@ export default async function PetProfilePage({ params }: { params: Promise<{ id:
       <Link href="/" className="text-sm pe-link">
         Todas las mascotas
       </Link>
-      <h2 className="mt-4 font-serif text-3xl font-semibold">{patient.name}</h2>
+      <h2 className="mt-4 flex items-center gap-3 font-serif text-3xl font-semibold">
+        <SectionMark name={speciesMark(patient.species)} />
+        {patient.name}
+      </h2>
       <p className="text-pe-muted">
         {SPECIES_LABELS[patient.species]} · {SEX_LABELS[patient.sex]}
         {patientAgeLabel(patient.birth_date) ? ` · ${patientAgeLabel(patient.birth_date)}` : ''}
@@ -55,7 +59,10 @@ export default async function PetProfilePage({ params }: { params: Promise<{ id:
       {patient.allergies ? <p className="mt-2 text-sm text-red-800">Alergias: {patient.allergies}</p> : null}
 
       <section className="pe-card mt-6 p-4">
-        <h3 className="font-semibold">Próximas citas</h3>
+        <h3 className="flex items-center gap-2 font-semibold">
+          <SectionMark name="agenda" size="sm" />
+          Próximas citas
+        </h3>
         <ul className="mt-2 space-y-1 text-sm">
           {(appointments ?? []).map((row) => (
             <li key={row.starts_at}>
@@ -68,7 +75,10 @@ export default async function PetProfilePage({ params }: { params: Promise<{ id:
 
       <section className="pe-card mt-4 p-4">
         <div className="flex items-center justify-between gap-3">
-          <h3 className="font-semibold">Cartilla de vacunas</h3>
+          <h3 className="flex items-center gap-2 font-semibold">
+            <SectionMark name="cartilla" size="sm" />
+            Cartilla de vacunas
+          </h3>
           <Link href={`/mascotas/${id}/cartilla`} className="text-sm pe-link">
             Imprimir
           </Link>
@@ -88,7 +98,10 @@ export default async function PetProfilePage({ params }: { params: Promise<{ id:
       </section>
 
       <section className="pe-card mt-4 p-4">
-        <h3 className="font-semibold">Altas de consulta</h3>
+        <h3 className="flex items-center gap-2 font-semibold">
+          <SectionMark name="consulta" size="sm" />
+          Altas de consulta
+        </h3>
         <ul className="mt-2 space-y-3 text-sm">
           {(visits ?? []).map((visit) => (
             <li key={visit.id}>

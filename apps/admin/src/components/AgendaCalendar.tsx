@@ -15,6 +15,7 @@ import {
   type AppointmentStatus,
 } from '@petearth/shared';
 
+import { PageHeading } from '@/components/SectionTitle';
 import { StatusPill } from '@/components/StatusPill';
 import type { AppointmentRow } from '@/components/DayBoard';
 
@@ -75,13 +76,11 @@ export function AgendaCalendar({
   return (
     <section className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Agenda</h1>
-          <p className="text-sm text-pe-muted">
-            {branchName ? `${branchName} · ` : ''}
-            {view === 'week' ? 'Capacidad de la semana' : 'Planeación del mes'}
-          </p>
-        </div>
+        <PageHeading
+          mark="agenda"
+          title="Agenda"
+          description={`${branchName ? `${branchName} · ` : ''}${view === 'week' ? 'Capacidad de la semana' : 'Planeación del mes'}`}
+        />
         <div className="flex gap-2">
           <button type="button" className={`pe-btn-ghost px-3 py-1.5 text-sm ${view === 'week' ? 'pe-chip-active' : ''}`} onClick={() => setView('week')}>
             Semana

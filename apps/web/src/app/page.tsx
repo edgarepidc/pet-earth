@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { REMINDER_KIND_LABELS, SPECIES_LABELS, todayMexicoYmd } from '@petearth/shared';
 import { createAdminClient } from '@petearth/supabase/admin';
 
+import { SectionMark, speciesMark } from '@/components/SectionTitle';
 import { TutorShell } from '@/components/TutorShell';
 import { getTutorContext } from '@/lib/tutor';
 
@@ -33,21 +34,30 @@ export default async function TutorHomePage() {
   return (
     <TutorShell clinicName={tutor.clinicName} tutorName={tutor.clientName}>
       <section className="space-y-3">
-        <h2 className="font-serif text-xl font-semibold">Tus mascotas</h2>
+        <h2 className="flex items-center gap-2 font-serif text-xl font-semibold">
+          <SectionMark name="pacientes" size="sm" />
+          Tus mascotas
+        </h2>
         <div className="grid gap-3 sm:grid-cols-2">
           {(patients ?? []).map((pet) => (
-            <Link key={pet.id} href={`/mascotas/${pet.id}`} className="pe-card block p-4">
+            <Link key={pet.id} href={`/mascotas/${pet.id}`} className="pe-card flex items-start gap-3 p-4">
+              <SectionMark name={speciesMark(pet.species)} size="sm" />
+              <span>
               <p className="font-serif text-xl font-semibold">{pet.name}</p>
               <p className="text-sm text-pe-muted">
                 {SPECIES_LABELS[pet.species]} {pet.breed ? `· ${pet.breed}` : ''}
               </p>
               {pet.alerts ? <p className="mt-2 text-xs text-amber-800">{pet.alerts}</p> : null}
+              </span>
             </Link>
           ))}
         </div>
       </section>
       <section className="mt-8">
-        <h2 className="font-serif text-xl font-semibold">Pendientes</h2>
+        <h2 className="flex items-center gap-2 font-serif text-xl font-semibold">
+          <SectionMark name="seguimiento" size="sm" />
+          Pendientes
+        </h2>
         <ul className="mt-3 space-y-2">
           {(reminders ?? []).map((row) => {
             const pet = Array.isArray(row.patients) ? row.patients[0] : row.patients;

@@ -6,6 +6,7 @@ import { useMemo, useState } from 'react';
 import { REMINDER_KIND_LABELS, todayMexicoYmd, vaccineWhatsAppText, type ReminderKind } from '@petearth/shared';
 
 import { ReminderPill } from '@/components/StatusPill';
+import { PageHeading } from '@/components/SectionTitle';
 import { WhatsAppLink } from '@/components/WhatsAppLink';
 
 type Reminder = {
@@ -79,11 +80,12 @@ export function FollowUpInbox({
 
   return (
     <section className="space-y-4">
-      <div>
-        <p className="pe-kicker">Clínico</p>
-        <h1 className="text-2xl font-semibold tracking-tight">Seguimiento</h1>
-        <p className="text-sm text-pe-muted">Citas, vacunas, controles y desparasitación pendientes. WhatsApp o correo.</p>
-      </div>
+      <PageHeading
+        mark="seguimiento"
+        kicker="Clínico"
+        title="Seguimiento"
+        description="Citas, vacunas, controles y desparasitación pendientes. WhatsApp o correo."
+      />
       {error ? <p className="pe-callout-amber p-3 text-sm">{error}</p> : null}
       <div className="flex flex-wrap gap-2">
         {(['all', 'overdue', 'appointment', 'vaccine', 'followup', 'deworming'] as const).map((key) => (

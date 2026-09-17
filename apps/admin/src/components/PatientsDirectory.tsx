@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 
 import { ClientFiscalForm } from '@/components/ClientFiscalForm';
+import { PageHeading, SectionMark, type SectionMarkName } from '@/components/SectionTitle';
 import { SPECIES_LABELS, type Species } from '@petearth/shared';
 
 type Patient = {
@@ -34,12 +35,14 @@ export function PatientsDirectory({
   kicker = 'Clínico',
   description = 'Tutor y mascota van separados. Busca por cualquiera de los dos.',
   showFiscal = false,
+  mark = 'pacientes',
 }: {
   clients: Client[];
   title?: string;
   kicker?: string;
   description?: string;
   showFiscal?: boolean;
+  mark?: SectionMarkName;
 }) {
   const router = useRouter();
   const [query, setQuery] = useState('');
@@ -97,11 +100,7 @@ export function PatientsDirectory({
 
   return (
     <section className="space-y-5">
-      <div>
-        <p className="pe-kicker">{kicker}</p>
-        <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
-        <p className="text-sm text-pe-muted">{description}</p>
-      </div>
+      <PageHeading mark={mark} kicker={kicker} title={title} description={description} />
       <input
         className="pe-input max-w-md"
         placeholder="Buscar tutor o mascota"
@@ -111,7 +110,10 @@ export function PatientsDirectory({
       {error ? <p className="pe-callout-amber p-3 text-sm">{error}</p> : null}
       <div className="grid gap-4 lg:grid-cols-2">
         <form onSubmit={createTutor} className="pe-glass-card space-y-3 p-4">
-          <h2 className="font-semibold">Nuevo tutor</h2>
+          <h2 className="flex items-center gap-2 font-semibold">
+            <SectionMark name="tutores" size="sm" />
+            Nuevo tutor
+          </h2>
           <input className="pe-input" required placeholder="Nombre" value={tutorName} onChange={(e) => setTutorName(e.target.value)} />
           <input className="pe-input" placeholder="Teléfono" value={tutorPhone} onChange={(e) => setTutorPhone(e.target.value)} />
           <button type="submit" className="pe-btn-primary px-4 py-2 text-sm">
@@ -119,7 +121,10 @@ export function PatientsDirectory({
           </button>
         </form>
         <form onSubmit={createPet} className="pe-glass-card space-y-3 p-4">
-          <h2 className="font-semibold">Nueva mascota</h2>
+          <h2 className="flex items-center gap-2 font-semibold">
+            <SectionMark name="pacientes" size="sm" />
+            Nueva mascota
+          </h2>
           <select className="pe-input" value={selectedClient} onChange={(e) => setSelectedClient(e.target.value)}>
             {clients.map((client) => (
               <option key={client.id} value={client.id}>

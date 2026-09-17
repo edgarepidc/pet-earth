@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { EnterClinicButton } from '@/components/EnterClinicButton';
+import { PageHeading, SectionMark } from '@/components/SectionTitle';
 
 type Branch = {
   id: string;
@@ -94,11 +95,7 @@ export function OrgWorkspace({
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <p className="pe-kicker">Veterinaria</p>
-          <h1 className="text-3xl font-semibold tracking-tight">{organization.name}</h1>
-          <p className="mt-1 text-sm text-pe-muted">{organization.slug}</p>
-        </div>
+        <PageHeading mark="clinicas" kicker="Veterinaria" title={organization.name} description={organization.slug} size="lg" />
         {branches[0] ? (
           <EnterClinicButton organizationId={organization.id} branchId={branches[0].id} />
         ) : null}
@@ -107,7 +104,10 @@ export function OrgWorkspace({
       {error ? <p className="text-sm text-pe-danger">{error}</p> : null}
 
       <section className="pe-card p-5">
-        <h2 className="text-xl font-semibold tracking-tight">Sucursales</h2>
+        <h2 className="flex items-center gap-2 text-xl font-semibold tracking-tight">
+          <SectionMark name="clinicas" size="sm" />
+          Sucursales
+        </h2>
         <ul className="mt-3 divide-y divide-[var(--pe-line)]">
           {branches.map((branch) => (
             <li key={branch.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
@@ -140,7 +140,10 @@ export function OrgWorkspace({
       </section>
 
       <section className="pe-card p-5">
-        <h2 className="text-xl font-semibold tracking-tight">Staff</h2>
+        <h2 className="flex items-center gap-2 text-xl font-semibold tracking-tight">
+          <SectionMark name="tutores" size="sm" />
+          Staff
+        </h2>
         <ul className="mt-3 divide-y divide-[var(--pe-line)]">
           {staff.map((row) => (
             <li key={row.id} className="py-3">

@@ -173,6 +173,24 @@
   text-decoration: underline;
 }
 
+.pe-mark {
+  display: inline-flex;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex-shrink: 0;
+  overflow: hidden;
+  border-radius: 0.85rem;
+  border: 1px solid var(--pe-line);
+  box-shadow: var(--pe-shadow);
+  background: #fff8f1;
+}
+
+.pe-mark-sm {
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 0.5rem;
+}
+
 textarea.pe-input {
   min-height: 5.5rem;
   resize: vertical;
@@ -192,7 +210,8 @@ textarea.pe-input {
 @media print {
   .pe-no-print,
   .pe-sidebar,
-  .pe-glass-header {
+  .pe-glass-header,
+  .pe-mark {
     display: none !important;
   }
 

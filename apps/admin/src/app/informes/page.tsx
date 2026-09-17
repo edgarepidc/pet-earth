@@ -3,6 +3,7 @@ import { createAdminClient } from '@petearth/supabase/admin';
 
 import { AdminShell } from '@/components/AdminShell';
 import { ClinicFiscalForm } from '@/components/ClinicFiscalForm';
+import { PageHeading, SectionMark } from '@/components/SectionTitle';
 import { loadClinicSession } from '@/lib/auth';
 import { pacConfigured } from '@/lib/cfdi';
 import { loadClinicReports, loadLowStock } from '@/lib/queries';
@@ -38,11 +39,12 @@ export default async function InformesPage({
 
   return (
     <AdminShell>
-      <p className="pe-kicker">Dirección</p>
-      <h1 className="text-2xl font-semibold tracking-tight">Informes</h1>
-      <p className="text-sm text-pe-muted">
-        {staff.branchName}. Servicio vs medicamento y cobro por MVZ.
-      </p>
+      <PageHeading
+        mark="informes"
+        kicker="Dirección"
+        title="Informes"
+        description={`${staff.branchName}. Servicio vs medicamento y cobro por MVZ.`}
+      />
       <form className="mt-4 flex flex-wrap items-end gap-2" method="get">
         <label className="text-sm">
           Desde
@@ -77,7 +79,10 @@ export default async function InformesPage({
       </div>
 
       <section className="pe-card mt-5 p-4">
-        <h2 className="font-semibold">Ingreso por MVZ</h2>
+        <h2 className="flex items-center gap-2 font-semibold">
+          <SectionMark name="consulta" size="sm" />
+          Ingreso por MVZ
+        </h2>
         <ul className="mt-3 space-y-2 text-sm">
           {report.byVet.map((row) => (
             <li key={row.name} className="flex justify-between gap-3">
@@ -92,7 +97,10 @@ export default async function InformesPage({
       </section>
 
       <section className="pe-card mt-5 p-4">
-        <h2 className="font-semibold">Stock bajo mínimo</h2>
+        <h2 className="flex items-center gap-2 font-semibold">
+          <SectionMark name="stock" size="sm" />
+          Stock bajo mínimo
+        </h2>
         <ul className="mt-3 space-y-2 text-sm">
           {lowStock.map((item) => (
             <li key={item.id} className="flex justify-between gap-3">

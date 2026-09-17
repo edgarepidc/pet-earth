@@ -2,6 +2,8 @@ import Link from 'next/link';
 
 import { patientAgeLabel, SEX_LABELS, SPECIES_LABELS, type Sex, type Species, whatsappHref } from '@petearth/shared';
 
+import { SectionMark, speciesMark } from '@/components/SectionTitle';
+
 export function PatientHeader({
   name,
   species,
@@ -44,7 +46,10 @@ export function PatientHeader({
   return (
     <header className="pe-card p-4">
       <p className="pe-kicker">Paciente</p>
-      {title}
+      <div className="mt-1 flex items-center gap-3">
+        <SectionMark name={speciesMark(species)} />
+        {title}
+      </div>
       <p className="mt-1 text-sm text-pe-muted">
         {SPECIES_LABELS[species]}
         {sex ? ` · ${SEX_LABELS[sex]}` : ''}

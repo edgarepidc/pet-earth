@@ -3,6 +3,7 @@ import { todayMexicoYmd } from '@petearth/shared';
 
 import { AdminShell } from '@/components/AdminShell';
 import { DayBoard, type AppointmentRow, type OpenInvoiceRow } from '@/components/DayBoard';
+import { SectionMark } from '@/components/SectionTitle';
 import { ReminderPill } from '@/components/StatusPill';
 import { loadClinicSession } from '@/lib/auth';
 import { loadDayAppointments, loadFollowUps, loadLowStock, loadOpenInvoices } from '@/lib/queries';
@@ -32,7 +33,10 @@ export default async function HomePage() {
         />
         <aside className="space-y-3">
           <div className="pe-card p-4">
-            <h2 className="text-sm font-semibold">Seguimiento vencido</h2>
+            <h2 className="flex items-center gap-2 text-sm font-semibold">
+              <SectionMark name="seguimiento" size="sm" />
+              Seguimiento vencido
+            </h2>
             {overdue.length === 0 ? (
               <p className="mt-2 text-sm text-pe-muted">Nada vencido.</p>
             ) : (
@@ -51,7 +55,10 @@ export default async function HomePage() {
             </Link>
           </div>
           <div className="pe-card p-4">
-            <h2 className="text-sm font-semibold">Stock bajo</h2>
+            <h2 className="flex items-center gap-2 text-sm font-semibold">
+              <SectionMark name="stock" size="sm" />
+              Stock bajo
+            </h2>
             {lowStock.length === 0 ? (
               <p className="mt-2 text-sm text-pe-muted">Sin alertas.</p>
             ) : (

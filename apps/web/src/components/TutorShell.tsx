@@ -1,3 +1,4 @@
+import { PageHeading } from '@/components/SectionTitle';
 import { LogoutButton } from '@/components/LogoutButton';
 
 export function TutorShell({
@@ -13,9 +14,7 @@ export function TutorShell({
     <main className="pe-app min-h-screen px-5 py-10 sm:px-10 lg:px-16">
       <header className="mb-8 flex max-w-2xl items-start justify-between gap-4">
         <div>
-          <p className="pe-kicker">{clinicName}</p>
-          <h1 className="font-serif text-3xl font-semibold tracking-tight">Cartilla</h1>
-          <p className="mt-1 text-sm text-pe-muted">{tutorName}</p>
+          <PageHeading mark="cartilla" kicker={clinicName} title="Cartilla" description={tutorName} serif size="lg" />
         </div>
         <LogoutButton />
       </header>

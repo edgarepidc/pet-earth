@@ -3,6 +3,7 @@ import { formatMexicoDate } from '@petearth/shared';
 import { createAdminClient } from '@petearth/supabase/admin';
 
 import { EnterClinicButton } from '@/components/EnterClinicButton';
+import { PageHeading } from '@/components/SectionTitle';
 import { PlatformShell } from '@/components/PlatformShell';
 import { loadPlatformSession } from '@/lib/auth';
 
@@ -28,13 +29,13 @@ export default async function PlataformaPage() {
   return (
     <PlatformShell>
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <p className="pe-kicker">Super admin</p>
-          <h1 className="text-3xl font-semibold tracking-tight">Veterinarias</h1>
-          <p className="mt-1 text-sm text-pe-muted">
-            Alta de clínicas y sucursales. Entra al panel de una para dar soporte.
-          </p>
-        </div>
+        <PageHeading
+          mark="clinicas"
+          kicker="Super admin"
+          title="Veterinarias"
+          description="Alta de clínicas y sucursales. Entra al panel de una para dar soporte."
+          size="lg"
+        />
         <Link href="/plataforma/nueva" className="pe-btn-primary px-4 py-2 text-sm">
           Nueva veterinaria
         </Link>

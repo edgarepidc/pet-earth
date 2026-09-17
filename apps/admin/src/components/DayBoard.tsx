@@ -11,6 +11,7 @@ import {
   type AppointmentStatus,
 } from '@petearth/shared';
 
+import { PageHeading, SectionMark, type SectionMarkName } from '@/components/SectionTitle';
 import { StatusPill } from '@/components/StatusPill';
 import { WhatsAppLink } from '@/components/WhatsAppLink';
 
@@ -38,12 +39,12 @@ function one<T>(value: T | T[] | null | undefined): T | null {
   return Array.isArray(value) ? value[0] ?? null : value;
 }
 
-const COLUMNS: { key: string; title: string; statuses: AppointmentStatus[] }[] = [
-  { key: 'scheduled', title: 'Agendado', statuses: ['scheduled', 'confirmed'] },
-  { key: 'waiting', title: 'En sala', statuses: ['waiting'] },
-  { key: 'consult', title: 'En consulta', statuses: ['in_consult'] },
-  { key: 'done', title: 'Alta', statuses: ['completed'] },
-  { key: 'missed', title: 'No-show', statuses: ['no_show', 'cancelled'] },
+const COLUMNS: { key: string; title: string; mark: SectionMarkName; statuses: AppointmentStatus[] }[] = [
+  { key: 'scheduled', title: 'Agendado', mark: 'agenda', statuses: ['scheduled', 'confirmed'] },
+  { key: 'waiting', title: 'En sala', mark: 'sala', statuses: ['waiting'] },
+  { key: 'consult', title: 'En consulta', mark: 'consulta', statuses: ['in_consult'] },
+  { key: 'done', title: 'Alta', mark: 'alta', statuses: ['completed'] },
+  { key: 'missed', title: 'No-show', mark: 'missed', statuses: ['no_show', 'cancelled'] },
 ];
 
 export function DayBoard({
@@ -106,13 +107,12 @@ export function DayBoard({
   return (
     <section className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <p className="pe-kicker">Sala de espera · {branchName ?? clinicName}</p>
-          <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
-          <p className="text-sm text-pe-muted">
-            Check-in → consulta → cobro. El piso de esta sucursal en un vistazo.
-          </p>
-        </div>
+        <PageHeading
+          mark="hoy"
+          kicker={`Sala de espera · ${branchName ?? clinicName}`}
+          title={title}
+          description="Check-in → consulta → cobro. El piso de esta sucursal en un vistazo."
+        />
         <Link href="/agenda" className="pe-btn-secondary px-4 py-2 text-sm">
           Semana / mes
         </Link>
@@ -123,8 +123,11 @@ export function DayBoard({
           const rows = grouped.get(col.key) ?? [];
           return (
             <div key={col.key} className="pe-card min-h-48 p-3">
-              <div className="mb-2 flex items-baseline justify-between">
-                <h2 className="text-xs font-bold uppercase tracking-[0.12em] text-pe-muted">{col.title}</h2>
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <h2 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.12em] text-pe-muted">
+                  <SectionMark name={col.mark} size="sm" />
+                  {col.title}
+                </h2>
                 <span className="text-xs tabular-nums text-pe-muted">{rows.length}</span>
               </div>
               <ul className="space-y-2">
@@ -241,8 +244,11 @@ export function DayBoard({
           );
         })}
         <div className="pe-card min-h-48 p-3">
-          <div className="mb-2 flex items-baseline justify-between">
-            <h2 className="text-xs font-bold uppercase tracking-[0.12em] text-pe-muted">Por cobrar</h2>
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <h2 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.12em] text-pe-muted">
+              <SectionMark name="caja" size="sm" />
+              Por cobrar
+            </h2>
             <span className="text-xs tabular-nums text-pe-muted">{invoices.length}</span>
           </div>
           <ul className="space-y-2">

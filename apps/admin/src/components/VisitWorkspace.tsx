@@ -20,6 +20,7 @@ import {
 
 import { ClinicalMedia } from '@/components/ClinicalMedia';
 import { DictationButton } from '@/components/DictationButton';
+import { SectionMark } from '@/components/SectionTitle';
 import { WhatsAppLink } from '@/components/WhatsAppLink';
 
 type CatalogItem = {
@@ -312,7 +313,10 @@ export function VisitWorkspace({
 
       <aside className="space-y-4">
         <div className="pe-glass-card p-4">
-          <h2 className="font-semibold">Cargos (lo documentado se cobra)</h2>
+          <h2 className="flex items-center gap-2 font-semibold">
+            <SectionMark name="caja" size="sm" />
+            Cargos (lo documentado se cobra)
+          </h2>
           <div className="mt-3 flex gap-2">
             <select className="pe-input" value={itemId} onChange={(e) => setItemId(e.target.value)} disabled={closed}>
               {initial.catalog.map((item) => (
@@ -371,7 +375,10 @@ export function VisitWorkspace({
         </div>
 
         <div className="pe-glass-card p-4">
-          <h2 className="font-semibold">Vacuna / preventivo</h2>
+          <h2 className="flex items-center gap-2 font-semibold">
+            <SectionMark name="catalogo" size="sm" />
+            Vacuna / preventivo
+          </h2>
           <select className="pe-input mt-3" value={vaccineItem} onChange={(e) => setVaccineItem(e.target.value)} disabled={closed}>
             {initial.catalog
               .filter((item) => item.kind === 'product')

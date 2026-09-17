@@ -6,6 +6,8 @@ import { useState } from 'react';
 
 import { CFDI_STATUS_LABELS, formatMoney, PAYMENT_METHOD_LABELS, type CfdiStatus, type PaymentMethod } from '@petearth/shared';
 
+import { PageHeading, SectionMark } from '@/components/SectionTitle';
+
 type Invoice = {
   id: string;
   total: number;
@@ -82,11 +84,12 @@ export function CashierDesk({
 
   return (
     <section className="space-y-4">
-      <div>
-        <p className="pe-kicker">Recepción{branchName ? ` · ${branchName}` : ''}</p>
-        <h1 className="text-2xl font-semibold tracking-tight">Caja</h1>
-        <p className="text-sm text-pe-muted">Tickets abiertos de esta sucursal. El CFDI se pide después de cobrar.</p>
-      </div>
+      <PageHeading
+        mark="caja"
+        kicker={branchName ? `Recepción · ${branchName}` : 'Recepción'}
+        title="Caja"
+        description="Tickets abiertos de esta sucursal. El CFDI se pide después de cobrar."
+      />
       {error ? <p className="pe-callout-amber p-3 text-sm">{error}</p> : null}
       {notice ? <p className="pe-card p-3 text-sm">{notice}</p> : null}
       {invoices.length === 0 ? (
@@ -133,7 +136,10 @@ export function CashierDesk({
       )}
 
       <div>
-        <h2 className="text-xl font-semibold tracking-tight">CFDI 4.0</h2>
+        <h2 className="flex items-center gap-2 text-xl font-semibold tracking-tight">
+          <SectionMark name="informes" size="sm" />
+          CFDI 4.0
+        </h2>
         <p className="text-sm text-pe-muted">Tickets cobrados de esta sucursal, pendientes de UUID.</p>
       </div>
       {cfdiQueue.length === 0 ? (

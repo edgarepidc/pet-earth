@@ -5,6 +5,8 @@ import { useState } from 'react';
 
 import { CATALOG_KIND_LABELS, formatMoney, type CatalogKind } from '@petearth/shared';
 
+import { PageHeading } from '@/components/SectionTitle';
+
 type Item = {
   id: string;
   kind: CatalogKind;
@@ -49,11 +51,12 @@ export function CatalogManager({ items }: { items: Item[] }) {
 
   return (
     <section className="space-y-4">
-      <div>
-        <p className="pe-kicker">Farmacia</p>
-        <h1 className="text-2xl font-semibold tracking-tight">Catálogo</h1>
-        <p className="text-sm text-pe-muted">Servicios y medicamentos. El ticket se desglosa con este tipo.</p>
-      </div>
+      <PageHeading
+        mark="catalogo"
+        kicker="Farmacia"
+        title="Catálogo"
+        description="Servicios y medicamentos. El ticket se desglosa con este tipo."
+      />
       <form onSubmit={submit} className="pe-glass-card grid gap-3 p-4 md:grid-cols-5">
         <select className="pe-input" value={kind} onChange={(e) => setKind(e.target.value as CatalogKind)}>
           <option value="service">Servicio</option>

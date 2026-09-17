@@ -4,10 +4,11 @@ import { notFound } from 'next/navigation';
 import { formatMexicoDateTime } from '@petearth/shared';
 import { createAdminClient } from '@petearth/supabase/admin';
 
-import { PatientHeader } from '@/components/PatientHeader';
 import { AdminShell } from '@/components/AdminShell';
 import { ClinicalMedia } from '@/components/ClinicalMedia';
 import { NewAppointmentForm } from '@/components/NewAppointmentForm';
+import { PatientHeader } from '@/components/PatientHeader';
+import { SectionMark } from '@/components/SectionTitle';
 import { loadClinicSession } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
@@ -55,7 +56,10 @@ export default async function PatientPage({ params }: { params: Promise<{ id: st
             </Link>
           </div>
           <div className="pe-glass-card p-4">
-            <h2 className="font-semibold">Consultas</h2>
+            <h2 className="flex items-center gap-2 font-semibold">
+              <SectionMark name="consulta" size="sm" />
+              Consultas
+            </h2>
             <ul className="mt-3 space-y-2 text-sm">
               {(visits ?? []).map((visit) => (
                 <li key={visit.id}>
@@ -69,7 +73,10 @@ export default async function PatientPage({ params }: { params: Promise<{ id: st
             </ul>
           </div>
           <div className="pe-glass-card p-4">
-            <h2 className="font-semibold">Cartilla</h2>
+            <h2 className="flex items-center gap-2 font-semibold">
+              <SectionMark name="cartilla" size="sm" />
+              Cartilla
+            </h2>
             <ul className="mt-3 space-y-2 text-sm">
               {(vaccines ?? []).map((row, index) => (
                 <li key={`${row.name}-${index}`}>
@@ -84,7 +91,10 @@ export default async function PatientPage({ params }: { params: Promise<{ id: st
         <aside className="space-y-4">
           <NewAppointmentForm patientId={patient.id} branchName={staff.branchName} />
           <div className="pe-glass-card p-4">
-            <h2 className="font-semibold">Peso</h2>
+            <h2 className="flex items-center gap-2 font-semibold">
+              <SectionMark name="pacientes" size="sm" />
+              Peso
+            </h2>
             <ul className="mt-2 space-y-1 text-sm text-pe-muted">
               {(weights ?? []).map((row) => (
                 <li key={row.recorded_at}>
@@ -94,7 +104,10 @@ export default async function PatientPage({ params }: { params: Promise<{ id: st
             </ul>
           </div>
           <div className="pe-glass-card p-4">
-            <h2 className="font-semibold">Citas</h2>
+            <h2 className="flex items-center gap-2 font-semibold">
+              <SectionMark name="agenda" size="sm" />
+              Citas
+            </h2>
             <ul className="mt-2 space-y-1 text-sm">
               {(appointments ?? []).map((row) => (
                 <li key={row.id}>
