@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
-import { SEX_LABELS, SEXES, SPECIES, SPECIES_LABELS, type Sex, type Species } from '@petearth/shared';
+import { SEX_LABELS, SEXES, type ClinicListOption, type Sex } from '@petearth/shared';
 
 import { SectionMark } from '@/components/SectionTitle';
 
@@ -20,10 +20,11 @@ export function PatientFileForm({
   allergies,
   alerts,
   isActive,
+  speciesOptions,
 }: {
   patientId: string;
   name: string;
-  species: Species;
+  species: string;
   breed: string | null;
   sex: Sex;
   neutered: boolean;
@@ -33,10 +34,11 @@ export function PatientFileForm({
   allergies: string | null;
   alerts: string | null;
   isActive: boolean;
+  speciesOptions: ClinicListOption[];
 }) {
   const router = useRouter();
   const [petName, setPetName] = useState(name);
-  const [petSpecies, setPetSpecies] = useState<Species>(species);
+  const [petSpecies, setPetSpecies] = useState(species);
   const [petBreed, setPetBreed] = useState(breed ?? '');
   const [petSex, setPetSex] = useState<Sex>(sex);
   const [petNeutered, setPetNeutered] = useState(neutered);
@@ -97,10 +99,13 @@ export function PatientFileForm({
         </label>
         <label className="block text-sm">
           Especie
-          <select className="pe-input mt-1" value={petSpecies} onChange={(e) => setPetSpecies(e.target.value as Species)}>
-            {SPECIES.map((item) => (
-              <option key={item} value={item}>
-                {SPECIES_LABELS[item]}
+          <select className="pe-input mt-1" value={petSpecies} onChange={(e) => setPetSpecies(e.target.value)}>
+            {(speciesOptions.some((item) => item.slug === petSpecies)
+              ? speciesOptions
+              : [{ slug: petSpecies, label: petSpecies }, ...speciesOptions]
+            ).map((item) => (
+              <option key={item.slug} value={item.slug}>
+                {item.label}
               </option>
             ))}
           </select>

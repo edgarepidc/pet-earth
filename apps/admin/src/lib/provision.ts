@@ -2,6 +2,8 @@ import { slugify, type StaffRole } from '@petearth/shared';
 import { createAdminClient } from '@petearth/supabase/admin';
 import type { User } from '@supabase/supabase-js';
 
+import { seedDefaultSpecies } from '@/lib/clinicLists';
+
 const DEFAULT_CATALOG: {
   kind: 'service' | 'product';
   name: string;
@@ -180,6 +182,7 @@ export async function provisionClinic(input: {
     role: 'owner',
   });
   await seedDefaultCatalog(org.id);
+  await seedDefaultSpecies(org.id);
 
   return { organization: org, branch, ownerCreated: owner.created };
 }

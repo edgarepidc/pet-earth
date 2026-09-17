@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
-import { REMINDER_KIND_LABELS, SPECIES_LABELS, todayMexicoYmd } from '@petearth/shared';
+import { REMINDER_KIND_LABELS, speciesLabel, todayMexicoYmd } from '@petearth/shared';
 import { createAdminClient } from '@petearth/supabase/admin';
 
 import { SectionMark, speciesMark } from '@/components/SectionTitle';
@@ -14,7 +14,7 @@ export default async function TutorHomePage() {
   const tutor = await getTutorContext();
   if (!tutor) redirect('/login');
   const supabase = createAdminClient();
-  const [{ data: patients }, { data: reminders }] = await Promise.all([
+  const [{ data: patients }, { data: reminders }, { data: speciesRows }] = await Promise.all([
     supabase
       .from('patients')
       .select('id, name, species, breed, alerts')
@@ -27,7 +27,13 @@ export default async function TutorHomePage() {
       .eq('client_id', tutor.clientId)
       .eq('status', 'pending')
       .order('due_on'),
+    supabase
+      .from('clinic_lists')
+      .select('slug, label')
+      .eq('organization_id', tutor.organizationId)
+      .eq('list_key', 'species'),
   ]);
+  const speciesOptions = speciesRows ?? [];
 
   const today = todayMexicoYmd();
 
@@ -45,7 +51,7 @@ export default async function TutorHomePage() {
               <span>
               <p className="font-serif text-xl font-semibold">{pet.name}</p>
               <p className="text-sm text-pe-muted">
-                {SPECIES_LABELS[pet.species]} {pet.breed ? `· ${pet.breed}` : ''}
+                {speciesLabel(pet.species, speciesOptions)} {pet.breed ? `· ${pet.breed}` : ''}
               </p>
               {pet.alerts ? <p className="mt-2 text-xs text-amber-800">{pet.alerts}</p> : null}
               </span>

@@ -26,6 +26,16 @@ const GROUPS: {
     ],
   },
   {
+    label: 'Administración',
+    items: [
+      {
+        href: '/configuracion',
+        label: 'Configuración',
+        show: (role) => canManageCatalog(role) || role === 'vet',
+      },
+    ],
+  },
+  {
     label: 'Cobro y stock',
     items: [
       { href: '/caja', label: 'Caja', show: canTakePayment },

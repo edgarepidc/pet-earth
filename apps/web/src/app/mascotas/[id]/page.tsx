@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 
-import { formatMexicoDateTime, patientAgeLabel, SEX_LABELS, SPECIES_LABELS } from '@petearth/shared';
+import { formatMexicoDateTime, patientAgeLabel, SEX_LABELS, speciesLabel } from '@petearth/shared';
 import { createAdminClient } from '@petearth/supabase/admin';
 
 import { SectionMark, speciesMark } from '@/components/SectionTitle';
@@ -23,7 +23,7 @@ export default async function PetProfilePage({ params }: { params: Promise<{ id:
     .maybeSingle();
   if (!patient) notFound();
 
-  const [{ data: visits }, { data: vaccines }, { data: appointments }] = await Promise.all([
+  const [{ data: visits }, { data: vaccines }, { data: appointments }, { data: speciesRows }] = await Promise.all([
     supabase
       .from('visits')
       .select('id, started_at, plan, assessment, weight_kg')
@@ -41,6 +41,11 @@ export default async function PetProfilePage({ params }: { params: Promise<{ id:
       .eq('patient_id', id)
       .in('status', ['scheduled', 'confirmed', 'waiting', 'in_consult'])
       .order('starts_at'),
+    supabase
+      .from('clinic_lists')
+      .select('slug, label')
+      .eq('organization_id', tutor.organizationId)
+      .eq('list_key', 'species'),
   ]);
 
   return (
@@ -53,7 +58,7 @@ export default async function PetProfilePage({ params }: { params: Promise<{ id:
         {patient.name}
       </h2>
       <p className="text-pe-muted">
-        {SPECIES_LABELS[patient.species]} · {SEX_LABELS[patient.sex]}
+        {speciesLabel(patient.species, speciesRows ?? [])} · {SEX_LABELS[patient.sex]}
         {patientAgeLabel(patient.birth_date) ? ` · ${patientAgeLabel(patient.birth_date)}` : ''}
       </p>
       {patient.allergies ? <p className="mt-2 text-sm text-red-800">Alergias: {patient.allergies}</p> : null}

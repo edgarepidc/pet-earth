@@ -6,12 +6,12 @@ import { useMemo, useState } from 'react';
 
 import { ClientFiscalForm } from '@/components/ClientFiscalForm';
 import { PageHeading, SectionMark, petAvatarSrc, type SectionMarkName } from '@/components/SectionTitle';
-import { SPECIES_LABELS, type Species } from '@petearth/shared';
+import { speciesLabel, type ClinicListOption } from '@petearth/shared';
 
 type Patient = {
   id: string;
   name: string;
-  species: Species;
+  species: string;
   breed: string | null;
   alerts: string | null;
   is_active: boolean;
@@ -37,6 +37,7 @@ export function PatientsDirectory({
   description = 'Tutor y mascota van separados. Busca por cualquiera de los dos.',
   showFiscal = false,
   mark = 'pacientes',
+  speciesOptions,
 }: {
   clients: Client[];
   title?: string;
@@ -44,6 +45,7 @@ export function PatientsDirectory({
   description?: string;
   showFiscal?: boolean;
   mark?: SectionMarkName;
+  speciesOptions: ClinicListOption[];
 }) {
   const router = useRouter();
   const [query, setQuery] = useState('');
@@ -51,7 +53,7 @@ export function PatientsDirectory({
   const [tutorName, setTutorName] = useState('');
   const [tutorPhone, setTutorPhone] = useState('');
   const [petName, setPetName] = useState('');
-  const [petSpecies, setPetSpecies] = useState<Species>('dog');
+  const [petSpecies, setPetSpecies] = useState(speciesOptions[0]?.slug ?? 'dog');
   const [selectedClient, setSelectedClient] = useState(clients[0]?.id ?? '');
 
   const filtered = useMemo(() => {
@@ -134,10 +136,12 @@ export function PatientsDirectory({
             ))}
           </select>
           <input className="pe-input" required placeholder="Nombre de la mascota" value={petName} onChange={(e) => setPetName(e.target.value)} />
-          <select className="pe-input" value={petSpecies} onChange={(e) => setPetSpecies(e.target.value as Species)}>
-            <option value="dog">Perro</option>
-            <option value="cat">Gato</option>
-            <option value="other">Otra</option>
+          <select className="pe-input" value={petSpecies} onChange={(e) => setPetSpecies(e.target.value)}>
+            {speciesOptions.map((item) => (
+              <option key={item.slug} value={item.slug}>
+                {item.label}
+              </option>
+            ))}
           </select>
           <button type="submit" className="pe-btn-primary px-4 py-2 text-sm" disabled={!selectedClient}>
             Guardar mascota
@@ -174,7 +178,7 @@ export function PatientsDirectory({
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-sm font-medium">{pet.name}</span>
                       <span className="block truncate text-xs text-pe-muted">
-                        {SPECIES_LABELS[pet.species]}
+                        {speciesLabel(pet.species, speciesOptions)}
                         {pet.breed ? ` · ${pet.breed}` : ''}
                         {!pet.is_active ? ' · Baja' : ''}
                       </span>

@@ -11,6 +11,7 @@ import { PatientFileForm } from '@/components/PatientFileForm';
 import { PatientHeader } from '@/components/PatientHeader';
 import { SectionMark } from '@/components/SectionTitle';
 import { loadClinicSession } from '@/lib/auth';
+import { loadSpeciesOptions } from '@/lib/clinicLists';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,11 +27,12 @@ export default async function PatientPage({ params }: { params: Promise<{ id: st
     .maybeSingle();
   if (!patient) notFound();
 
-  const [{ data: visits }, { data: vaccines }, { data: weights }, { data: appointments }] = await Promise.all([
+  const [{ data: visits }, { data: vaccines }, { data: weights }, { data: appointments }, speciesOptions] = await Promise.all([
     supabase.from('visits').select('id, started_at, status, plan').eq('patient_id', id).order('started_at', { ascending: false }),
     supabase.from('vaccine_records').select('name, applied_on, next_due, lot').eq('patient_id', id).order('applied_on', { ascending: false }),
     supabase.from('weight_logs').select('weight_kg, recorded_at').eq('patient_id', id).order('recorded_at', { ascending: false }).limit(6),
     supabase.from('appointments').select('id, starts_at, status, reason').eq('patient_id', id).order('starts_at', { ascending: false }).limit(8),
+    loadSpeciesOptions(staff.organizationId),
   ]);
 
   const client = Array.isArray(patient.clients) ? patient.clients[0] : patient.clients;
@@ -50,6 +52,7 @@ export default async function PatientPage({ params }: { params: Promise<{ id: st
             alerts={patient.alerts}
             allergies={patient.allergies}
             clinicName={staff.organizationName}
+            speciesOptions={speciesOptions}
           />
           {!patient.is_active ? <p className="pe-callout-amber p-3 text-sm">Esta mascota está dada de baja.</p> : null}
           <PatientFileForm
@@ -66,6 +69,7 @@ export default async function PatientPage({ params }: { params: Promise<{ id: st
             allergies={patient.allergies}
             alerts={patient.alerts}
             isActive={patient.is_active}
+            speciesOptions={speciesOptions}
           />
           <div className="flex flex-wrap gap-2">
             <Link href={`/pacientes/${patient.id}/cartilla`} className="pe-btn-secondary px-3 py-1.5 text-sm">

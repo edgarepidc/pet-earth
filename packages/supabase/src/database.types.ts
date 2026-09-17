@@ -141,7 +141,7 @@ export interface Database {
           organization_id: string;
           client_id: string;
           name: string;
-          species: 'dog' | 'cat' | 'other';
+          species: string;
           breed: string | null;
           sex: 'male' | 'female' | 'unknown';
           neutered: boolean;
@@ -159,7 +159,7 @@ export interface Database {
           organization_id: string;
           client_id: string;
           name: string;
-          species?: 'dog' | 'cat' | 'other';
+          species?: string;
           breed?: string | null;
           sex?: 'male' | 'female' | 'unknown';
           neutered?: boolean;
@@ -229,6 +229,30 @@ export interface Database {
           updated_at?: string;
         };
         Update: Partial<Database['public']['Tables']['catalog_items']['Insert']>;
+        Relationships: [];
+      };
+      clinic_lists: {
+        Row: {
+          id: string;
+          organization_id: string;
+          list_key: 'species';
+          slug: string;
+          label: string;
+          sort_order: number;
+          is_active: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          list_key: 'species';
+          slug: string;
+          label: string;
+          sort_order?: number;
+          is_active?: boolean;
+          created_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['clinic_lists']['Insert']>;
         Relationships: [];
       };
       clinical_media: {
@@ -662,7 +686,6 @@ export interface Database {
     };
     Enums: {
       staff_role: 'owner' | 'admin' | 'vet' | 'reception';
-      species: 'dog' | 'cat' | 'other';
       sex: 'male' | 'female' | 'unknown';
       appointment_status:
         | 'scheduled'

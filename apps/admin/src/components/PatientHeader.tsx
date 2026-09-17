@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-import { patientAgeLabel, SEX_LABELS, SPECIES_LABELS, type Sex, type Species, whatsappHref } from '@petearth/shared';
+import { patientAgeLabel, SEX_LABELS, speciesLabel, type ClinicListOption, type Sex, whatsappHref } from '@petearth/shared';
 
 import { SectionMark, speciesMark } from '@/components/SectionTitle';
 
@@ -17,9 +17,10 @@ export function PatientHeader({
   weightKg,
   href,
   clinicName,
+  speciesOptions,
 }: {
   name: string;
-  species: Species;
+  species: string;
   sex?: Sex | null;
   breed?: string | null;
   birthDate?: string | null;
@@ -30,6 +31,7 @@ export function PatientHeader({
   weightKg?: number | null;
   href?: string;
   clinicName?: string;
+  speciesOptions?: ClinicListOption[];
 }) {
   const title = href ? (
     <Link href={href} className="text-2xl font-semibold tracking-tight text-pe-ink no-underline hover:underline">
@@ -51,7 +53,7 @@ export function PatientHeader({
         {title}
       </div>
       <p className="mt-1 text-sm text-pe-muted">
-        {SPECIES_LABELS[species]}
+        {speciesLabel(species, speciesOptions)}
         {sex ? ` · ${SEX_LABELS[sex]}` : ''}
         {breed ? ` · ${breed}` : ''}
         {patientAgeLabel(birthDate ?? null) ? ` · ${patientAgeLabel(birthDate ?? null)}` : ''}

@@ -72,16 +72,22 @@ export function ClinicalMedia({
       <p className="mt-1 text-sm text-pe-muted">Radiografías, laboratorios o fotos de lesión. Quedan en el expediente.</p>
       {error ? <p className="mt-2 text-sm text-pe-danger">{error}</p> : null}
       {canUpload ? (
-        <form onSubmit={(event) => void upload(event)} className="mt-3 grid gap-2 md:grid-cols-[1fr_auto_auto]">
-          <input className="pe-input" type="file" name="file" required accept="image/jpeg,image/png,image/webp,application/pdf" />
-          <select className="pe-input" name="kind" defaultValue="photo">
+        <form onSubmit={(event) => void upload(event)} className="mt-3 flex flex-wrap gap-2">
+          <input
+            className="pe-input min-w-[10rem] flex-1"
+            type="file"
+            name="file"
+            required
+            accept="image/jpeg,image/png,image/webp,application/pdf"
+          />
+          <input className="pe-input min-w-[8rem] flex-1" name="caption" placeholder="Nota (opcional)" />
+          <select className="pe-input w-36" name="kind" defaultValue="photo">
             <option value="photo">Foto</option>
             <option value="study">Estudio / lab</option>
           </select>
           <button type="submit" className="pe-btn-secondary px-3 py-2 text-sm" disabled={busy}>
             {busy ? 'Subiendo…' : 'Subir'}
           </button>
-          <input className="pe-input md:col-span-3" name="caption" placeholder="Nota (opcional)" />
         </form>
       ) : null}
       <ul className="mt-4 grid gap-3 sm:grid-cols-2">

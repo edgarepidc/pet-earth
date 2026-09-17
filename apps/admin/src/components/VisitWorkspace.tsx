@@ -12,7 +12,6 @@ import {
   type CatalogKind,
   type InvoiceStatus,
   type PaymentMethod,
-  type Species,
   splitInvoiceTotals,
   vaccineWhatsAppText,
   todayMexicoYmd,
@@ -217,7 +216,7 @@ export function VisitWorkspace({
       <section className="space-y-4">
         <PatientHeader
           name={patient?.name ?? 'Paciente'}
-          species={(patient?.species as Species) ?? 'other'}
+          species={patient?.species ?? 'other'}
           sex={(patient?.sex as 'male' | 'female' | 'unknown' | null) ?? null}
           breed={patient?.breed}
           birthDate={patient?.birth_date}

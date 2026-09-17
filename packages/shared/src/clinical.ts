@@ -46,6 +46,29 @@ export const SPECIES_LABELS: Record<Species, string> = {
   other: 'Otra',
 };
 
+export const CLINIC_LIST_KEYS = ['species'] as const;
+export type ClinicListKey = (typeof CLINIC_LIST_KEYS)[number];
+
+export type ClinicListOption = {
+  slug: string;
+  label: string;
+};
+
+export const DEFAULT_SPECIES_OPTIONS: ClinicListOption[] = SPECIES.map((slug) => ({
+  slug,
+  label: SPECIES_LABELS[slug],
+}));
+
+export function speciesLabel(species: string | null | undefined, options?: ClinicListOption[]) {
+  if (!species) return 'Mascota';
+  const fromCatalog = options?.find((item) => item.slug === species);
+  if (fromCatalog) return fromCatalog.label;
+  if ((SPECIES as readonly string[]).includes(species)) return SPECIES_LABELS[species as Species];
+  return species
+    .replace(/-/g, ' ')
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
 export const SEXES = ['male', 'female', 'unknown'] as const;
 export type Sex = (typeof SEXES)[number];
 export const SEX_LABELS: Record<Sex, string> = {

@@ -12,6 +12,7 @@ export type SectionMarkName =
   | 'cartilla'
   | 'perro'
   | 'gato'
+  | 'conejo'
   | 'otro'
   | 'sala'
   | 'alta'
@@ -65,14 +66,21 @@ export function PageHeading({
 }
 
 export function speciesMark(species: string | null | undefined): SectionMarkName {
-  if (species === 'cat') return 'gato';
-  if (species === 'other') return 'otro';
-  return 'perro';
+  const value = (species ?? '').toLowerCase();
+  if (value === 'cat' || value === 'gato') return 'gato';
+  if (value === 'conejo' || value === 'rabbit' || value === 'liebre') return 'conejo';
+  if (value === 'other' || value === 'otra' || value === 'otro') return 'otro';
+  if (value === 'dog' || value === 'perro') return 'perro';
+  return 'otro';
 }
 
 export function petAvatarSrc(species: string | null | undefined, photoUrl?: string | null) {
   if (photoUrl) return photoUrl;
-  if (species === 'cat') return '/marks/gato.png';
-  if (species === 'other') return '/marks/conejo.png';
-  return '/marks/perro.png';
+  const value = (species ?? '').toLowerCase();
+  if (value === 'cat' || value === 'gato') return '/marks/gato.png';
+  if (value === 'conejo' || value === 'rabbit' || value === 'liebre' || value === 'other' || value === 'otra') {
+    return '/marks/conejo.png';
+  }
+  if (value === 'dog' || value === 'perro') return '/marks/perro.png';
+  return '/marks/otro.png';
 }

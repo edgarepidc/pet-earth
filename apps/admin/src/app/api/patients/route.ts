@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-import { SEXES, SPECIES, type Sex, type Species } from '@petearth/shared';
+import { SEXES, SPECIES, type Sex } from '@petearth/shared';
 import { createAdminClient } from '@petearth/supabase/admin';
 
 import { requireStaffApi } from '@/lib/auth';
@@ -10,8 +10,23 @@ function blankToNull(value?: string | null) {
   return trimmed ? trimmed : null;
 }
 
-function parseSpecies(value: unknown): Species {
-  return SPECIES.includes(value as Species) ? (value as Species) : 'dog';
+async function resolveSpecies(
+  supabase: ReturnType<typeof createAdminClient>,
+  organizationId: string,
+  value: unknown,
+): Promise<string | NextResponse> {
+  const slug = typeof value === 'string' ? value.trim() : '';
+  if (!slug) return NextResponse.json({ error: 'La especie es obligatoria.' }, { status: 400 });
+  const { data } = await supabase
+    .from('clinic_lists')
+    .select('slug')
+    .eq('organization_id', organizationId)
+    .eq('list_key', 'species')
+    .eq('slug', slug)
+    .maybeSingle();
+  if (data) return data.slug;
+  if ((SPECIES as readonly string[]).includes(slug)) return slug;
+  return NextResponse.json({ error: 'Esa especie no está en la lista de la clínica.' }, { status: 400 });
 }
 
 function parseSex(value: unknown): Sex {
@@ -24,7 +39,7 @@ export async function POST(request: Request) {
   const body = (await request.json()) as {
     clientId?: string;
     name?: string;
-    species?: 'dog' | 'cat' | 'other';
+    species?: string;
     breed?: string;
     sex?: 'male' | 'female' | 'unknown';
     neutered?: boolean;
@@ -45,13 +60,16 @@ export async function POST(request: Request) {
     .maybeSingle();
   if (!client) return NextResponse.json({ error: 'Tutor no encontrado' }, { status: 404 });
 
+  const species = await resolveSpecies(supabase, auth.organizationId, body.species);
+  if (species instanceof NextResponse) return species;
+
   const { data, error } = await supabase
     .from('patients')
     .insert({
       organization_id: auth.organizationId,
       client_id: body.clientId,
       name: body.name.trim(),
-      species: parseSpecies(body.species),
+      species,
       breed: blankToNull(body.breed),
       sex: parseSex(body.sex),
       neutered: Boolean(body.neutered),
@@ -72,7 +90,7 @@ export async function PATCH(request: Request) {
   const body = (await request.json()) as {
     id?: string;
     name?: string;
-    species?: Species;
+    species?: string;
     breed?: string;
     sex?: Sex;
     neutered?: boolean;
@@ -97,11 +115,14 @@ export async function PATCH(request: Request) {
     .maybeSingle();
   if (!patient) return NextResponse.json({ error: 'Paciente no encontrado.' }, { status: 404 });
 
+  const species = await resolveSpecies(supabase, auth.organizationId, body.species);
+  if (species instanceof NextResponse) return species;
+
   const { error } = await supabase
     .from('patients')
     .update({
       name: body.name.trim(),
-      species: parseSpecies(body.species),
+      species,
       breed: blankToNull(body.breed),
       sex: parseSex(body.sex),
       neutered: Boolean(body.neutered),
