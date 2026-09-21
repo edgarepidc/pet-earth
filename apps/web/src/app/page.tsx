@@ -4,12 +4,20 @@ import { CATALOG_KIND_LABELS, formatMoney } from '@petearth/shared';
 import { createAdminClient } from '@petearth/supabase/admin';
 
 import { SiteHeader } from '@/components/SiteHeader';
-import { loadPublicClinic, type PublicCatalogItem } from '@/lib/clinic';
+import { loadPublicClinic, scheduleHref, type PublicCatalogItem } from '@/lib/clinic';
 import { getTutorContext } from '@/lib/tutor';
 
 export const dynamic = 'force-dynamic';
 
-function CatalogList({ items }: { items: PublicCatalogItem[] }) {
+function CatalogList({
+  items,
+  actionHref,
+  actionLabel,
+}: {
+  items: PublicCatalogItem[];
+  actionHref?: (item: PublicCatalogItem) => string;
+  actionLabel?: string;
+}) {
   return (
     <ul className="divide-y divide-[rgba(31,36,40,0.08)]">
       {items.map((item) => (
@@ -18,7 +26,14 @@ function CatalogList({ items }: { items: PublicCatalogItem[] }) {
             <p className="font-medium">{item.name}</p>
             <p className="mt-0.5 text-sm leading-relaxed text-pe-muted">{item.blurb}</p>
           </div>
-          <p className="shrink-0 text-sm font-semibold tabular-nums">{formatMoney(item.unit_price)}</p>
+          <div className="flex shrink-0 flex-col items-end gap-2">
+            <p className="text-sm font-semibold tabular-nums">{formatMoney(item.unit_price)}</p>
+            {actionHref ? (
+              <Link href={actionHref(item)} className="pe-btn-primary px-3 py-1.5 text-xs">
+                {actionLabel ?? 'Agendar'}
+              </Link>
+            ) : null}
+          </div>
         </li>
       ))}
     </ul>
@@ -125,6 +140,12 @@ export default async function ClinicHomePage() {
                 <h3 className="mt-3 font-serif text-2xl font-semibold">{item.name}</h3>
                 <p className="mt-2 flex-1 text-sm leading-relaxed text-pe-muted">{item.blurb}</p>
                 <p className="mt-6 text-lg font-semibold tabular-nums">{formatMoney(item.unit_price)}</p>
+                <Link
+                  href={scheduleHref(Boolean(tutor), pets, item.sku)}
+                  className="pe-btn-primary mt-4 px-4 py-2 text-center text-sm"
+                >
+                  Agendar
+                </Link>
               </article>
             ))}
           </div>
@@ -139,7 +160,11 @@ export default async function ClinicHomePage() {
           <div className="mt-8 grid gap-6 lg:grid-cols-2">
             <div className="pe-card p-6">
               <h3 className="font-serif text-xl font-semibold">Servicios</h3>
-              <CatalogList items={clinic.services} />
+              <CatalogList
+                items={clinic.services}
+                actionLabel="Agendar"
+                actionHref={(item) => scheduleHref(Boolean(tutor), pets, item.sku)}
+              />
             </div>
             <div className="pe-card p-6">
               <h3 className="font-serif text-xl font-semibold">Productos</h3>

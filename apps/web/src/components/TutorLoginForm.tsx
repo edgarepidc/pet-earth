@@ -3,12 +3,13 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
-export function TutorLoginForm() {
+export function TutorLoginForm({ next = '/cuenta' }: { next?: string }) {
   const router = useRouter();
   const [email, setEmail] = useState('ana@petearth.local');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const scheduling = next.includes('agendar');
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
@@ -25,7 +26,7 @@ export function TutorLoginForm() {
       setError(payload.error ?? 'No se pudo entrar');
       return;
     }
-    router.push('/cuenta');
+    router.push(next);
     router.refresh();
   }
 
@@ -33,9 +34,13 @@ export function TutorLoginForm() {
     <main className="mx-auto max-w-6xl px-5 py-12 sm:px-8">
       <div className="max-w-lg">
         <p className="pe-kicker">Cartilla del tutor</p>
-        <h1 className="mt-2 font-serif text-4xl font-semibold tracking-tight">Entra a tu cuenta</h1>
+        <h1 className="mt-2 font-serif text-4xl font-semibold tracking-tight">
+          {scheduling ? 'Entra para agendar' : 'Entra a tu cuenta'}
+        </h1>
         <p className="mt-3 max-w-sm text-sm leading-relaxed text-pe-muted">
-          Vacunas, altas y citas de tu mascota. El expediente que te llevas a casa.
+          {scheduling
+            ? 'Inicia sesión para elegir la mascota y dejar la cita en la agenda del consultorio.'
+            : 'Vacunas, altas y citas de tu mascota. El expediente que te llevas a casa.'}
         </p>
         <form onSubmit={submit} className="pe-panel mt-8 space-y-4 p-6">
           <label className="block text-sm font-medium">
@@ -54,7 +59,7 @@ export function TutorLoginForm() {
           </label>
           {error ? <p className="text-sm text-pe-danger">{error}</p> : null}
           <button type="submit" className="pe-btn-primary w-full py-2.5 text-sm" disabled={loading}>
-            {loading ? 'Entrando…' : 'Ver cartilla'}
+            {loading ? 'Entrando…' : scheduling ? 'Continuar para agendar' : 'Ver cartilla'}
           </button>
         </form>
       </div>

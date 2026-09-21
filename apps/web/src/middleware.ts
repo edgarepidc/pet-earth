@@ -36,6 +36,11 @@ export async function middleware(request: NextRequest) {
   if (!user && !publicPath) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = '/login';
+    loginUrl.search = '';
+    const next = `${pathname}${request.nextUrl.search}`;
+    if (next.startsWith('/') && !next.startsWith('//')) {
+      loginUrl.searchParams.set('next', next);
+    }
     return NextResponse.redirect(loginUrl);
   }
   return supabaseResponse;

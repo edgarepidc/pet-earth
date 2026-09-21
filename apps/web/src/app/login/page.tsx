@@ -1,11 +1,16 @@
-import { loadPublicClinic } from '@/lib/clinic';
+import { loadPublicClinic, internalPath } from '@/lib/clinic';
 import { SiteHeader } from '@/components/SiteHeader';
 import { TutorLoginForm } from '@/components/TutorLoginForm';
 
 export const dynamic = 'force-dynamic';
 
-export default async function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string }>;
+}) {
   const clinic = await loadPublicClinic();
+  const { next } = await searchParams;
   return (
     <>
       <SiteHeader
@@ -14,7 +19,7 @@ export default async function LoginPage() {
         address={clinic.address}
         hours={clinic.hours}
       />
-      <TutorLoginForm />
+      <TutorLoginForm next={internalPath(next)} />
     </>
   );
 }

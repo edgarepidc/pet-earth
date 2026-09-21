@@ -5,15 +5,24 @@ import { formatMexicoDateTime, patientAgeLabel, SEX_LABELS, speciesLabel } from 
 import { createAdminClient } from '@petearth/supabase/admin';
 
 import { SectionMark, speciesMark } from '@/components/SectionTitle';
+import { TutorScheduleForm } from '@/components/TutorScheduleForm';
 import { TutorShell } from '@/components/TutorShell';
+import { loadPublicClinic } from '@/lib/clinic';
 import { getTutorContext } from '@/lib/tutor';
 
 export const dynamic = 'force-dynamic';
 
-export default async function PetProfilePage({ params }: { params: Promise<{ id: string }> }) {
+export default async function PetProfilePage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ agendar?: string }>;
+}) {
   const tutor = await getTutorContext();
   if (!tutor) redirect('/login');
   const { id } = await params;
+  const { agendar } = await searchParams;
   const supabase = createAdminClient();
   const { data: patient } = await supabase
     .from('patients')
@@ -23,7 +32,7 @@ export default async function PetProfilePage({ params }: { params: Promise<{ id:
     .maybeSingle();
   if (!patient) notFound();
 
-  const [{ data: visits }, { data: vaccines }, { data: appointments }, { data: speciesRows }] = await Promise.all([
+  const [{ data: visits }, { data: vaccines }, { data: appointments }, { data: speciesRows }, clinic] = await Promise.all([
     supabase
       .from('visits')
       .select('id, started_at, plan, assessment, weight_kg')
@@ -46,7 +55,9 @@ export default async function PetProfilePage({ params }: { params: Promise<{ id:
       .select('slug, label')
       .eq('organization_id', tutor.organizationId)
       .eq('list_key', 'species'),
+    loadPublicClinic(),
   ]);
+  const service = clinic.services.find((item) => item.sku === agendar) ?? clinic.products.find((item) => item.sku === agendar);
 
   return (
     <TutorShell clinicName={tutor.clinicName} tutorName={tutor.clientName}>
@@ -76,6 +87,12 @@ export default async function PetProfilePage({ params }: { params: Promise<{ id:
           ))}
           {(appointments ?? []).length === 0 ? <li className="text-pe-muted">Sin citas abiertas.</li> : null}
         </ul>
+        <TutorScheduleForm
+          patientId={patient.id}
+          patientName={patient.name}
+          defaultReason={service?.name ?? ''}
+          branchName={clinic.branchName}
+        />
       </section>
 
       <section className="pe-card mt-4 p-4">

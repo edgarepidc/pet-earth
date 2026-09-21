@@ -22,6 +22,21 @@ export type PublicCatalogItem = {
   blurb: string;
 };
 
+export const PUBLIC_ORG_ID = DEMO_ORG_ID;
+export const PUBLIC_BRANCH_ID = DEMO_BRANCH_ID;
+
+export function internalPath(value?: string | null) {
+  if (!value || !value.startsWith('/') || value.startsWith('//')) return '/cuenta';
+  return value;
+}
+
+export function scheduleHref(signedIn: boolean, pets: { id: string }[], sku?: string | null) {
+  const query = sku ? `?agendar=${encodeURIComponent(sku)}` : '';
+  if (!signedIn) return `/login?next=${encodeURIComponent(`/cuenta${query}`)}`;
+  if (pets.length === 1) return `/mascotas/${pets[0].id}${query}`;
+  return `/cuenta${query}`;
+}
+
 export async function loadPublicClinic() {
   const supabase = createAdminClient();
   const [{ data: org }, { data: branch }, { data: catalog }] = await Promise.all([
