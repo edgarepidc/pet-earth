@@ -1,14 +1,13 @@
 'use client';
 
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 
 import {
   addMexicoDays,
-  daysInMexicoMonth,
   formatMexicoDate,
   formatMexicoTime,
+  mexicoAgendaRange,
   mexicoMonthStart,
   mexicoWeekStart,
   todayMexicoYmd,
@@ -19,31 +18,45 @@ import { PageHeading } from '@/components/SectionTitle';
 import { StatusPill } from '@/components/StatusPill';
 import type { AppointmentRow } from '@/components/DayBoard';
 
+const WEEKDAYS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'] as const;
+
 function one<T>(value: T | T[] | null | undefined): T | null {
   if (!value) return null;
   return Array.isArray(value) ? value[0] ?? null : value;
 }
 
+function monthTitle(ymd: string): string {
+  return new Intl.DateTimeFormat('es-MX', {
+    timeZone: 'America/Mexico_City',
+    month: 'long',
+    year: 'numeric',
+  }).format(new Date(`${ymd}T12:00:00-06:00`));
+}
+
+function chunkWeeks(days: string[]): string[][] {
+  const weeks: string[][] = [];
+  for (let i = 0; i < days.length; i += 7) weeks.push(days.slice(i, i + 7));
+  return weeks;
+}
+
 export function AgendaCalendar({
   initialDate,
+  initialView = 'week',
   appointments,
   branchName,
 }: {
   initialDate: string;
+  initialView?: 'week' | 'month';
   appointments: AppointmentRow[];
   branchName?: string;
 }) {
   const router = useRouter();
-  const [view, setView] = useState<'week' | 'month'>('week');
+  const [view, setView] = useState<'week' | 'month'>(initialView);
   const [cursor, setCursor] = useState(initialDate);
   const today = todayMexicoYmd();
-
-  const weekStart = mexicoWeekStart(cursor);
   const monthStart = mexicoMonthStart(cursor);
-  const weekDays = Array.from({ length: 7 }, (_, i) => addMexicoDays(weekStart, i));
-  const monthDays = Array.from({ length: daysInMexicoMonth(monthStart) }, (_, i) =>
-    addMexicoDays(monthStart, i),
-  );
+  const range = mexicoAgendaRange(cursor, view);
+  const weeks = chunkWeeks(range.days);
 
   const byDay = useMemo(() => {
     const map = new Map<string, AppointmentRow[]>();
@@ -60,18 +73,22 @@ export function AgendaCalendar({
     return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-01`;
   }
 
-  function go(delta: number) {
-    const normalized = view === 'week' ? addMexicoDays(weekStart, delta * 7) : shiftMonth(monthStart, delta);
-    setCursor(normalized);
-    const start = view === 'week' ? mexicoWeekStart(normalized) : mexicoMonthStart(normalized);
-    const end =
-      view === 'week'
-        ? addMexicoDays(start, 7)
-        : addMexicoDays(start, daysInMexicoMonth(start));
-    router.push(`/agenda?view=${view}&start=${start}&end=${end}`);
+  function open(nextView: 'week' | 'month', nextCursor: string) {
+    setView(nextView);
+    setCursor(nextCursor);
+    const start = nextView === 'month' ? mexicoMonthStart(nextCursor) : mexicoWeekStart(nextCursor);
+    router.push(`/agenda?view=${nextView}&start=${start}`);
   }
 
-  const days = view === 'week' ? weekDays : monthDays;
+  function go(delta: number) {
+    const nextCursor =
+      view === 'week' ? addMexicoDays(mexicoWeekStart(cursor), delta * 7) : shiftMonth(monthStart, delta);
+    open(view, nextCursor);
+  }
+
+  const description = view === 'week'
+    ? `${formatMexicoDate(range.days[0], { day: 'numeric', month: 'short' })} – ${formatMexicoDate(range.days[6], { day: 'numeric', month: 'short' })}`
+    : monthTitle(monthStart);
 
   return (
     <section className="space-y-4">
@@ -79,13 +96,21 @@ export function AgendaCalendar({
         <PageHeading
           mark="agenda"
           title="Agenda"
-          description={`${branchName ? `${branchName} · ` : ''}${view === 'week' ? 'Capacidad de la semana' : 'Planeación del mes'}`}
+          description={`${branchName ? `${branchName} · ` : ''}${description}`}
         />
         <div className="flex gap-2">
-          <button type="button" className={`pe-btn-ghost px-3 py-1.5 text-sm ${view === 'week' ? 'pe-chip-active' : ''}`} onClick={() => setView('week')}>
+          <button
+            type="button"
+            className={`pe-btn-ghost px-3 py-1.5 text-sm ${view === 'week' ? 'pe-chip-active' : ''}`}
+            onClick={() => open('week', cursor)}
+          >
             Semana
           </button>
-          <button type="button" className={`pe-btn-ghost px-3 py-1.5 text-sm ${view === 'month' ? 'pe-chip-active' : ''}`} onClick={() => setView('month')}>
+          <button
+            type="button"
+            className={`pe-btn-ghost px-3 py-1.5 text-sm ${view === 'month' ? 'pe-chip-active' : ''}`}
+            onClick={() => open('month', cursor)}
+          >
             Mes
           </button>
           <button type="button" className="pe-btn-secondary px-3 py-1.5 text-sm" onClick={() => go(-1)}>
@@ -96,30 +121,60 @@ export function AgendaCalendar({
           </button>
         </div>
       </div>
-      <div className={view === 'week' ? 'grid gap-3 md:grid-cols-7' : 'grid gap-2 sm:grid-cols-4 lg:grid-cols-7'}>
-        {days.map((day) => {
-          const rows = byDay.get(day) ?? [];
-          return (
-            <div key={day} className={`pe-card p-3 ${day === today ? 'ring-1 ring-pe-clay' : ''}`}>
-              <Link href="/" className="text-xs font-semibold text-pe-ink">
-                {formatMexicoDate(day, { weekday: 'short', day: 'numeric', month: 'short' })}
-              </Link>
-              <ul className="mt-2 space-y-2">
-                {rows.map((row) => {
-                  const patient = one(row.patients);
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[52rem] table-fixed border-separate border-spacing-2">
+          <thead>
+            <tr>
+              {WEEKDAYS.map((label) => (
+                <th
+                  key={label}
+                  scope="col"
+                  className="px-1 pb-1 text-center text-[10px] font-bold uppercase tracking-[0.14em] text-pe-muted"
+                >
+                  {label}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {weeks.map((week) => (
+              <tr key={week[0]}>
+                {week.map((day) => {
+                  const rows = byDay.get(day) ?? [];
+                  const outside = view === 'month' && day.slice(0, 7) !== monthStart.slice(0, 7);
                   return (
-                    <li key={row.id} className="rounded-md bg-white p-2 text-xs">
-                      <p className="font-semibold">
-                        {formatMexicoTime(row.starts_at)} {patient?.name}
-                      </p>
-                      <StatusPill status={row.status as AppointmentStatus} />
-                    </li>
+                    <td key={day} className="align-top">
+                      <div
+                        className={`pe-card h-full ${view === 'week' ? 'min-h-[16rem]' : 'min-h-[7.5rem]'} p-2.5 ${
+                          day === today ? 'ring-1 ring-pe-clay' : ''
+                        } ${outside ? 'bg-pe-wash/70' : ''}`}
+                      >
+                        <p className={`text-xs font-semibold ${outside ? 'text-pe-muted' : 'text-pe-ink'}`}>
+                          {view === 'week' || outside
+                            ? formatMexicoDate(day, { day: 'numeric', month: 'short' })
+                            : String(Number(day.slice(8)))}
+                        </p>
+                        <ul className={`mt-2 space-y-1.5 ${view === 'month' ? 'max-h-28 overflow-y-auto' : ''}`}>
+                          {rows.map((row) => {
+                            const patient = one(row.patients);
+                            return (
+                              <li key={row.id} className="rounded-md bg-white p-2 text-xs">
+                                <p className="font-semibold">
+                                  {formatMexicoTime(row.starts_at)} {patient?.name}
+                                </p>
+                                {view === 'week' ? <StatusPill status={row.status as AppointmentStatus} /> : null}
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </div>
+                    </td>
                   );
                 })}
-              </ul>
-            </div>
-          );
-        })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </section>
   );

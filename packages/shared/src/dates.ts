@@ -58,6 +58,28 @@ export function mexicoWeekStart(ymd: string): string {
   return addMexicoDays(ymd, -(map[weekday] ?? 0));
 }
 
+export function mexicoWeekDays(ymd: string): string[] {
+  const start = mexicoWeekStart(ymd);
+  return Array.from({ length: 7 }, (_, i) => addMexicoDays(start, i));
+}
+
+export function mexicoMonthGridDays(ymd: string): string[] {
+  const monthStart = mexicoMonthStart(ymd);
+  const start = mexicoWeekStart(monthStart);
+  const last = addMexicoDays(monthStart, daysInMexicoMonth(monthStart) - 1);
+  const end = addMexicoDays(mexicoWeekStart(last), 7);
+  const days: string[] = [];
+  for (let cursor = start; cursor < end; cursor = addMexicoDays(cursor, 1)) {
+    days.push(cursor);
+  }
+  return days;
+}
+
+export function mexicoAgendaRange(ymd: string, view: 'week' | 'month'): { start: string; end: string; days: string[] } {
+  const days = view === 'week' ? mexicoWeekDays(ymd) : mexicoMonthGridDays(ymd);
+  return { start: days[0], end: addMexicoDays(days[days.length - 1], 1), days };
+}
+
 export function mexicoMonthStart(ymd: string): string {
   return `${ymd.slice(0, 7)}-01`;
 }

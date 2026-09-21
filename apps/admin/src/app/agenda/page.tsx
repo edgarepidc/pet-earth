@@ -1,4 +1,4 @@
-import { addMexicoDays, mexicoWeekStart, todayMexicoYmd } from '@petearth/shared';
+import { isValidYmd, mexicoAgendaRange, todayMexicoYmd } from '@petearth/shared';
 
 import { AdminShell } from '@/components/AdminShell';
 import { AgendaCalendar } from '@/components/AgendaCalendar';
@@ -17,10 +17,11 @@ export default async function AgendaPage({
   const staff = await loadClinicSession();
   const params = await searchParams;
   const today = todayMexicoYmd();
-  const start = params.start ?? mexicoWeekStart(today);
-  const end = params.end ?? addMexicoDays(start, 7);
+  const view = params.view === 'month' ? 'month' : 'week';
+  const anchor = params.start && isValidYmd(params.start) ? params.start : today;
+  const range = mexicoAgendaRange(anchor, view);
   const [appointments, reminders, lowStock] = await Promise.all([
-    loadAppointmentsInRange(staff.branchId, `${start}T00:00:00-06:00`, `${end}T00:00:00-06:00`),
+    loadAppointmentsInRange(staff.branchId, `${range.start}T00:00:00-06:00`, `${range.end}T00:00:00-06:00`),
     loadFollowUps(staff.organizationId),
     loadLowStock(staff.organizationId),
   ]);
@@ -30,7 +31,9 @@ export default async function AgendaPage({
     <AdminShell>
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_260px]">
         <AgendaCalendar
-          initialDate={start}
+          key={`${view}-${range.start}`}
+          initialDate={anchor}
+          initialView={view}
           appointments={appointments as AppointmentRow[]}
           branchName={staff.branchName}
         />
