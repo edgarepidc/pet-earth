@@ -9,11 +9,11 @@ export function PlatformNav() {
 
   return (
     <nav className="mt-8 flex-1" aria-label="Plataforma">
-      <p className="px-2 text-[10px] font-bold uppercase tracking-[0.16em] text-pe-sidebar-muted">SaaS</p>
+      <p className="px-2 text-[10px] font-bold uppercase tracking-[0.16em] text-pe-muted">SaaS</p>
       <Link
         href="/plataforma"
         className={`mt-1 block rounded-md px-2 py-1.5 text-sm ${
-          clinicsActive ? 'pe-nav-active' : 'text-pe-sidebar-muted hover:bg-white/5 hover:text-white'
+          clinicsActive ? 'pe-nav-active' : 'text-pe-ink hover:bg-pe-wash'
         }`}
       >
         Veterinarias

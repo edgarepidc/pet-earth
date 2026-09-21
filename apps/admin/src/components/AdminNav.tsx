@@ -6,6 +6,8 @@ import { useEffect, useState } from 'react';
 
 import { canManageCatalog, canTakePayment, type StaffRole } from '@petearth/shared';
 
+import { GlobalSearch } from '@/components/GlobalSearch';
+
 const GROUPS: {
   label: string;
   items: { href: string; label: string; show?: (role: StaffRole) => boolean }[];
@@ -89,14 +91,14 @@ export function AdminNav({
       <nav className="hidden min-h-0 flex-1 flex-col gap-5 overflow-y-auto lg:flex" aria-label="Navegación">
         {groups.map((group) => (
           <div key={group.label}>
-            <p className="px-2 text-[10px] font-bold uppercase tracking-[0.16em] text-pe-sidebar-muted">{group.label}</p>
+            <p className="px-2 text-[10px] font-bold uppercase tracking-[0.16em] text-pe-muted">{group.label}</p>
             <ul className="mt-1 space-y-0.5">
               {group.items.map((item) => (
                 <li key={item.href}>
                   <Link
                     href={item.href}
                     className={`block rounded-md px-2 py-1.5 text-sm ${
-                      isActive(pathname, item.href) ? 'pe-nav-active' : 'text-pe-sidebar-muted hover:bg-white/5 hover:text-white'
+                      isActive(pathname, item.href) ? 'pe-nav-active' : 'text-pe-ink hover:bg-pe-wash'
                     }`}
                   >
                     {item.label}
@@ -112,15 +114,16 @@ export function AdminNav({
           <button type="button" className="absolute inset-0 bg-black/50" aria-label="Cerrar" onClick={() => setOpen(false)} />
           <div className="pe-sidebar absolute inset-y-0 left-0 w-64 px-4 py-5">
             <nav className="grid gap-4" aria-label="Navegación móvil">
+              <GlobalSearch />
               {groups.map((group) => (
                 <div key={group.label}>
-                  <p className="px-1 text-[10px] font-bold uppercase tracking-[0.16em] text-pe-sidebar-muted">{group.label}</p>
+                  <p className="px-1 text-[10px] font-bold uppercase tracking-[0.16em] text-pe-muted">{group.label}</p>
                   {group.items.map((item) => (
                     <Link
                       key={item.href}
                       href={item.href}
                       className={`mt-1 block rounded-md px-3 py-2 text-sm ${
-                        isActive(pathname, item.href) ? 'pe-nav-active' : 'text-pe-sidebar-muted'
+                        isActive(pathname, item.href) ? 'pe-nav-active' : 'text-pe-ink'
                       }`}
                     >
                       {item.label}

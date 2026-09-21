@@ -15,46 +15,43 @@ export async function AdminShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="pe-app flex min-h-screen">
-      <aside className="pe-sidebar hidden w-[232px] shrink-0 flex-col px-3 py-4 lg:flex">
-        <BrandLogo href="/" subtitle="Consultorio Veterinario" inverted />
+      <aside className="pe-sidebar hidden w-[248px] shrink-0 flex-col px-3 py-4 lg:flex">
+        <BrandLogo href="/" subtitle="Consultorio Veterinario" />
         {staff.branches.length > 1 ? (
           <div className="mt-4 px-1">
-            <BranchSwitcher currentBranchId={staff.branchId} branches={staff.branches} inverted />
+            <BranchSwitcher currentBranchId={staff.branchId} branches={staff.branches} />
           </div>
         ) : (
-          <p className="mt-2 truncate px-2 text-[11px] text-pe-sidebar-muted">{staff.branchName}</p>
+          <p className="mt-2 truncate px-2 text-[11px] text-pe-muted">{staff.branchName}</p>
         )}
-        <div className="mt-5">
+        <div className="mt-5 px-1">
           <ClinicClock />
         </div>
         <div className="mt-6 flex min-h-0 flex-1 flex-col">
+          <div className="mb-4 px-0.5">
+            <GlobalSearch />
+          </div>
           <AdminNav role={staff.role} isPlatformAdmin={staff.isPlatformAdmin} />
         </div>
-        <div className="mt-4 border-t border-white/10 pt-3">
-          <p className="truncate px-2 text-sm font-medium text-white">{displayName}</p>
-          <p className="px-2 text-[11px] text-pe-sidebar-muted">
+        <div className="mt-4 border-t border-pe-line pt-3">
+          <p className="truncate px-2 text-sm font-medium text-pe-ink">{displayName}</p>
+          <p className="px-2 text-[11px] text-pe-muted">
             {staff.viaPlatform ? 'Soporte de plataforma' : STAFF_ROLE_LABELS[staff.role]}
           </p>
           <div className="mt-2 space-y-1 px-1">
             {staff.viaPlatform ? (
-              <ExitClinicButton className="w-full rounded-md border border-white/15 px-3 py-1.5 text-left text-sm text-pe-sidebar-muted hover:bg-white/5 hover:text-white" />
+              <ExitClinicButton className="pe-btn-ghost w-full px-3 py-1.5 text-left text-sm" />
             ) : null}
-            <LogoutButton className="w-full rounded-md border border-white/15 px-3 py-1.5 text-left text-sm text-pe-sidebar-muted hover:bg-white/5 hover:text-white" />
+            <LogoutButton className="pe-btn-ghost w-full px-3 py-1.5 text-left text-sm" />
           </div>
         </div>
       </aside>
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="pe-glass-header flex items-center gap-3 px-3 py-2.5 lg:px-5">
-          <div className="flex min-w-0 items-center gap-2 lg:hidden">
+        <header className="pe-glass-header flex items-center gap-3 px-3 py-2.5 lg:hidden">
+          <div className="flex min-w-0 items-center gap-2">
             <AdminNav role={staff.role} isPlatformAdmin={staff.isPlatformAdmin} />
             <BrandLogo href="/" subtitle="Consultorio Veterinario" />
           </div>
-          <GlobalSearch />
-          {staff.viaPlatform ? (
-            <div className="hidden shrink-0 lg:block">
-              <ExitClinicButton />
-            </div>
-          ) : null}
         </header>
         {staff.branches.length > 1 ? (
           <div className="border-b border-pe-line bg-pe-wash px-3 py-2 lg:hidden">
@@ -64,6 +61,9 @@ export async function AdminShell({ children }: { children: React.ReactNode }) {
         {staff.viaPlatform ? (
           <div className="border-b border-pe-line bg-pe-wash px-3 py-2 text-sm text-pe-muted lg:px-5">
             Viendo {staff.organizationName} · {staff.branchName} como soporte. Los cambios quedan en esa sucursal.
+            <span className="ml-2 hidden lg:inline">
+              <ExitClinicButton />
+            </span>
           </div>
         ) : null}
         <main className="flex-1 px-3 py-4 lg:px-5 lg:py-5">{children}</main>

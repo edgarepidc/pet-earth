@@ -1,4 +1,4 @@
-/* Pet Earth — sage del logo: piso claro, sidebar tinta, oliva en el CTA. */
+/* Pet Earth — sage del logo: piso y menú claros, oliva en el CTA. */
 
 @theme {
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
@@ -46,8 +46,9 @@
 }
 
 .pe-sidebar {
-  background: var(--pe-soil);
-  color: #e6ebe4;
+  background: var(--pe-paper);
+  color: var(--pe-ink);
+  border-right: 1px solid var(--pe-line);
 }
 
 .pe-glass-card,
@@ -142,8 +143,9 @@
 }
 
 .pe-nav-active {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
+  background: rgba(96, 112, 64, 0.12);
+  color: var(--pe-clay-700);
+  font-weight: 600;
 }
 
 .pe-chip-active {

@@ -1,10 +1,8 @@
-import Link from 'next/link';
 import { todayMexicoYmd } from '@petearth/shared';
 
 import { AdminShell } from '@/components/AdminShell';
+import { ClinicNotices } from '@/components/ClinicNotices';
 import { DayBoard, type AppointmentRow, type OpenInvoiceRow } from '@/components/DayBoard';
-import { SectionMark } from '@/components/SectionTitle';
-import { ReminderPill } from '@/components/StatusPill';
 import { loadClinicSession } from '@/lib/auth';
 import { loadDayAppointments, loadFollowUps, loadLowStock, loadOpenInvoices } from '@/lib/queries';
 
@@ -19,11 +17,11 @@ export default async function HomePage() {
     loadOpenInvoices(staff.organizationId, staff.branchId),
     loadLowStock(staff.organizationId),
   ]);
-  const overdue = reminders.filter((row) => row.due_on <= ymd).slice(0, 5);
+  const overdue = reminders.filter((row) => row.due_on <= ymd);
 
   return (
     <AdminShell>
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_240px]">
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_260px]">
         <DayBoard
           title="Hoy"
           appointments={appointments as AppointmentRow[]}
@@ -31,53 +29,7 @@ export default async function HomePage() {
           clinicName={staff.organizationName}
           branchName={staff.branchName}
         />
-        <aside className="space-y-3">
-          <div className="pe-card p-4">
-            <h2 className="flex items-center gap-2 text-sm font-semibold">
-              <SectionMark name="seguimiento" size="sm" />
-              Seguimiento vencido
-            </h2>
-            {overdue.length === 0 ? (
-              <p className="mt-2 text-sm text-pe-muted">Nada vencido.</p>
-            ) : (
-              <ul className="mt-3 space-y-2">
-                {overdue.map((row) => (
-                  <li key={row.id} className="text-sm">
-                    <ReminderPill kind={row.kind} />
-                    <p className="mt-1 font-medium">{row.title}</p>
-                    <p className="text-xs text-pe-muted">{row.due_on}</p>
-                  </li>
-                ))}
-              </ul>
-            )}
-            <Link href="/seguimiento" className="mt-3 inline-block text-sm pe-link">
-              Ver bandeja
-            </Link>
-          </div>
-          <div className="pe-card p-4">
-            <h2 className="flex items-center gap-2 text-sm font-semibold">
-              <SectionMark name="stock" size="sm" />
-              Stock bajo
-            </h2>
-            {lowStock.length === 0 ? (
-              <p className="mt-2 text-sm text-pe-muted">Sin alertas.</p>
-            ) : (
-              <ul className="mt-3 space-y-2">
-                {lowStock.slice(0, 5).map((item) => (
-                  <li key={item.id} className="text-sm">
-                    <p className="font-medium">{item.name}</p>
-                    <p className="text-xs text-pe-clay-700">
-                      {Number(item.stock ?? 0)} / mín {Number(item.min_stock)}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            )}
-            <Link href="/catalogo" className="mt-3 inline-block text-sm pe-link">
-              Catálogo
-            </Link>
-          </div>
-        </aside>
+        <ClinicNotices overdue={overdue} lowStock={lowStock} />
       </div>
     </AdminShell>
   );
