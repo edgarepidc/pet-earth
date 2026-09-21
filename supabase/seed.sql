@@ -481,6 +481,37 @@ values
   )
 on conflict (id) do update set due_on = excluded.due_on, status = 'pending';
 
+insert into public.clinical_media (id, organization_id, patient_id, kind, storage_path, caption, content_type)
+values
+  (
+    'aa000000-0000-4000-8000-000000000001',
+    'a0000000-0000-4000-8000-000000000001',
+    'd0000000-0000-4000-8000-000000000001',
+    'study',
+    'a0000000-0000-4000-8000-000000000001/d0000000-0000-4000-8000-000000000001/rx-cadera.png',
+    'Radiografía de cadera',
+    'image/png'
+  ),
+  (
+    'aa000000-0000-4000-8000-000000000002',
+    'a0000000-0000-4000-8000-000000000001',
+    'd0000000-0000-4000-8000-000000000001',
+    'study',
+    'a0000000-0000-4000-8000-000000000001/d0000000-0000-4000-8000-000000000001/laboratorio.png',
+    'Laboratorio de control',
+    'image/png'
+  ),
+  (
+    'aa000000-0000-4000-8000-000000000003',
+    'a0000000-0000-4000-8000-000000000001',
+    'd0000000-0000-4000-8000-000000000002',
+    'photo',
+    'a0000000-0000-4000-8000-000000000001/d0000000-0000-4000-8000-000000000002/lesion.png',
+    'Foto de lesión en consulta',
+    'image/png'
+  )
+on conflict (id) do update set caption = excluded.caption, storage_path = excluded.storage_path;
+
 insert into public.weight_logs (patient_id, recorded_at, weight_kg)
 values
   ('d0000000-0000-4000-8000-000000000001', now() - interval '90 days', 27.4),

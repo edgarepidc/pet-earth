@@ -8,6 +8,7 @@ import { SectionMark, speciesMark } from '@/components/SectionTitle';
 import { TutorScheduleForm } from '@/components/TutorScheduleForm';
 import { TutorShell } from '@/components/TutorShell';
 import { loadPublicClinic } from '@/lib/clinic';
+import { loadTutorMedia } from '@/lib/media';
 import { getTutorContext } from '@/lib/tutor';
 
 export const dynamic = 'force-dynamic';
@@ -17,12 +18,12 @@ export default async function PetProfilePage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ agendar?: string }>;
+  searchParams: Promise<{ agendar?: string; motivo?: string }>;
 }) {
   const tutor = await getTutorContext();
   if (!tutor) redirect('/login');
   const { id } = await params;
-  const { agendar } = await searchParams;
+  const { agendar, motivo } = await searchParams;
   const supabase = createAdminClient();
   const { data: patient } = await supabase
     .from('patients')
@@ -32,7 +33,7 @@ export default async function PetProfilePage({
     .maybeSingle();
   if (!patient) notFound();
 
-  const [{ data: visits }, { data: vaccines }, { data: appointments }, { data: speciesRows }, clinic] = await Promise.all([
+  const [{ data: visits }, { data: vaccines }, { data: appointments }, { data: speciesRows }, clinic, media] = await Promise.all([
     supabase
       .from('visits')
       .select('id, started_at, plan, assessment, weight_kg')
@@ -56,6 +57,7 @@ export default async function PetProfilePage({
       .eq('organization_id', tutor.organizationId)
       .eq('list_key', 'species'),
     loadPublicClinic(),
+    loadTutorMedia([id]),
   ]);
   const service = clinic.services.find((item) => item.sku === agendar) ?? clinic.products.find((item) => item.sku === agendar);
 
@@ -87,12 +89,49 @@ export default async function PetProfilePage({
           ))}
           {(appointments ?? []).length === 0 ? <li className="text-pe-muted">Sin citas abiertas.</li> : null}
         </ul>
-        <TutorScheduleForm
-          patientId={patient.id}
-          patientName={patient.name}
-          defaultReason={service?.name ?? ''}
-          branchName={clinic.branchName}
-        />
+        <div className="mt-4 border-t border-[rgba(31,36,40,0.08)] pt-4">
+          <TutorScheduleForm
+            patientId={patient.id}
+            patientName={patient.name}
+            defaultReason={service?.name ?? motivo ?? ''}
+            branchName={clinic.branchName}
+          />
+        </div>
+      </section>
+
+      <section className="pe-card mt-4 p-4">
+        <h3 className="flex items-center gap-2 font-semibold">
+          <SectionMark name="informes" size="sm" />
+          Estudios y documentos
+        </h3>
+        <p className="mt-1 text-sm text-pe-muted">
+          Lo que la clínica cargó al expediente: laboratorios, radiografías u otros archivos.
+        </p>
+        {media.length === 0 ? (
+          <p className="mt-3 text-sm text-pe-muted">Aún no hay estudios ni documentos.</p>
+        ) : (
+          <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+            {media.map((item) => (
+              <li key={item.id} className="overflow-hidden rounded-md border border-[rgba(31,36,40,0.08)] bg-white">
+                {item.url && item.content_type?.startsWith('image/') ? (
+                  <a href={item.url} target="_blank" rel="noreferrer">
+                    <img src={item.url} alt={item.caption || 'Documento clínico'} className="h-40 w-full object-cover" />
+                  </a>
+                ) : item.url ? (
+                  <a href={item.url} target="_blank" rel="noreferrer" className="block p-3 text-sm underline">
+                    Abrir documento
+                  </a>
+                ) : (
+                  <p className="p-3 text-sm text-pe-muted">No se pudo abrir el archivo.</p>
+                )}
+                <p className="p-2 text-xs text-pe-muted">
+                  {item.kind === 'study' ? 'Estudio' : 'Foto'}
+                  {item.caption ? ` · ${item.caption}` : ''}
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       <section className="pe-card mt-4 p-4">
