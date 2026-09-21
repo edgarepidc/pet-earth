@@ -50,7 +50,7 @@ export default async function PetProfilePage({ params }: { params: Promise<{ id:
 
   return (
     <TutorShell clinicName={tutor.clinicName} tutorName={tutor.clientName}>
-      <Link href="/" className="text-sm pe-link">
+      <Link href="/cuenta" className="text-sm pe-link">
         Todas las mascotas
       </Link>
       <h2 className="mt-4 flex items-center gap-3 font-serif text-3xl font-semibold">

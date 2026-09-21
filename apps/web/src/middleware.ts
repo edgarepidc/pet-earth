@@ -3,7 +3,7 @@ import { createServerClient } from '@supabase/ssr';
 
 import type { Database } from '@petearth/supabase';
 
-const PUBLIC_PATHS = ['/login', '/api/auth/login', '/api/auth/logout'];
+const PUBLIC_PATHS = ['/', '/login', '/api/auth/login', '/api/auth/logout'];
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -29,9 +29,10 @@ export async function middleware(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  const publicPath = PUBLIC_PATHS.some(
-    (path) => request.nextUrl.pathname === path || request.nextUrl.pathname.startsWith(`${path}/`),
-  );
+  const pathname = request.nextUrl.pathname;
+  const publicPath =
+    pathname.startsWith('/marks/') ||
+    PUBLIC_PATHS.some((path) => pathname === path || (path !== '/' && pathname.startsWith(`${path}/`)));
   if (!user && !publicPath) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = '/login';

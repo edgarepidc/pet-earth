@@ -48,7 +48,7 @@ export function AgendaCalendar({
   const byDay = useMemo(() => {
     const map = new Map<string, AppointmentRow[]>();
     for (const row of appointments) {
-      const day = row.starts_at.slice(0, 10);
+      const day = todayMexicoYmd(new Date(row.starts_at));
       map.set(day, [...(map.get(day) ?? []), row]);
     }
     return map;

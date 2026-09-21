@@ -241,6 +241,76 @@ cross join (
       'd0000000-0000-4000-8000-000000000003'::uuid,
       1, time '16:00', time '16:30', 'scheduled'::public.appointment_status,
       'Revisión de piel'
+    ),
+    (
+      'f0000000-0000-4000-8000-000000000007'::uuid,
+      'c0000000-0000-4000-8000-000000000001'::uuid,
+      'd0000000-0000-4000-8000-000000000001'::uuid,
+      2, time '09:00', time '09:30', 'confirmed'::public.appointment_status,
+      'Vacuna anual'
+    ),
+    (
+      'f0000000-0000-4000-8000-000000000008'::uuid,
+      'c0000000-0000-4000-8000-000000000001'::uuid,
+      'd0000000-0000-4000-8000-000000000002'::uuid,
+      2, time '11:30', time '12:00', 'scheduled'::public.appointment_status,
+      'Otitis'
+    ),
+    (
+      'f0000000-0000-4000-8000-000000000009'::uuid,
+      'c0000000-0000-4000-8000-000000000002'::uuid,
+      'd0000000-0000-4000-8000-000000000003'::uuid,
+      2, time '17:00', time '17:30', 'scheduled'::public.appointment_status,
+      'Control de piel'
+    ),
+    (
+      'f0000000-0000-4000-8000-00000000000a'::uuid,
+      'c0000000-0000-4000-8000-000000000001'::uuid,
+      'd0000000-0000-4000-8000-000000000005'::uuid,
+      3, time '10:00', time '10:30', 'scheduled'::public.appointment_status,
+      'Seguimiento post operatorio'
+    ),
+    (
+      'f0000000-0000-4000-8000-00000000000b'::uuid,
+      'c0000000-0000-4000-8000-000000000002'::uuid,
+      'd0000000-0000-4000-8000-000000000004'::uuid,
+      3, time '12:15', time '12:35', 'scheduled'::public.appointment_status,
+      'Revisión general'
+    ),
+    (
+      'f0000000-0000-4000-8000-00000000000c'::uuid,
+      'c0000000-0000-4000-8000-000000000001'::uuid,
+      'd0000000-0000-4000-8000-000000000001'::uuid,
+      3, time '17:00', time '17:30', 'scheduled'::public.appointment_status,
+      'Control de cojera'
+    ),
+    (
+      'f0000000-0000-4000-8000-00000000000d'::uuid,
+      'c0000000-0000-4000-8000-000000000001'::uuid,
+      'd0000000-0000-4000-8000-000000000002'::uuid,
+      4, time '09:30', time '10:00', 'scheduled'::public.appointment_status,
+      'Desparasitación'
+    ),
+    (
+      'f0000000-0000-4000-8000-00000000000e'::uuid,
+      'c0000000-0000-4000-8000-000000000002'::uuid,
+      'd0000000-0000-4000-8000-000000000003'::uuid,
+      4, time '13:00', time '13:30', 'scheduled'::public.appointment_status,
+      'Revisión de piel'
+    ),
+    (
+      'f0000000-0000-4000-8000-00000000000f'::uuid,
+      'c0000000-0000-4000-8000-000000000001'::uuid,
+      'd0000000-0000-4000-8000-000000000005'::uuid,
+      5, time '10:00', time '10:30', 'scheduled'::public.appointment_status,
+      'Vacuna antirrábica'
+    ),
+    (
+      'f0000000-0000-4000-8000-000000000010'::uuid,
+      'c0000000-0000-4000-8000-000000000002'::uuid,
+      'd0000000-0000-4000-8000-000000000004'::uuid,
+      5, time '11:30', time '11:50', 'scheduled'::public.appointment_status,
+      'Corte de uñas'
     )
 ) as slot(id, client_id, patient_id, day_offset, start_t, end_t, status, reason)
 on conflict (id) do update

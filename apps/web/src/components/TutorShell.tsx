@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 import { PageHeading } from '@/components/SectionTitle';
 import { LogoutButton } from '@/components/LogoutButton';
 
@@ -16,7 +18,12 @@ export function TutorShell({
         <div>
           <PageHeading mark="cartilla" kicker={clinicName} title="Cartilla" description={tutorName} serif size="lg" />
         </div>
-        <LogoutButton />
+        <div className="flex items-center gap-2">
+          <Link href="/" className="pe-btn-ghost px-4 py-2 text-sm">
+            Sitio
+          </Link>
+          <LogoutButton />
+        </div>
       </header>
       <div className="max-w-2xl">{children}</div>
     </main>

@@ -20,8 +20,8 @@ const serif = Source_Serif_4({
 });
 
 export const metadata: Metadata = {
-  title: 'Cartilla · Pet Earth',
-  description: 'Historial y seguimiento de tu mascota',
+  title: 'Pet Earth · Consultorio',
+  description: 'Consulta, vacunas y cartilla digital de tu mascota en Roma Norte.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

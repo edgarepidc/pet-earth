@@ -10,7 +10,7 @@ export function LogoutButton() {
       className="pe-btn-ghost px-4 py-2 text-sm"
       onClick={async () => {
         await fetch('/api/auth/logout', { method: 'POST' });
-        router.push('/login');
+        router.push('/');
         router.refresh();
       }}
     >
