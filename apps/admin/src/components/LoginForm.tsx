@@ -13,7 +13,9 @@ export function LoginForm() {
   const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(
+    searchParams.get('error') === 'handoff' ? 'No se pudo abrir la sesión. Entra de nuevo.' : null,
+  );
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(event: React.FormEvent) {

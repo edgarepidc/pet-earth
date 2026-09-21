@@ -3,7 +3,7 @@ import { createServerClient } from '@supabase/ssr';
 
 import type { Database } from '@petearth/supabase';
 
-const PUBLIC_PATHS = ['/login', '/api/auth/login', '/api/auth/logout', '/api/cron'];
+const PUBLIC_PATHS = ['/login', '/api/auth/login', '/api/auth/logout', '/api/auth/handoff', '/api/cron'];
 
 function isPublicPath(pathname: string): boolean {
   return PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));
