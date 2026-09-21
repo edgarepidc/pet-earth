@@ -13,19 +13,42 @@ export function ServiceCarousel({
 }: {
   services: (PublicCatalogItem & { href: string })[];
 }) {
-  const [index, setIndex] = useState(0);
+  const n = services.length;
+  const looped = n > 1;
+  const [index, setIndex] = useState(looped ? n : 0);
+  const [animate, setAnimate] = useState(true);
   const [paused, setPaused] = useState(false);
-  const count = services.length;
+
+  const slides = looped ? [...services, ...services, ...services] : services;
+  const real = looped ? ((index % n) + n) % n : index;
 
   useEffect(() => {
-    if (paused || count < 2) return;
+    if (paused || !looped) return;
     const timer = window.setInterval(() => {
-      setIndex((value) => (value + 1) % count);
+      setAnimate(true);
+      setIndex((value) => value + 1);
     }, 4800);
     return () => window.clearInterval(timer);
-  }, [paused, count]);
+  }, [paused, looped]);
 
-  if (!count) return null;
+  useEffect(() => {
+    if (animate) return;
+    const frame = window.requestAnimationFrame(() => setAnimate(true));
+    return () => window.cancelAnimationFrame(frame);
+  }, [animate]);
+
+  if (!n) return null;
+
+  function wrap(next: number) {
+    if (!looped) return;
+    if (next >= n * 2) {
+      setAnimate(false);
+      setIndex(next - n);
+    } else if (next < n) {
+      setAnimate(false);
+      setIndex(next + n);
+    }
+  }
 
   const offset = (100 - SLIDE) / 2 - index * SLIDE;
 
@@ -37,22 +60,30 @@ export function ServiceCarousel({
     >
       <div className="relative overflow-hidden">
         <div
-          className="flex items-start transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]"
+          className={`flex items-start ${animate ? 'transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]' : ''}`}
           style={{ transform: `translateX(${offset}%)` }}
+          onTransitionEnd={(event) => {
+            if (event.target === event.currentTarget) wrap(index);
+          }}
         >
-          {services.map((item, i) => {
+          {slides.map((item, i) => {
             const active = i === index;
+            const copy = looped ? Math.floor(i / n) : 0;
             return (
-              <article key={item.id} className="w-[70%] shrink-0 px-2 sm:px-3">
+              <article key={`${item.id}-${copy}-${i % n}`} className="w-[70%] shrink-0 px-2 sm:px-3">
                 <div
                   role={active ? undefined : 'button'}
                   tabIndex={active ? undefined : 0}
                   onClick={() => {
-                    if (!active) setIndex(i);
+                    if (!active) {
+                      setAnimate(true);
+                      setIndex(i);
+                    }
                   }}
                   onKeyDown={(event) => {
                     if (!active && (event.key === 'Enter' || event.key === ' ')) {
                       event.preventDefault();
+                      setAnimate(true);
                       setIndex(i);
                     }
                   }}
@@ -70,7 +101,7 @@ export function ServiceCarousel({
                     <div className="absolute inset-0 bg-gradient-to-t from-[rgba(31,36,40,0.72)] via-transparent to-transparent" />
                     <div className="absolute inset-x-0 bottom-0 p-5 sm:p-7">
                       <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-white/70">
-                        Servicio {String(i + 1).padStart(2, '0')}
+                        Servicio {String((i % n) + 1).padStart(2, '0')}
                       </p>
                       <h3 className="mt-1 font-serif text-2xl font-semibold text-white sm:text-3xl">
                         {item.name}
@@ -107,10 +138,13 @@ export function ServiceCarousel({
             key={item.id}
             type="button"
             aria-label={`Ver ${item.name}`}
-            aria-current={i === index ? true : undefined}
-            onClick={() => setIndex(i)}
+            aria-current={i === real ? true : undefined}
+            onClick={() => {
+              setAnimate(true);
+              setIndex(looped ? n + i : i);
+            }}
             className={`h-2.5 rounded-full transition-all duration-500 ${
-              i === index
+              i === real
                 ? 'w-8 bg-pe-ink'
                 : 'w-2.5 bg-[rgba(31,36,40,0.22)] hover:bg-[rgba(31,36,40,0.4)]'
             }`}

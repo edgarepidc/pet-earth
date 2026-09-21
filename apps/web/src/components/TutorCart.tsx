@@ -65,7 +65,7 @@ export function TutorCart({ branchName }: { branchName: string }) {
           <ul className="divide-y divide-[rgba(31,36,40,0.08)]">
             {lines.map((line) => (
               <li key={line.id} className="flex items-center gap-3 py-3">
-                <img src={line.image} alt="" className="h-12 w-12 object-contain" />
+                <img src={line.image} alt="" className="h-12 w-12 rounded-md object-cover" />
                 <div className="min-w-0 flex-1">
                   <p className="font-medium">{line.name}</p>
                   <p className="text-sm text-pe-muted tabular-nums">{formatMoney(line.unitPrice)}</p>

@@ -56,7 +56,7 @@ export default async function PetProfilePage({
       .select('slug, label')
       .eq('organization_id', tutor.organizationId)
       .eq('list_key', 'species'),
-    loadPublicClinic(),
+    loadPublicClinic(tutor.preferredBranchId),
     loadTutorMedia([id]),
   ]);
   const service = clinic.services.find((item) => item.sku === agendar) ?? clinic.products.find((item) => item.sku === agendar);

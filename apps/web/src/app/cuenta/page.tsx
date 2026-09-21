@@ -6,6 +6,7 @@ import { createAdminClient } from '@petearth/supabase/admin';
 
 import { loadPublicClinic } from '@/lib/clinic';
 import { loadTutorMedia } from '@/lib/media';
+import { PreferredBranch } from '@/components/PreferredBranch';
 import { SectionMark, speciesMark } from '@/components/SectionTitle';
 import { TutorCart } from '@/components/TutorCart';
 import { TutorScheduleForm } from '@/components/TutorScheduleForm';
@@ -54,7 +55,7 @@ export default async function TutorHomePage({
       .select('slug, label')
       .eq('organization_id', tutor.organizationId)
       .eq('list_key', 'species'),
-    loadPublicClinic(),
+      loadPublicClinic(tutor.preferredBranchId),
   ]);
   const speciesOptions = speciesRows ?? [];
   const service = clinic.services.find((item) => item.sku === agendar) ?? clinic.products.find((item) => item.sku === agendar);
@@ -114,6 +115,8 @@ export default async function TutorHomePage({
           })}
         </div>
       </section>
+
+      <PreferredBranch branches={clinic.branches} currentId={clinic.selectedBranch.id} />
 
       <TutorCart branchName={clinic.branchName} />
 

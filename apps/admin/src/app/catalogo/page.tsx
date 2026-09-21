@@ -16,7 +16,7 @@ export default async function CatalogoPage() {
     .order('name');
   return (
     <AdminShell>
-      <CatalogManager items={(data ?? []) as never} />
+      <CatalogManager items={data ?? []} />
     </AdminShell>
   );
 }

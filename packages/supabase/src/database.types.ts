@@ -106,6 +106,7 @@ export interface Database {
           tax_zip: string | null;
           uso_cfdi: string;
           fiscal_name: string | null;
+          preferred_branch_id: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -121,6 +122,7 @@ export interface Database {
           tax_zip?: string | null;
           uso_cfdi?: string;
           fiscal_name?: string | null;
+          preferred_branch_id?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -212,6 +214,8 @@ export interface Database {
           stock: number | null;
           min_stock: number | null;
           is_active: boolean;
+          description: string | null;
+          image_url: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -225,6 +229,8 @@ export interface Database {
           stock?: number | null;
           min_stock?: number | null;
           is_active?: boolean;
+          description?: string | null;
+          image_url?: string | null;
           created_at?: string;
           updated_at?: string;
         };

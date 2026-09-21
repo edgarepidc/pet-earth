@@ -33,6 +33,29 @@ export async function POST(request: Request) {
     .maybeSingle();
   if (!patient) return NextResponse.json({ error: 'Mascota no encontrada.' }, { status: 404 });
 
+  let branchId = tutor.preferredBranchId;
+  if (branchId) {
+    const { data: allowed } = await supabase
+      .from('branches')
+      .select('id')
+      .eq('id', branchId)
+      .eq('organization_id', patient.organization_id)
+      .eq('is_active', true)
+      .maybeSingle();
+    if (!allowed) branchId = null;
+  }
+  if (!branchId) {
+    const { data: fallback } = await supabase
+      .from('branches')
+      .select('id')
+      .eq('organization_id', patient.organization_id)
+      .eq('is_active', true)
+      .order('created_at', { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    branchId = fallback?.id ?? PUBLIC_BRANCH_ID;
+  }
+
   const reason = body.reason?.trim() || 'Consulta';
   const startsAt = parseClockToIso(body.date, body.time);
   const ends = new Date(startsAt);
@@ -42,7 +65,7 @@ export async function POST(request: Request) {
     .from('appointments')
     .insert({
       organization_id: patient.organization_id,
-      branch_id: PUBLIC_BRANCH_ID,
+      branch_id: branchId,
       client_id: patient.client_id,
       patient_id: patient.id,
       starts_at: startsAt,

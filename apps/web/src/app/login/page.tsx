@@ -15,7 +15,7 @@ export default async function LoginPage({
     <>
       <SiteHeader
         clinicName={clinic.name}
-        branchName={clinic.branchName}
+        branchName={clinic.branches.map((branch) => branch.name).join(' · ') || clinic.branchName}
         address={clinic.address}
         hours={clinic.hours}
       />

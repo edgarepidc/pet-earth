@@ -98,15 +98,32 @@ insert into public.organizations (id, name, slug)
 values ('a0000000-0000-4000-8000-000000000001', 'Clínica Pet Earth', 'pet-earth')
 on conflict (id) do update set name = excluded.name;
 
-insert into public.branches (id, organization_id, name, slug, address)
-values (
-  'b0000000-0000-4000-8000-000000000001',
-  'a0000000-0000-4000-8000-000000000001',
-  'Roma Norte',
-  'roma-norte',
-  'Álvaro Obregón 210, Roma Norte, CDMX'
-)
-on conflict (id) do update set address = excluded.address;
+insert into public.branches (id, organization_id, name, slug, address, settings)
+values
+  (
+    'b0000000-0000-4000-8000-000000000001',
+    'a0000000-0000-4000-8000-000000000001',
+    'Roma Norte',
+    'roma-norte',
+    'Álvaro Obregón 210, Roma Norte, CDMX',
+    '{"hours":"Lunes a sábado · 9:00 a 19:00","image":"/catalog/srv-con.jpg"}'::jsonb
+  ),
+  (
+    'b0000000-0000-4000-8000-000000000002',
+    'a0000000-0000-4000-8000-000000000001',
+    'Condesa',
+    'condesa',
+    'Amsterdam 45, Condesa, CDMX',
+    '{"hours":"Lunes a sábado · 10:00 a 20:00","image":"/catalog/branch-con.jpg"}'::jsonb
+  )
+on conflict (id) do update set address = excluded.address, settings = excluded.settings;
+
+update public.branches
+set
+  address = 'Amsterdam 45, Condesa, CDMX',
+  settings = '{"hours":"Lunes a sábado · 10:00 a 20:00","image":"/catalog/branch-con.jpg"}'::jsonb
+where organization_id = 'a0000000-0000-4000-8000-000000000001'
+  and slug = 'condesa';
 
 insert into public.staff_memberships (user_id, organization_id, branch_id, role, status)
 values
@@ -114,21 +131,31 @@ values
   ('22222222-2222-4222-8222-222222222222', 'a0000000-0000-4000-8000-000000000001', 'b0000000-0000-4000-8000-000000000001', 'reception', 'active')
 on conflict (user_id, organization_id) do update set role = excluded.role, status = 'active';
 
-insert into public.clients (id, organization_id, user_id, full_name, phone, email)
+insert into public.clients (id, organization_id, user_id, full_name, phone, email, preferred_branch_id)
 values
   (
     'c0000000-0000-4000-8000-000000000001',
     'a0000000-0000-4000-8000-000000000001',
     '33333333-3333-4333-8333-333333333333',
-    'Ana Ruiz', '5551234567', 'ana@petearth.local'
+    'Ana Ruiz', '5551234567', 'ana@petearth.local',
+    'b0000000-0000-4000-8000-000000000001'
   ),
   (
     'c0000000-0000-4000-8000-000000000002',
     'a0000000-0000-4000-8000-000000000001',
     null,
-    'Carlos Mendoza', '5559876543', 'carlos@petearth.local'
+    'Carlos Mendoza', '5559876543', 'carlos@petearth.local',
+    'b0000000-0000-4000-8000-000000000001'
   )
-on conflict (id) do update set full_name = excluded.full_name, user_id = excluded.user_id;
+on conflict (id) do update set full_name = excluded.full_name, user_id = excluded.user_id, preferred_branch_id = excluded.preferred_branch_id;
+
+update public.clients
+set preferred_branch_id = (
+  select id from public.branches
+  where organization_id = 'a0000000-0000-4000-8000-000000000001' and slug = 'condesa'
+  limit 1
+)
+where id = 'c0000000-0000-4000-8000-000000000002';
 
 insert into public.patients (
   id, organization_id, client_id, name, species, breed, sex, neutered, birth_date, microchip, allergies, alerts
@@ -171,16 +198,29 @@ values
   )
 on conflict (id) do update set name = excluded.name, species = excluded.species, breed = excluded.breed, alerts = excluded.alerts;
 
-insert into public.catalog_items (id, organization_id, kind, name, sku, unit_price, stock, min_stock, is_active)
+insert into public.catalog_items (id, organization_id, kind, name, sku, unit_price, stock, min_stock, is_active, description, image_url)
 values
-  ('e0000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-000000000001', 'service', 'Consulta general', 'SRV-CON', 450, null, null, true),
-  ('e0000000-0000-4000-8000-000000000002', 'a0000000-0000-4000-8000-000000000001', 'service', 'Consulta de seguimiento', 'SRV-SEG', 280, null, null, true),
-  ('e0000000-0000-4000-8000-000000000003', 'a0000000-0000-4000-8000-000000000001', 'service', 'Aplicación de vacuna', 'SRV-VAC', 80, null, null, true),
-  ('e0000000-0000-4000-8000-000000000004', 'a0000000-0000-4000-8000-000000000001', 'product', 'Vacuna séxtuple', 'VAC-SEX', 650, 12, 8, true),
-  ('e0000000-0000-4000-8000-000000000005', 'a0000000-0000-4000-8000-000000000001', 'product', 'Vacuna antirrábica', 'VAC-RAB', 380, 18, 8, true),
-  ('e0000000-0000-4000-8000-000000000006', 'a0000000-0000-4000-8000-000000000001', 'product', 'Desparasitación', 'MED-DES', 220, 30, 8, true),
-  ('e0000000-0000-4000-8000-000000000007', 'a0000000-0000-4000-8000-000000000001', 'product', 'Meloxicam 1.5 mg', 'MED-MEL', 185, 2, 8, true)
-on conflict (id) do update set unit_price = excluded.unit_price, stock = excluded.stock, min_stock = excluded.min_stock;
+  ('e0000000-0000-4000-8000-000000000001', 'a0000000-0000-4000-8000-000000000001', 'service', 'Consulta general', 'SRV-CON', 450, null, null, true, 'Primera visita o un problema nuevo: exploración, diagnóstico y plan.', '/catalog/srv-con.jpg'),
+  ('e0000000-0000-4000-8000-000000000002', 'a0000000-0000-4000-8000-000000000001', 'service', 'Consulta de seguimiento', 'SRV-SEG', 280, null, null, true, 'Revisión de un tratamiento, herida o post operatorio.', '/catalog/srv-seg.jpg'),
+  ('e0000000-0000-4000-8000-000000000003', 'a0000000-0000-4000-8000-000000000001', 'service', 'Aplicación de vacuna', 'SRV-VAC', 80, null, null, true, 'Aplicación en consulta, con registro en la cartilla.', '/catalog/srv-vac.jpg'),
+  ('e0000000-0000-4000-8000-000000000004', 'a0000000-0000-4000-8000-000000000001', 'product', 'Vacuna séxtuple', 'VAC-SEX', 650, 12, 8, true, 'Protección anual combinada, según calendario.', '/catalog/vac-sex.jpg'),
+  ('e0000000-0000-4000-8000-000000000005', 'a0000000-0000-4000-8000-000000000001', 'product', 'Vacuna antirrábica', 'VAC-RAB', 380, 18, 8, true, 'Refuerzo antirrábico y registro de próxima dosis.', '/catalog/vac-rab.jpg'),
+  ('e0000000-0000-4000-8000-000000000006', 'a0000000-0000-4000-8000-000000000001', 'product', 'Desparasitación', 'MED-DES', 220, 30, 8, true, 'Interna, dosificada por peso y especie.', '/catalog/med-des.jpg'),
+  ('e0000000-0000-4000-8000-000000000007', 'a0000000-0000-4000-8000-000000000001', 'product', 'Meloxicam 1.5 mg', 'MED-MEL', 185, 2, 8, true, 'Antiinflamatorio de uso en consulta, según indicación del veterinario.', '/catalog/med-mel.jpg'),
+  ('e0000000-0000-4000-8000-000000000008', 'a0000000-0000-4000-8000-000000000001', 'product', 'Shampoo hipoalergénico', 'HYG-SHA', 280, 16, 6, true, 'Shampoo suave para baño en casa, según piel y especie.', '/catalog/prod-sha.jpg'),
+  ('e0000000-0000-4000-8000-000000000009', 'a0000000-0000-4000-8000-000000000001', 'product', 'Premios dentales', 'HYG-TRE', 145, 24, 8, true, 'Premios para higiene dental entre consultas.', '/catalog/prod-treat.jpg'),
+  ('e0000000-0000-4000-8000-00000000000a', 'a0000000-0000-4000-8000-000000000001', 'product', 'Pasta dental enzimática', 'HYG-PAS', 120, 14, 6, true, 'Pasta enzimática para cepillado en casa.', '/catalog/prod-paste.jpg'),
+  ('e0000000-0000-4000-8000-00000000000b', 'a0000000-0000-4000-8000-000000000001', 'product', 'Toallitas para patas', 'HYG-WIP', 95, 20, 8, true, 'Toallitas para patas y hocico después del paseo.', '/catalog/prod-wipe.jpg'),
+  ('e0000000-0000-4000-8000-00000000000c', 'a0000000-0000-4000-8000-000000000001', 'product', 'Cepillo de cerdas', 'HYG-BRU', 210, 10, 4, true, 'Cepillo de cerdas para el pelaje entre visitas.', '/catalog/prod-brush.jpg')
+on conflict (id) do update set
+  unit_price = excluded.unit_price,
+  stock = excluded.stock,
+  min_stock = excluded.min_stock,
+  description = excluded.description,
+  image_url = excluded.image_url,
+  name = excluded.name,
+  sku = excluded.sku,
+  is_active = excluded.is_active;
 
 -- Piso de Hoy: se reancla al día local de México cada vez que se aplica el seed.
 insert into public.appointments (

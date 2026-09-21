@@ -12,7 +12,7 @@ export async function getTutorContext() {
   const admin = createAdminClient();
   const { data: client } = await admin
     .from('clients')
-    .select('id, full_name, organization_id, phone, email')
+    .select('id, full_name, organization_id, phone, email, preferred_branch_id')
     .eq('user_id', user.id)
     .maybeSingle();
   if (!client) return null;
@@ -25,6 +25,7 @@ export async function getTutorContext() {
     clientId: client.id,
     clientName: client.full_name,
     organizationId: client.organization_id,
+    preferredBranchId: client.preferred_branch_id,
     clinicName: org?.name ?? 'Pet Earth',
   };
 }
