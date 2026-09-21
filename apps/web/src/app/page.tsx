@@ -56,28 +56,19 @@ export default async function ClinicHomePage() {
               </a>
             </div>
           </div>
-          <aside className="relative overflow-hidden rounded-2xl bg-pe-ink px-7 py-8 text-white shadow-lg">
-            <div className="mb-8 flex items-end">
-              <img
-                src="/marks/perro.png"
-                alt=""
-                className="relative z-[3] h-24 w-24 rounded-full object-cover ring-[6px] ring-pe-ink"
-              />
-              <img
-                src="/marks/gato.png"
-                alt=""
-                className="relative z-[2] -ml-6 h-20 w-20 rounded-full object-cover ring-[6px] ring-pe-ink"
-              />
-              <img
-                src="/marks/consulta.png"
-                alt=""
-                className="relative z-[1] -ml-5 mb-1 h-16 w-16 rounded-full object-cover ring-[6px] ring-pe-ink"
-              />
+          <aside className="relative min-h-[340px] overflow-hidden rounded-2xl shadow-lg">
+            <img
+              src="/catalog/srv-con.jpg"
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[rgba(31,36,40,0.88)] via-[rgba(31,36,40,0.35)] to-transparent" />
+            <div className="relative z-10 flex h-full min-h-[340px] flex-col justify-end px-7 py-8 text-white">
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-white/70">Sucursal</p>
+              <p className="mt-2 font-serif text-3xl font-semibold">{clinic.branchName}</p>
+              <p className="mt-3 text-sm leading-relaxed text-white/80">{clinic.address}</p>
+              <p className="mt-2 text-sm text-white/80">{clinic.hours}</p>
             </div>
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-white/55">Sucursal</p>
-            <p className="mt-2 font-serif text-3xl font-semibold">{clinic.branchName}</p>
-            <p className="mt-3 text-sm leading-relaxed text-white/75">{clinic.address}</p>
-            <p className="mt-2 text-sm text-white/75">{clinic.hours}</p>
           </aside>
         </section>
 
@@ -97,12 +88,12 @@ export default async function ClinicHomePage() {
         </section>
 
         <section id="servicios" className="scroll-mt-28 pt-14">
-          <p className="pe-kicker">Atención clínica</p>
-          <h2 className="mt-2 font-serif text-3xl font-semibold">Servicios del consultorio</h2>
-          <p className="mt-2 max-w-xl text-sm leading-relaxed text-pe-muted">
-            Desliza para ver todos. Cada servicio queda en el expediente.
+          <p className="pe-kicker text-center">Atención clínica</p>
+          <h2 className="mt-2 text-center font-serif text-3xl font-semibold">Servicios del consultorio</h2>
+          <p className="mx-auto mt-2 max-w-xl text-center text-sm leading-relaxed text-pe-muted">
+            Cada servicio queda en el expediente. El carrusel avanza solo; usa los puntos para elegir.
           </p>
-          <div className="mt-8">
+          <div className="mt-8 -mx-2 sm:-mx-3">
             <ServiceCarousel
               services={clinic.services.map((item) => ({
                 ...item,
@@ -113,23 +104,27 @@ export default async function ClinicHomePage() {
         </section>
 
         <section id="productos" className="scroll-mt-28 pt-16">
-          <p className="pe-kicker">Sucursal</p>
-          <h2 className="mt-2 font-serif text-3xl font-semibold">Productos</h2>
-          <p className="mt-2 max-w-xl text-sm leading-relaxed text-pe-muted">
+          <p className="pe-kicker text-center">Sucursal</p>
+          <h2 className="mt-2 text-center font-serif text-3xl font-semibold">Productos</h2>
+          <p className="mx-auto mt-2 max-w-xl text-center text-sm leading-relaxed text-pe-muted">
             Agrégalos al carrito y elige un día para recogerlos en {clinic.branchName}. El medicamento se
             entrega con indicación del veterinario.
           </p>
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-8 grid gap-6 sm:grid-cols-2">
             {clinic.products.map((item) => (
               <article key={item.id} className="pe-card flex flex-col overflow-hidden">
-                <div className="flex h-36 items-center justify-center bg-pe-wash">
-                  <img src={item.image} alt="" className="h-20 w-20 object-contain" />
+                <div className="relative aspect-[4/3] w-full overflow-hidden bg-pe-wash">
+                  <img src={item.image} alt="" className="h-full w-full object-cover" />
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[rgba(31,36,40,0.72)] to-transparent px-5 pb-4 pt-16">
+                    <h3 className="font-serif text-2xl font-semibold text-white">{item.name}</h3>
+                    <p className="mt-1 text-sm font-semibold tabular-nums text-white/90">
+                      {formatMoney(item.unit_price)}
+                    </p>
+                  </div>
                 </div>
                 <div className="flex flex-1 flex-col p-5">
-                  <h3 className="font-serif text-xl font-semibold">{item.name}</h3>
-                  <p className="mt-2 flex-1 text-sm leading-relaxed text-pe-muted">{item.blurb}</p>
-                  <p className="mt-4 font-semibold tabular-nums">{formatMoney(item.unit_price)}</p>
-                  <div className="mt-3">
+                  <p className="flex-1 text-sm leading-relaxed text-pe-muted">{item.blurb}</p>
+                  <div className="mt-4">
                     <AddToCartButton
                       id={item.id}
                       name={item.name}

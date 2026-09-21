@@ -24,13 +24,13 @@ export type PublicCatalogItem = {
 };
 
 const ITEM_IMAGES: Record<string, string> = {
-  'SRV-CON': '/marks/consulta.png',
-  'SRV-SEG': '/marks/seguimiento.png',
-  'SRV-VAC': '/marks/cartilla.png',
-  'VAC-SEX': '/marks/cartilla.png',
-  'VAC-RAB': '/marks/pacientes.png',
-  'MED-DES': '/marks/stock.png',
-  'MED-MEL': '/marks/caja.png',
+  'SRV-CON': '/catalog/srv-con.jpg',
+  'SRV-SEG': '/catalog/srv-seg.jpg',
+  'SRV-VAC': '/catalog/srv-vac.jpg',
+  'VAC-SEX': '/catalog/vac-sex.jpg',
+  'VAC-RAB': '/catalog/vac-rab.jpg',
+  'MED-DES': '/catalog/med-des.jpg',
+  'MED-MEL': '/catalog/med-mel.jpg',
 };
 
 export const PUBLIC_ORG_ID = DEMO_ORG_ID;
