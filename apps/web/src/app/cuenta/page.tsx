@@ -7,6 +7,7 @@ import { createAdminClient } from '@petearth/supabase/admin';
 import { loadPublicClinic } from '@/lib/clinic';
 import { loadTutorMedia } from '@/lib/media';
 import { SectionMark, speciesMark } from '@/components/SectionTitle';
+import { TutorCart } from '@/components/TutorCart';
 import { TutorScheduleForm } from '@/components/TutorScheduleForm';
 import { TutorShell } from '@/components/TutorShell';
 import { getTutorContext } from '@/lib/tutor';
@@ -86,7 +87,7 @@ export default async function TutorHomePage({
           {(patients ?? []).map((pet) => {
             const files = mediaCount.get(pet.id) ?? 0;
             return (
-              <article key={pet.id} className="pe-card flex flex-col p-4">
+              <article key={pet.id} className="pe-card flex h-full flex-col gap-3 p-4">
                 <Link href={`/mascotas/${pet.id}`} className="flex items-start gap-3 no-underline">
                   <SectionMark name={speciesMark(pet.species)} size="sm" />
                   <span className="min-w-0 flex-1">
@@ -104,7 +105,7 @@ export default async function TutorHomePage({
                 </Link>
                 <Link
                   href={`?mascota=${pet.id}#agendar`}
-                  className="pe-btn-secondary mt-3 px-3 py-1.5 text-center text-sm"
+                  className="pe-btn-secondary mt-auto px-3 py-1.5 text-center text-sm"
                 >
                   Agendar
                 </Link>
@@ -113,6 +114,8 @@ export default async function TutorHomePage({
           })}
         </div>
       </section>
+
+      <TutorCart branchName={clinic.branchName} />
 
       <section className="pe-card mt-8 scroll-mt-8 p-5">
         <h2 className="flex items-center gap-2 font-serif text-xl font-semibold">

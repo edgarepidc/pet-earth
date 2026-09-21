@@ -2,6 +2,8 @@
 
 import Link from 'next/link';
 
+import { CartBadge } from '@/components/CartBadge';
+
 export function AccountActions({
   signedIn,
   pets = [],
@@ -12,6 +14,7 @@ export function AccountActions({
   if (!signedIn) {
     return (
       <div className="flex items-center gap-2">
+        <CartBadge />
         <Link href="/login" className="pe-btn-ghost px-3 py-2 text-sm">
           Mi cuenta
         </Link>
@@ -27,6 +30,7 @@ export function AccountActions({
 
   return (
     <div className="flex items-center gap-2">
+      <CartBadge signedIn />
       <Link href="/cuenta" className="pe-btn-ghost px-3 py-2 text-sm">
         Mi cuenta
       </Link>

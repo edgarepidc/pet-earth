@@ -20,6 +20,17 @@ export type PublicCatalogItem = {
   unit_price: number;
   kind: 'service' | 'product';
   blurb: string;
+  image: string;
+};
+
+const ITEM_IMAGES: Record<string, string> = {
+  'SRV-CON': '/marks/consulta.png',
+  'SRV-SEG': '/marks/seguimiento.png',
+  'SRV-VAC': '/marks/cartilla.png',
+  'VAC-SEX': '/marks/cartilla.png',
+  'VAC-RAB': '/marks/pacientes.png',
+  'MED-DES': '/marks/stock.png',
+  'MED-MEL': '/marks/caja.png',
 };
 
 export const PUBLIC_ORG_ID = DEMO_ORG_ID;
@@ -58,6 +69,7 @@ export async function loadPublicClinic() {
     unit_price: Number(item.unit_price),
     kind: item.kind,
     blurb: SERVICE_BLURBS[item.sku ?? ''] ?? 'Se documenta en consulta y queda en el expediente.',
+    image: ITEM_IMAGES[item.sku ?? ''] ?? '/marks/catalogo.png',
   }));
 
   const serviceOrder = ['SRV-CON', 'SRV-SEG', 'SRV-VAC'];

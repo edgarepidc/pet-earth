@@ -45,8 +45,8 @@ export function SiteHeader({
             <a href="/#servicios" className="hover:text-pe-clay">
               Servicios
             </a>
-            <a href="/#catalogo" className="hover:text-pe-clay">
-              Catálogo
+            <a href="/#productos" className="hover:text-pe-clay">
+              Productos
             </a>
           </nav>
           <AccountActions signedIn={signedIn} pets={pets} />

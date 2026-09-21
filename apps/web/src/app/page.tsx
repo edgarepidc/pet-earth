@@ -1,44 +1,15 @@
 import Link from 'next/link';
 
-import { CATALOG_KIND_LABELS, formatMoney } from '@petearth/shared';
+import { formatMoney } from '@petearth/shared';
 import { createAdminClient } from '@petearth/supabase/admin';
 
+import { AddToCartButton } from '@/components/AddToCartButton';
+import { ServiceCarousel } from '@/components/ServiceCarousel';
 import { SiteHeader } from '@/components/SiteHeader';
-import { loadPublicClinic, scheduleHref, type PublicCatalogItem } from '@/lib/clinic';
+import { loadPublicClinic, scheduleHref } from '@/lib/clinic';
 import { getTutorContext } from '@/lib/tutor';
 
 export const dynamic = 'force-dynamic';
-
-function CatalogList({
-  items,
-  actionHref,
-  actionLabel,
-}: {
-  items: PublicCatalogItem[];
-  actionHref?: (item: PublicCatalogItem) => string;
-  actionLabel?: string;
-}) {
-  return (
-    <ul className="divide-y divide-[rgba(31,36,40,0.08)]">
-      {items.map((item) => (
-        <li key={item.id} className="flex items-start justify-between gap-4 py-3.5">
-          <div className="min-w-0">
-            <p className="font-medium">{item.name}</p>
-            <p className="mt-0.5 text-sm leading-relaxed text-pe-muted">{item.blurb}</p>
-          </div>
-          <div className="flex shrink-0 flex-col items-end gap-2">
-            <p className="text-sm font-semibold tabular-nums">{formatMoney(item.unit_price)}</p>
-            {actionHref ? (
-              <Link href={actionHref(item)} className="pe-btn-primary px-3 py-1.5 text-xs">
-                {actionLabel ?? 'Agendar'}
-              </Link>
-            ) : null}
-          </div>
-        </li>
-      ))}
-    </ul>
-  );
-}
 
 export default async function ClinicHomePage() {
   const [clinic, tutor] = await Promise.all([loadPublicClinic(), getTutorContext()]);
@@ -80,8 +51,8 @@ export default async function ClinicHomePage() {
               <a href="#servicios" className="pe-btn-primary px-5 py-2.5 text-sm">
                 Ver servicios
               </a>
-              <a href="#catalogo" className="pe-btn-secondary px-5 py-2.5 text-sm">
-                Catálogo y precios
+              <a href="#productos" className="pe-btn-secondary px-5 py-2.5 text-sm">
+                Ver productos
               </a>
             </div>
           </div>
@@ -120,8 +91,8 @@ export default async function ClinicHomePage() {
             <p className="mt-1 text-sm leading-relaxed text-pe-muted">Vacunas y altas en el perfil de tu mascota.</p>
           </div>
           <div>
-            <p className="font-serif text-xl font-semibold">Precios visibles</p>
-            <p className="mt-1 text-sm leading-relaxed text-pe-muted">Servicios y productos del catálogo, sin sorpresa en caja.</p>
+            <p className="font-serif text-xl font-semibold">Recolección en sucursal</p>
+            <p className="mt-1 text-sm leading-relaxed text-pe-muted">Arma el carrito y pasa a recoger. Se paga en caja.</p>
           </div>
         </section>
 
@@ -129,47 +100,46 @@ export default async function ClinicHomePage() {
           <p className="pe-kicker">Atención clínica</p>
           <h2 className="mt-2 font-serif text-3xl font-semibold">Servicios del consultorio</h2>
           <p className="mt-2 max-w-xl text-sm leading-relaxed text-pe-muted">
-            Lo que se hace en sala y consulta. Cada servicio queda en el expediente.
+            Desliza para ver todos. Cada servicio queda en el expediente.
           </p>
-          <div className="mt-8 grid gap-4 md:grid-cols-3">
-            {clinic.services.map((item) => (
-              <article key={item.id} className="pe-card flex flex-col p-6">
-                <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-pe-muted">
-                  {CATALOG_KIND_LABELS[item.kind]}
-                </p>
-                <h3 className="mt-3 font-serif text-2xl font-semibold">{item.name}</h3>
-                <p className="mt-2 flex-1 text-sm leading-relaxed text-pe-muted">{item.blurb}</p>
-                <p className="mt-6 text-lg font-semibold tabular-nums">{formatMoney(item.unit_price)}</p>
-                <Link
-                  href={scheduleHref(Boolean(tutor), pets, item.sku)}
-                  className="pe-btn-primary mt-4 px-4 py-2 text-center text-sm"
-                >
-                  Agendar
-                </Link>
-              </article>
-            ))}
+          <div className="mt-8">
+            <ServiceCarousel
+              services={clinic.services.map((item) => ({
+                ...item,
+                href: scheduleHref(Boolean(tutor), pets, item.sku),
+              }))}
+            />
           </div>
         </section>
 
-        <section id="catalogo" className="scroll-mt-28 pt-16">
-          <p className="pe-kicker">Lista de precios</p>
-          <h2 className="mt-2 font-serif text-3xl font-semibold">Catálogo</h2>
+        <section id="productos" className="scroll-mt-28 pt-16">
+          <p className="pe-kicker">Sucursal</p>
+          <h2 className="mt-2 font-serif text-3xl font-semibold">Productos</h2>
           <p className="mt-2 max-w-xl text-sm leading-relaxed text-pe-muted">
-            Servicios y productos activos de la clínica. El medicamento se indica en consulta.
+            Agrégalos al carrito y elige un día para recogerlos en {clinic.branchName}. El medicamento se
+            entrega con indicación del veterinario.
           </p>
-          <div className="mt-8 grid gap-6 lg:grid-cols-2">
-            <div className="pe-card p-6">
-              <h3 className="font-serif text-xl font-semibold">Servicios</h3>
-              <CatalogList
-                items={clinic.services}
-                actionLabel="Agendar"
-                actionHref={(item) => scheduleHref(Boolean(tutor), pets, item.sku)}
-              />
-            </div>
-            <div className="pe-card p-6">
-              <h3 className="font-serif text-xl font-semibold">Productos</h3>
-              <CatalogList items={clinic.products} />
-            </div>
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {clinic.products.map((item) => (
+              <article key={item.id} className="pe-card flex flex-col overflow-hidden">
+                <div className="flex h-36 items-center justify-center bg-pe-wash">
+                  <img src={item.image} alt="" className="h-20 w-20 object-contain" />
+                </div>
+                <div className="flex flex-1 flex-col p-5">
+                  <h3 className="font-serif text-xl font-semibold">{item.name}</h3>
+                  <p className="mt-2 flex-1 text-sm leading-relaxed text-pe-muted">{item.blurb}</p>
+                  <p className="mt-4 font-semibold tabular-nums">{formatMoney(item.unit_price)}</p>
+                  <div className="mt-3">
+                    <AddToCartButton
+                      id={item.id}
+                      name={item.name}
+                      unitPrice={item.unit_price}
+                      image={item.image}
+                    />
+                  </div>
+                </div>
+              </article>
+            ))}
           </div>
         </section>
 
@@ -177,10 +147,9 @@ export default async function ClinicHomePage() {
           <div className="flex flex-wrap items-end justify-between gap-6">
             <div className="max-w-lg">
               <p className="pe-kicker !text-white/55">Tutor</p>
-              <h2 className="mt-2 font-serif text-3xl font-semibold">Tu cuenta y el perfil de cada mascota</h2>
+              <h2 className="mt-2 font-serif text-3xl font-semibold">Tu cuenta, el perfil y el carrito</h2>
               <p className="mt-3 text-sm leading-relaxed text-white/75">
-                Arriba a la derecha: Mi cuenta para el resumen, Perfil para la cartilla, las citas y las
-                altas. Una cuenta, todas tus mascotas.
+                En Mi cuenta: mascotas, citas, recordatorios y el carrito para recoger en sucursal.
               </p>
             </div>
             <Link href={tutor ? '/cuenta' : '/login'} className="pe-btn-primary px-5 py-2.5 text-sm">
