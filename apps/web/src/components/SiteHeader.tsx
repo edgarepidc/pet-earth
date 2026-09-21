@@ -8,14 +8,12 @@ export function SiteHeader({
   address,
   hours,
   signedIn,
-  pets = [],
 }: {
   clinicName: string;
   branchName?: string;
   address?: string;
   hours?: string;
   signedIn?: boolean;
-  pets?: { id: string; name: string }[];
 }) {
   return (
     <header className="sticky top-0 z-40">
@@ -38,18 +36,10 @@ export function SiteHeader({
             </span>
             <span className="min-w-0 leading-tight">
               <span className="block text-base font-semibold tracking-tight text-pe-ink">Pet Earth</span>
-              <span className="block truncate text-[11px] text-pe-muted">{clinicName}</span>
+              <span className="block truncate text-[11px] text-pe-muted">Consultorio Veterinario</span>
             </span>
           </Link>
-          <nav className="hidden items-center gap-6 text-sm font-medium text-pe-ink sm:flex">
-            <a href="/#servicios" className="hover:text-pe-clay">
-              Servicios
-            </a>
-            <a href="/#productos" className="hover:text-pe-clay">
-              Productos
-            </a>
-          </nav>
-          <AccountActions signedIn={signedIn} pets={pets} />
+          <AccountActions signedIn={signedIn} />
         </div>
       </div>
     </header>

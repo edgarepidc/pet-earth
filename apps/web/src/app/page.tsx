@@ -35,7 +35,6 @@ export default async function ClinicHomePage() {
         address={clinic.selectedBranch.address}
         hours={clinic.selectedBranch.hours}
         signedIn={Boolean(tutor)}
-        pets={pets}
       />
 
       <div className="mx-auto max-w-6xl px-5 pb-20 sm:px-8">

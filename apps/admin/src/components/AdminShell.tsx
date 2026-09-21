@@ -16,7 +16,7 @@ export async function AdminShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="pe-app flex min-h-screen">
       <aside className="pe-sidebar hidden w-[232px] shrink-0 flex-col px-3 py-4 lg:flex">
-        <BrandLogo href="/" subtitle={staff.organizationName} inverted />
+        <BrandLogo href="/" subtitle="Consultorio Veterinario" inverted />
         {staff.branches.length > 1 ? (
           <div className="mt-4 px-1">
             <BranchSwitcher currentBranchId={staff.branchId} branches={staff.branches} inverted />
@@ -47,7 +47,7 @@ export async function AdminShell({ children }: { children: React.ReactNode }) {
         <header className="pe-glass-header flex items-center gap-3 px-3 py-2.5 lg:px-5">
           <div className="flex min-w-0 items-center gap-2 lg:hidden">
             <AdminNav role={staff.role} isPlatformAdmin={staff.isPlatformAdmin} />
-            <BrandLogo href="/" subtitle={staff.branchName} />
+            <BrandLogo href="/" subtitle="Consultorio Veterinario" />
           </div>
           <GlobalSearch />
           {staff.viaPlatform ? (

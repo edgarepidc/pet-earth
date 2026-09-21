@@ -31,18 +31,18 @@ export function TutorLoginForm({ next = '/cuenta' }: { next?: string }) {
   }
 
   return (
-    <main className="mx-auto max-w-6xl px-5 py-12 sm:px-8">
-      <div className="max-w-lg">
+    <main className="flex justify-center px-5 py-16 sm:px-8">
+      <div className="w-full max-w-md text-center">
         <p className="pe-kicker">Cartilla del tutor</p>
         <h1 className="mt-2 font-serif text-4xl font-semibold tracking-tight">
           {scheduling ? 'Entra para agendar' : 'Entra a tu cuenta'}
         </h1>
-        <p className="mt-3 max-w-sm text-sm leading-relaxed text-pe-muted">
+        <p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-pe-muted">
           {scheduling
             ? 'Inicia sesión para elegir la mascota y dejar la cita en la agenda del consultorio.'
             : 'Vacunas, altas y citas de tu mascota. El expediente que te llevas a casa.'}
         </p>
-        <form onSubmit={submit} className="pe-panel mt-8 space-y-4 p-6">
+        <form onSubmit={submit} className="pe-panel mt-8 space-y-4 p-6 text-left">
           <label className="block text-sm font-medium">
             Correo
             <input className="pe-input mt-1" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
