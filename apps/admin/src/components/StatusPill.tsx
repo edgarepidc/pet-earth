@@ -10,7 +10,7 @@ export function appointmentTone(status: AppointmentStatus): string {
     case 'waiting':
       return 'bg-amber-100 text-amber-900';
     case 'in_consult':
-      return 'bg-[rgba(196,92,50,0.12)] text-pe-clay-700';
+      return 'bg-[rgba(96,112,64,0.12)] text-pe-clay-700';
     case 'completed':
       return 'bg-emerald-100 text-emerald-900';
     case 'cancelled':

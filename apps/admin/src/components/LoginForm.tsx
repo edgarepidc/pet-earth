@@ -3,8 +3,6 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 
-import { BrandLogo } from '@/components/BrandLogo';
-
 function safeNextPath(raw: string | null): string {
   if (!raw || !raw.startsWith('/') || raw.startsWith('//')) return '/';
   return raw;
@@ -48,7 +46,13 @@ export function LoginForm() {
   return (
     <main className="pe-app flex min-h-screen flex-col">
       <header className="px-5 py-5 lg:px-8">
-        <BrandLogo href="/login" subtitle="Consultorio" />
+        <a href="/login" className="inline-block no-underline">
+          <img
+            src="/brand/logo.png"
+            alt="Pet Earth Consultorio Veterinario"
+            className="h-[4.5rem] w-auto sm:h-20"
+          />
+        </a>
       </header>
       <div className="flex flex-1 flex-col items-center justify-center px-4 pb-16">
         <p className="mb-8 max-w-sm text-center text-lg leading-snug text-pe-muted">

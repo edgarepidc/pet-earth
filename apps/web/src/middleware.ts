@@ -32,6 +32,8 @@ export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const publicPath =
     pathname.startsWith('/marks/') ||
+    pathname.startsWith('/brand/') ||
+    pathname.startsWith('/catalog/') ||
     PUBLIC_PATHS.some((path) => pathname === path || (path !== '/' && pathname.startsWith(`${path}/`)));
   if (!user && !publicPath) {
     const loginUrl = request.nextUrl.clone();
@@ -47,5 +49,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|brand/|catalog/).*)'],
 };

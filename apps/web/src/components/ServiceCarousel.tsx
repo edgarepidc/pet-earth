@@ -60,7 +60,7 @@ export function ServiceCarousel({
     >
       <div className="relative overflow-hidden">
         <div
-          className={`flex items-start ${animate ? 'transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]' : ''}`}
+          className={`flex items-stretch ${animate ? 'transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]' : ''}`}
           style={{ transform: `translateX(${offset}%)` }}
           onTransitionEnd={(event) => {
             if (event.target === event.currentTarget) wrap(index);
@@ -70,7 +70,7 @@ export function ServiceCarousel({
             const active = i === index;
             const copy = looped ? Math.floor(i / n) : 0;
             return (
-              <article key={`${item.id}-${copy}-${i % n}`} className="w-[70%] shrink-0 px-2 sm:px-3">
+              <article key={`${item.id}-${copy}-${i % n}`} className="flex w-[70%] shrink-0 px-2 sm:px-3">
                 <div
                   role={active ? undefined : 'button'}
                   tabIndex={active ? undefined : 0}
@@ -87,8 +87,8 @@ export function ServiceCarousel({
                       setIndex(i);
                     }
                   }}
-                  className={`overflow-hidden rounded-[var(--pe-radius)] bg-pe-paper shadow-[var(--pe-shadow)] ring-1 ring-[rgba(31,36,40,0.1)] transition-all duration-700 ${
-                    active ? 'scale-100 opacity-100' : 'scale-[0.94] cursor-pointer opacity-45 hover:opacity-70'
+                  className={`flex h-full w-full flex-col overflow-hidden rounded-[var(--pe-radius)] bg-pe-paper shadow-[var(--pe-shadow)] ring-1 ring-pe-line transition-opacity duration-700 ${
+                    active ? 'opacity-100' : 'cursor-pointer opacity-50 hover:opacity-75'
                   }`}
                   aria-label={active ? undefined : `Ver ${item.name}`}
                 >
@@ -98,7 +98,7 @@ export function ServiceCarousel({
                       alt=""
                       className="absolute inset-0 h-full w-full object-cover"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[rgba(31,36,40,0.72)] via-transparent to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[rgba(30,36,32,0.72)] via-transparent to-transparent" />
                     <div className="absolute inset-x-0 bottom-0 p-5 sm:p-7">
                       <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-white/70">
                         Servicio {String((i % n) + 1).padStart(2, '0')}
@@ -108,22 +108,17 @@ export function ServiceCarousel({
                       </h3>
                     </div>
                   </div>
-                  <div
-                    className={`grid transition-[grid-template-rows] duration-700 ${
-                      active ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
-                    }`}
-                  >
-                    <div className="overflow-hidden">
-                      <div className="flex flex-col items-center px-5 py-5 text-center sm:px-8">
-                        <p className="max-w-md text-sm leading-relaxed text-pe-muted">{item.blurb}</p>
-                        <p className="mt-3 text-lg font-semibold tabular-nums">{formatMoney(item.unit_price)}</p>
-                        {active ? (
-                          <a href={item.href} className="pe-btn-primary mt-4 px-7 py-2 text-sm">
-                            Agendar
-                          </a>
-                        ) : null}
-                      </div>
-                    </div>
+                  <div className="flex flex-1 flex-col items-center justify-center px-5 py-5 text-center sm:px-8">
+                    <p className="max-w-md text-sm leading-relaxed text-pe-muted">{item.blurb}</p>
+                    <p className="mt-3 text-lg font-semibold tabular-nums">{formatMoney(item.unit_price)}</p>
+                    <a
+                      href={item.href}
+                      className={`pe-btn-primary mt-4 px-7 py-2 text-sm ${active ? '' : 'pointer-events-none'}`}
+                      tabIndex={active ? undefined : -1}
+                      aria-hidden={active ? undefined : true}
+                    >
+                      Agendar
+                    </a>
                   </div>
                 </div>
               </article>

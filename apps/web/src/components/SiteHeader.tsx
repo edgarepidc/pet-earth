@@ -30,11 +30,11 @@ export function SiteHeader({
           </div>
         </div>
       ) : null}
-      <div className="border-b border-[rgba(31,36,40,0.08)] bg-[rgba(244,241,236,0.92)] backdrop-blur">
+      <div className="border-b border-pe-line bg-pe-bone/92 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-5 py-3 sm:px-8">
           <Link href="/" className="flex min-w-0 items-center gap-2.5 no-underline">
-            <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-pe-ink text-xs font-bold text-white">
-              PE
+            <span className="pe-mark">
+              <img src="/brand/mark.png" alt="" width={44} height={44} />
             </span>
             <span className="min-w-0 leading-tight">
               <span className="block text-base font-semibold tracking-tight text-pe-ink">Pet Earth</span>

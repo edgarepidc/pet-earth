@@ -22,6 +22,7 @@ const serif = Source_Serif_4({
 export const metadata: Metadata = {
   title: 'Pet Earth · Clínica',
   description: 'Panel clínico para veterinarias',
+  icons: { icon: '/brand/mark.png' },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

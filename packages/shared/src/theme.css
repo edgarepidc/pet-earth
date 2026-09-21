@@ -1,38 +1,38 @@
-/* Pet Earth — Pizarra: piso claro, sidebar tinta, cobre solo en el CTA. */
+/* Pet Earth — sage del logo: piso claro, sidebar tinta, oliva en el CTA. */
 
 @theme {
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-serif: var(--font-source-serif), ui-serif, Georgia, serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 
-  --color-pe-bone: #f4f1ec;
+  --color-pe-bone: #f3f4ee;
   --color-pe-paper: #ffffff;
-  --color-pe-ink: #1f2428;
-  --color-pe-soil: #1f2428;
-  --color-pe-clay: #c45c32;
-  --color-pe-clay-700: #9a4324;
-  --color-pe-muted: #5c656c;
-  --color-pe-wash: #ede8e1;
-  --color-pe-sidebar-muted: #9aa3ab;
+  --color-pe-ink: #1e2420;
+  --color-pe-soil: #161a16;
+  --color-pe-clay: #607040;
+  --color-pe-clay-700: #4a5a32;
+  --color-pe-muted: #5a6568;
+  --color-pe-wash: #e6ebe3;
+  --color-pe-sidebar-muted: #a3ab9a;
   --color-pe-danger: #b42318;
-  --color-pe-line: rgb(31 36 40 / 0.1);
-  --color-pe-line-strong: rgb(31 36 40 / 0.16);
+  --color-pe-line: rgb(30 36 32 / 0.1);
+  --color-pe-line-strong: rgb(30 36 32 / 0.16);
 }
 
 :root {
-  --pe-bone: #f4f1ec;
+  --pe-bone: #f3f4ee;
   --pe-paper: #ffffff;
-  --pe-ink: #1f2428;
-  --pe-soil: #1f2428;
-  --pe-clay: #c45c32;
-  --pe-clay-700: #9a4324;
-  --pe-muted: #5c656c;
-  --pe-wash: #ede8e1;
-  --pe-line: rgba(31, 36, 40, 0.1);
-  --pe-line-strong: rgba(31, 36, 40, 0.16);
-  --pe-sidebar-muted: #9aa3ab;
+  --pe-ink: #1e2420;
+  --pe-soil: #161a16;
+  --pe-clay: #607040;
+  --pe-clay-700: #4a5a32;
+  --pe-muted: #5a6568;
+  --pe-wash: #e6ebe3;
+  --pe-line: rgba(30, 36, 32, 0.1);
+  --pe-line-strong: rgba(30, 36, 32, 0.16);
+  --pe-sidebar-muted: #a3ab9a;
   --pe-danger: #b42318;
-  --pe-shadow: 0 1px 2px rgb(16 18 22 / 0.06), 0 4px 12px rgb(16 18 22 / 0.04);
+  --pe-shadow: 0 1px 2px rgb(22 26 22 / 0.06), 0 4px 12px rgb(22 26 22 / 0.04);
   --pe-radius: 0.5rem;
 }
 
@@ -47,7 +47,7 @@
 
 .pe-sidebar {
   background: var(--pe-soil);
-  color: #e8eaec;
+  color: #e6ebe4;
 }
 
 .pe-glass-card,
@@ -79,7 +79,7 @@
 .pe-btn-primary {
   border-radius: var(--pe-radius);
   background: var(--pe-clay);
-  color: #fffaf6;
+  color: #f7f8f3;
   font-weight: 600;
 }
 
@@ -129,7 +129,7 @@
 .pe-input:focus {
   outline: none;
   border-color: var(--pe-clay);
-  box-shadow: 0 0 0 3px rgba(196, 92, 50, 0.18);
+  box-shadow: 0 0 0 3px rgba(96, 112, 64, 0.22);
 }
 
 .pe-pill {
@@ -154,8 +154,8 @@
 
 .pe-callout-amber {
   border-radius: var(--pe-radius);
-  border: 1px solid rgba(196, 92, 50, 0.28);
-  background: rgba(196, 92, 50, 0.08);
+  border: 1px solid rgba(96, 112, 64, 0.28);
+  background: rgba(96, 112, 64, 0.08);
   color: var(--pe-clay-700);
 }
 
@@ -185,7 +185,7 @@
 .pe-mark img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .pe-mark-sm {

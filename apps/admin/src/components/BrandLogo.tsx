@@ -11,12 +11,8 @@ export function BrandLogo({
 }) {
   return (
     <Link href={href} className="flex min-w-0 items-center gap-2.5 no-underline">
-      <span
-        className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-xs font-bold ${
-          inverted ? 'bg-white text-pe-ink' : 'bg-pe-ink text-white'
-        }`}
-      >
-        PE
+      <span className="pe-mark">
+        <img src="/brand/mark.png" alt="" width={44} height={44} />
       </span>
       <span className="min-w-0 leading-tight">
         <span className={`block text-base font-semibold tracking-tight ${inverted ? 'text-white' : 'text-pe-ink'}`}>
