@@ -180,6 +180,7 @@
   flex-shrink: 0;
   overflow: hidden;
   border-radius: 9999px;
+  background: var(--pe-bone);
 }
 
 .pe-mark img {
