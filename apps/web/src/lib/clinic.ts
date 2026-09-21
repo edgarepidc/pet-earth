@@ -10,6 +10,16 @@ const SERVICE_BLURBS: Record<string, string> = {
   'VAC-SEX': 'Protección anual combinada, según calendario.',
   'VAC-RAB': 'Refuerzo antirrábico y registro de próxima dosis.',
   'MED-DES': 'Interna, dosificada por peso y especie.',
+  'MED-MEL': 'Antiinflamatorio de uso en consulta, según indicación del veterinario.',
+};
+
+export type PublicCatalogItem = {
+  id: string;
+  name: string;
+  sku: string | null;
+  unit_price: number;
+  kind: 'service' | 'product';
+  blurb: string;
 };
 
 export async function loadPublicClinic() {
@@ -22,22 +32,30 @@ export async function loadPublicClinic() {
       .select('id, name, sku, unit_price, kind')
       .eq('organization_id', DEMO_ORG_ID)
       .eq('is_active', true)
-      .in('sku', ['SRV-CON', 'SRV-SEG', 'SRV-VAC', 'VAC-SEX', 'VAC-RAB', 'MED-DES'])
-      .order('kind')
-      .order('name'),
+      .order('kind', { ascending: true })
+      .order('name', { ascending: true }),
   ]);
 
-  const items = (catalog ?? []).map((item) => ({
-    ...item,
+  const items: PublicCatalogItem[] = (catalog ?? []).map((item) => ({
+    id: item.id,
+    name: item.name,
+    sku: item.sku,
+    unit_price: Number(item.unit_price),
+    kind: item.kind,
     blurb: SERVICE_BLURBS[item.sku ?? ''] ?? 'Se documenta en consulta y queda en el expediente.',
   }));
+
+  const serviceOrder = ['SRV-CON', 'SRV-SEG', 'SRV-VAC'];
+  const services = items
+    .filter((item) => item.kind === 'service')
+    .sort((a, b) => serviceOrder.indexOf(a.sku ?? '') - serviceOrder.indexOf(b.sku ?? ''));
 
   return {
     name: org?.name ?? 'Clínica Pet Earth',
     branchName: branch?.name ?? 'Roma Norte',
     address: branch?.address ?? 'Roma Norte, CDMX',
-    hours: 'Lunes a sábado, 9:00 a 19:00',
-    services: items.filter((item) => item.kind === 'service'),
-    preventives: items.filter((item) => item.kind === 'product'),
+    hours: 'Lunes a sábado · 9:00 a 19:00',
+    services,
+    products: items.filter((item) => item.kind === 'product'),
   };
 }
