@@ -1,7 +1,8 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 import {
   addMexicoDays,
@@ -14,16 +15,11 @@ import {
   type AppointmentStatus,
 } from '@petearth/shared';
 
+import { AppointmentPeek, one, type AppointmentRow } from '@/components/AppointmentPeek';
 import { PageHeading } from '@/components/SectionTitle';
 import { StatusPill } from '@/components/StatusPill';
-import type { AppointmentRow } from '@/components/DayBoard';
 
 const WEEKDAYS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'] as const;
-
-function one<T>(value: T | T[] | null | undefined): T | null {
-  if (!value) return null;
-  return Array.isArray(value) ? value[0] ?? null : value;
-}
 
 function monthTitle(ymd: string): string {
   return new Intl.DateTimeFormat('es-MX', {
@@ -53,6 +49,7 @@ export function AgendaCalendar({
   const router = useRouter();
   const [view, setView] = useState<'week' | 'month'>(initialView);
   const [cursor, setCursor] = useState(initialDate);
+  const [openId, setOpenId] = useState<string | null>(null);
   const today = todayMexicoYmd();
   const monthStart = mexicoMonthStart(cursor);
   const range = mexicoAgendaRange(cursor, view);
@@ -86,6 +83,7 @@ export function AgendaCalendar({
     open(view, nextCursor);
   }
 
+  const selected = appointments.find((row) => row.id === openId) ?? null;
   const description = view === 'week'
     ? `${formatMexicoDate(range.days[0], { day: 'numeric', month: 'short' })} – ${formatMexicoDate(range.days[6], { day: 'numeric', month: 'short' })}`
     : monthTitle(monthStart);
@@ -98,7 +96,10 @@ export function AgendaCalendar({
           title="Agenda"
           description={`${branchName ? `${branchName} · ` : ''}${description}`}
         />
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <Link href="/" className="pe-btn-primary px-3 py-1.5 text-sm">
+            Hoy
+          </Link>
           <button
             type="button"
             className={`pe-btn-ghost px-3 py-1.5 text-sm ${view === 'week' ? 'pe-chip-active' : ''}`}
@@ -158,11 +159,20 @@ export function AgendaCalendar({
                           {rows.map((row) => {
                             const patient = one(row.patients);
                             return (
-                              <li key={row.id} className="rounded-md bg-white p-2 text-xs">
-                                <p className="font-semibold">
-                                  {formatMexicoTime(row.starts_at)} {patient?.name}
-                                </p>
-                                {view === 'week' ? <StatusPill status={row.status as AppointmentStatus} /> : null}
+                              <li key={row.id}>
+                                <button
+                                  type="button"
+                                  className="w-full rounded-md bg-white p-2 text-left text-xs hover:bg-pe-wash"
+                                  onClick={() => setOpenId(row.id)}
+                                >
+                                  <p className="font-semibold">
+                                    {formatMexicoTime(row.starts_at)} {patient?.name}
+                                  </p>
+                                  <p className="mt-0.5 truncate text-pe-muted">
+                                    {row.reason?.trim() || 'Sin motivo'}
+                                  </p>
+                                  {view === 'week' ? <StatusPill status={row.status as AppointmentStatus} /> : null}
+                                </button>
                               </li>
                             );
                           })}
@@ -176,6 +186,9 @@ export function AgendaCalendar({
           </tbody>
         </table>
       </div>
+      {selected ? (
+        <AppointmentPeek appointment={selected} onClose={() => setOpenId(null)} onMoved={() => router.refresh()} />
+      ) : null}
     </section>
   );
 }

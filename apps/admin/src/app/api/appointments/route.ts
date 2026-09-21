@@ -4,7 +4,7 @@ import { addMexicoDays, parseClockToIso, todayMexicoYmd } from '@petearth/shared
 import { createAdminClient } from '@petearth/supabase/admin';
 
 import { requireStaffApi } from '@/lib/auth';
-import { loadAppointmentsInRange, loadDayAppointments } from '@/lib/queries';
+import { loadAppointmentPeek, loadAppointmentsInRange, loadDayAppointments } from '@/lib/queries';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 export async function GET(request: Request) {
@@ -12,10 +12,16 @@ export async function GET(request: Request) {
   if (auth instanceof NextResponse) return auth;
 
   const url = new URL(request.url);
+  const id = url.searchParams.get('id');
   const view = url.searchParams.get('view') ?? 'day';
   const ymd = url.searchParams.get('date') ?? todayMexicoYmd();
 
   try {
+    if (id) {
+      const peek = await loadAppointmentPeek(auth.organizationId, auth.branchId, id);
+      if (!peek) return NextResponse.json({ error: 'Cita no encontrada' }, { status: 404 });
+      return NextResponse.json(peek);
+    }
     if (view === 'day') {
       const rows = await loadDayAppointments(auth.branchId, ymd);
       return NextResponse.json({ appointments: rows });

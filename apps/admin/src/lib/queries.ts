@@ -6,7 +6,7 @@ export async function loadAppointmentsInRange(branchId: string, startIso: string
   const { data, error } = await supabase
     .from('appointments')
     .select(
-      'id, starts_at, ends_at, status, reason, vet_id, client_id, patient_id, clients(full_name, phone), patients(name, species, alerts)',
+      'id, starts_at, ends_at, status, reason, vet_id, client_id, patient_id, clients(full_name, phone), patients(id, name, species, alerts)',
     )
     .eq('branch_id', branchId)
     .gte('starts_at', startIso)
@@ -197,4 +197,30 @@ export async function loadLetterhead(organizationId: string, branchId: string) {
     branchAddress: branch?.address ?? null,
     fiscal,
   };
+}
+
+export async function loadAppointmentPeek(organizationId: string, branchId: string, id: string) {
+  const supabase = createAdminClient();
+  const { data: appointment, error } = await supabase
+    .from('appointments')
+    .select(
+      'id, starts_at, ends_at, status, reason, vet_id, client_id, patient_id, clients(full_name, phone, email), patients(id, name, species, breed, alerts, allergies)',
+    )
+    .eq('id', id)
+    .eq('organization_id', organizationId)
+    .eq('branch_id', branchId)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!appointment) return null;
+
+  const { data: visit } = await supabase
+    .from('visits')
+    .select(
+      'id, status, started_at, completed_at, subjective, objective, assessment, plan, weight_kg, temperature_c, heart_rate, respiratory_rate, followup_at',
+    )
+    .eq('appointment_id', id)
+    .eq('organization_id', organizationId)
+    .maybeSingle();
+
+  return { appointment, visit: visit ?? null };
 }
