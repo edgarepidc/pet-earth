@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-import { APPOINTMENT_STATUS_LABELS, formatMexicoTime, formatMoney, type AppointmentStatus } from '@petearth/shared';
+import { APPOINTMENT_STATUS_LABELS, formatMexicoTime, formatMoney, todayMexicoYmd, type AppointmentStatus } from '@petearth/shared';
 
 import {
   AppointmentPeek,
@@ -43,6 +43,11 @@ export function DayBoard({
   vets = [],
   clinicName,
   branchName,
+  kicker,
+  backHref,
+  backLabel = 'Semana',
+  showCash = true,
+  mark = 'hoy',
 }: {
   title: string;
   date: string;
@@ -51,6 +56,11 @@ export function DayBoard({
   vets?: ClinicVet[];
   clinicName: string;
   branchName?: string;
+  kicker?: string;
+  backHref?: string;
+  backLabel?: string;
+  showCash?: boolean;
+  mark?: 'hoy' | 'agenda';
 }) {
   const router = useRouter();
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -67,6 +77,7 @@ export function DayBoard({
     [appointments, overrides],
   );
   const selected = visible.find((row) => row.id === openId) ?? null;
+  const isToday = date === todayMexicoYmd();
   const nowClock = formatMexicoTime(new Date().toISOString());
   const nowSlot = slotFloor(clockToMinutes(nowClock));
   const slots = useMemo(() => {
@@ -107,16 +118,18 @@ export function DayBoard({
   }
 
   function nextFreeClock() {
+    const firstEmpty = slots.find((slot) => slot.rows.length === 0);
+    if (!isToday) return firstEmpty?.clock ?? '09:00';
     const upcoming = slots.find((slot) => slot.start >= nowSlot && slot.rows.length === 0);
-    return upcoming?.clock ?? slots.find((slot) => slot.rows.length === 0)?.clock ?? '09:00';
+    return upcoming?.clock ?? firstEmpty?.clock ?? '09:00';
   }
 
   return (
     <section className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <PageHeading
-          mark="hoy"
-          kicker={`Sala de espera · ${branchName ?? clinicName}`}
+          mark={mark}
+          kicker={kicker ?? `Sala de espera · ${branchName ?? clinicName}`}
           title={title}
           description="Si coinciden dos veterinarios a la misma hora, se ven en paralelo. Un hueco abre la ficha para agendar."
         />
@@ -124,9 +137,20 @@ export function DayBoard({
           <button type="button" className="pe-btn-primary px-4 py-2 text-sm" onClick={() => setBookTime(nextFreeClock())}>
             Agendar
           </button>
-          <Link href="/agenda" className="pe-btn-secondary px-4 py-2 text-sm">
-            Semana / mes
-          </Link>
+          {backHref ? (
+            <>
+              <Link href={backHref} className="pe-btn-secondary px-4 py-2 text-sm">
+                {backLabel}
+              </Link>
+              <Link href="/" className="pe-btn-ghost px-4 py-2 text-sm">
+                Hoy
+              </Link>
+            </>
+          ) : (
+            <Link href="/agenda" className="pe-btn-secondary px-4 py-2 text-sm">
+              Semana / mes
+            </Link>
+          )}
         </div>
       </div>
       {error ? <p className="pe-callout-amber p-3 text-sm">{error}</p> : null}
@@ -146,7 +170,7 @@ export function DayBoard({
             {slots.map((slot) => {
               if (slot.rows.length === 0) {
                 return (
-                  <tr key={slot.clock} className={`border-b border-pe-line ${slot.start === nowSlot ? 'bg-pe-wash/60' : ''}`}>
+                  <tr key={slot.clock} className={`border-b border-pe-line ${isToday && slot.start === nowSlot ? 'bg-pe-wash/60' : ''}`}>
                     <td className="whitespace-nowrap px-3 py-2 tabular-nums text-pe-muted">{slot.clock}</td>
                     <td colSpan={5} className="px-3 py-2">
                       <button
@@ -168,7 +192,7 @@ export function DayBoard({
                   <tr
                     key={row.id}
                     className={`cursor-pointer border-b border-pe-line bg-[#fbfcf8] shadow-[0_4px_14px_rgba(22,26,22,0.14)] last:border-0 hover:bg-white ${
-                      slot.start === nowSlot ? 'ring-1 ring-inset ring-pe-clay/40' : ''
+                      isToday && slot.start === nowSlot ? 'ring-1 ring-inset ring-pe-clay/40' : ''
                     }`}
                     onClick={() => setOpenId(row.id)}
                   >
@@ -220,6 +244,7 @@ export function DayBoard({
           </tbody>
         </table>
       </div>
+      {showCash ? (
       <div className="pe-card p-4">
         <div className="mb-2 flex items-center justify-between gap-2">
           <h2 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.12em] text-pe-muted">
@@ -254,6 +279,7 @@ export function DayBoard({
           </ul>
         )}
       </div>
+      ) : null}
       {selected ? (
         <AppointmentPeek appointment={selected} onClose={() => setOpenId(null)} onMoved={() => router.refresh()} />
       ) : null}

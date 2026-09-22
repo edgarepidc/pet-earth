@@ -16,11 +16,9 @@ import {
   type AppointmentStatus,
 } from '@petearth/shared';
 
-import { AppointmentPeek, floorStatus, one, type AppointmentRow, type ClinicVet } from '@/components/AppointmentPeek';
-import { BookSlotDialog } from '@/components/BookSlotDialog';
+import { AppointmentPeek, floorStatus, one, type AppointmentRow } from '@/components/AppointmentPeek';
 import { PageHeading } from '@/components/SectionTitle';
 import { appointmentOutline } from '@/components/StatusPill';
-import { CLINIC_OPEN_MIN, CLINIC_CLOSE_MIN, SLOT_MINUTES, clockToMinutes, minutesToClock, slotFloor } from '@/lib/day-slots';
 
 const WEEKDAYS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'] as const;
 
@@ -42,20 +40,17 @@ export function AgendaCalendar({
   initialDate,
   initialView = 'week',
   appointments,
-  vets = [],
   branchName,
 }: {
   initialDate: string;
   initialView?: 'week' | 'month';
   appointments: AppointmentRow[];
-  vets?: ClinicVet[];
   branchName?: string;
 }) {
   const router = useRouter();
   const [view, setView] = useState<'week' | 'month'>(initialView);
   const [cursor, setCursor] = useState(initialDate);
   const [openId, setOpenId] = useState<string | null>(null);
-  const [book, setBook] = useState<{ date: string; time: string } | null>(null);
   const today = todayMexicoYmd();
   const monthStart = mexicoMonthStart(cursor);
   const range = mexicoAgendaRange(cursor, view);
@@ -76,10 +71,11 @@ export function AgendaCalendar({
     return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-01`;
   }
 
-  function open(nextView: 'week' | 'month', nextCursor: string) {
-    setView(nextView);
+  function open(nextView: 'week' | 'month' | 'day', nextCursor: string) {
+    if (nextView !== 'day') setView(nextView);
     setCursor(nextCursor);
-    const start = nextView === 'month' ? mexicoMonthStart(nextCursor) : mexicoWeekStart(nextCursor);
+    const start =
+      nextView === 'month' ? mexicoMonthStart(nextCursor) : nextView === 'day' ? nextCursor : mexicoWeekStart(nextCursor);
     router.push(`/agenda?view=${nextView}&start=${start}`);
   }
 
@@ -87,16 +83,6 @@ export function AgendaCalendar({
     const nextCursor =
       view === 'week' ? addMexicoDays(mexicoWeekStart(cursor), delta * 7) : shiftMonth(monthStart, delta);
     open(view, nextCursor);
-  }
-
-  function nextFreeClock(day: string): string {
-    const taken = new Set(
-      (byDay.get(day) ?? []).map((row) => slotFloor(clockToMinutes(formatMexicoTime(row.starts_at)))),
-    );
-    for (let minutes = CLINIC_OPEN_MIN; minutes < CLINIC_CLOSE_MIN; minutes += SLOT_MINUTES) {
-      if (!taken.has(minutes)) return minutesToClock(minutes);
-    }
-    return minutesToClock(CLINIC_OPEN_MIN);
   }
 
   const selected = appointments.find((row) => row.id === openId) ?? null;
@@ -162,10 +148,10 @@ export function AgendaCalendar({
                   return (
                     <td key={day} className="align-top">
                       <div
-                        className={`pe-card h-full ${view === 'week' ? 'min-h-[16rem]' : 'min-h-[7.5rem]'} p-2.5 ${
+                        className={`pe-card h-full ${view === 'week' ? 'min-h-[16rem] cursor-pointer' : 'min-h-[7.5rem]'} p-2.5 ${
                           day === today ? 'ring-1 ring-pe-clay' : ''
                         } ${outside ? 'bg-pe-wash/70' : ''} ${view === 'month' ? 'cursor-pointer' : ''}`}
-                        onClick={view === 'month' ? () => open('week', day) : undefined}
+                        onClick={view === 'month' ? () => open('week', day) : () => open('day', day)}
                       >
                         <div className="flex items-start justify-between gap-1">
                           <p className={`text-xs font-semibold ${outside ? 'text-pe-muted' : 'text-pe-ink'}`}>
@@ -174,13 +160,7 @@ export function AgendaCalendar({
                               : String(Number(day.slice(8)))}
                           </p>
                           {view === 'week' ? (
-                            <button
-                              type="button"
-                              className="shrink-0 text-[11px] font-medium text-pe-clay-700 hover:underline"
-                              onClick={() => setBook({ date: day, time: nextFreeClock(day) })}
-                            >
-                              Agendar
-                            </button>
+                            <span className="shrink-0 text-[11px] font-medium text-pe-clay-700">Horario</span>
                           ) : null}
                         </div>
                         <ul
@@ -188,13 +168,7 @@ export function AgendaCalendar({
                         >
                           {view === 'week' && rows.length === 0 ? (
                             <li>
-                              <button
-                                type="button"
-                                className="text-left text-sm text-pe-clay-700 hover:underline"
-                                onClick={() => setBook({ date: day, time: nextFreeClock(day) })}
-                              >
-                                Libre · agendar
-                              </button>
+                              <p className="text-sm text-pe-muted">Libre · ver horario</p>
                             </li>
                           ) : null}
                           {rows.map((row) => {
@@ -247,18 +221,6 @@ export function AgendaCalendar({
       </div>
       {selected ? (
         <AppointmentPeek appointment={selected} onClose={() => setOpenId(null)} onMoved={() => router.refresh()} />
-      ) : null}
-      {book ? (
-        <BookSlotDialog
-          date={book.date}
-          time={book.time}
-          vets={vets}
-          onClose={() => setBook(null)}
-          onCreated={() => {
-            setBook(null);
-            router.refresh();
-          }}
-        />
       ) : null}
     </section>
   );
