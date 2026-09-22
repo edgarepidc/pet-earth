@@ -163,7 +163,7 @@ export function DayBoard({
               <th className="px-3 py-2.5">Tutor</th>
               <th className="px-3 py-2.5">Motivo</th>
               <th className="px-3 py-2.5">Veterinario</th>
-              <th className="px-3 py-2.5">Estatus</th>
+              <th className="w-36 px-2 py-2.5">Estatus</th>
             </tr>
           </thead>
           <tbody>
@@ -216,13 +216,13 @@ export function DayBoard({
                       ) : null}
                     </td>
                     <td className="max-w-[10rem] truncate px-3 py-2.5 text-pe-muted">{client?.full_name ?? '—'}</td>
-                    <td className="max-w-[14rem] px-3 py-2.5 text-pe-ink">
+                    <td className="min-w-[16rem] px-3 py-2.5 text-pe-ink">
                       {row.reason?.trim() || <span className="text-pe-muted">—</span>}
                     </td>
                     <td className="px-3 py-2.5 font-medium text-pe-ink">{row.vet_name?.trim() || 'Sin asignar'}</td>
-                    <td className="px-3 py-2.5" onClick={(event) => event.stopPropagation()}>
+                    <td className="w-36 px-2 py-2.5" onClick={(event) => event.stopPropagation()}>
                       <select
-                        className={`pe-input py-1 text-xs font-semibold ${appointmentTone(floorStatus(row.status))}`}
+                        className={`pe-input min-w-0 px-1.5 py-1 text-xs font-semibold ${appointmentTone(floorStatus(row.status))}`}
                         value={floorStatus(row.status)}
                         disabled={busyId === row.id}
                         aria-label={`Estatus de ${patient?.name ?? 'la cita'}`}
