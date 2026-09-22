@@ -224,12 +224,12 @@ export function ClinicSettings({
       />
       {error ? <p className="pe-callout-amber p-3 text-sm">{error}</p> : null}
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid items-start gap-4 lg:grid-cols-3">
         <ChartCard mark="clinicas" title="Clínica">
-          <form onSubmit={(event) => void saveClinic(event)} className="mt-3 grid gap-2">
-            <p className="text-xs text-pe-muted">Nombre público: receta, cartilla y página web.</p>
-            <input className="pe-input" value={name} onChange={(e) => setName(e.target.value)} required />
-            <button type="submit" className="pe-btn-primary justify-self-start px-4 py-2 text-sm" disabled={busy === 'clinic'}>
+          <form onSubmit={(event) => void saveClinic(event)} className="mt-2 grid gap-1.5">
+            <p className="text-xs text-pe-muted">Nombre público: receta, cartilla y web.</p>
+            <input className="pe-input h-8 py-1 text-sm" value={name} onChange={(e) => setName(e.target.value)} required />
+            <button type="submit" className="pe-btn-primary justify-self-start px-3 py-1.5 text-sm" disabled={busy === 'clinic'}>
               {busy === 'clinic' ? 'Guardando…' : 'Guardar'}
             </button>
           </form>
@@ -242,6 +242,52 @@ export function ClinicSettings({
             codigoPostal={fiscal.codigoPostal}
             pacReady={pacReady}
           />
+        </ChartCard>
+        <ChartCard mark="pacientes" title="Especies">
+          <p className="mt-1 text-xs text-pe-muted">Perro y gato vienen de fábrica. Agrega conejo, ave u otra.</p>
+          <form onSubmit={(event) => void addSpecies(event)} className="mt-2 flex gap-1.5">
+            <input
+              className="pe-input h-8 min-w-0 flex-1 py-1 text-sm"
+              placeholder="Nueva especie"
+              value={label}
+              onChange={(e) => setLabel(e.target.value)}
+              required
+            />
+            <button type="submit" className="pe-btn-primary h-8 px-3 text-sm">
+              Agregar
+            </button>
+          </form>
+          <ul className="mt-2 divide-y divide-pe-line">
+            {species.map((item) => (
+              <li key={item.id} className="flex items-center gap-1 py-1">
+                <input
+                  className="pe-input h-7 min-w-0 flex-1 py-0.5 text-sm"
+                  defaultValue={item.label}
+                  disabled={busy === item.id}
+                  onBlur={(event) => {
+                    const next = event.target.value.trim();
+                    if (next && next !== item.label) void patchSpecies(item.id, { label: next });
+                  }}
+                />
+                <button
+                  type="button"
+                  className="pe-btn-ghost px-1.5 py-0.5 text-[11px]"
+                  disabled={busy === item.id}
+                  onClick={() => void patchSpecies(item.id, { isActive: !item.is_active })}
+                >
+                  {item.is_active ? 'Ocultar' : 'Mostrar'}
+                </button>
+                <button
+                  type="button"
+                  className="pe-btn-ghost px-1.5 py-0.5 text-[11px] text-pe-danger"
+                  disabled={busy === item.id}
+                  onClick={() => void removeSpecies(item.id)}
+                >
+                  Quitar
+                </button>
+              </li>
+            ))}
+          </ul>
         </ChartCard>
       </div>
 
@@ -372,55 +418,6 @@ export function ClinicSettings({
       </section>
 
       <ClinicTeam staff={staff} branches={branches} />
-
-      <div className="grid items-start gap-4 lg:grid-cols-2">
-        <ChartCard mark="pacientes" title="Especies">
-          <p className="mt-1 text-xs text-pe-muted">Perro y gato vienen de fábrica. Agrega conejo, ave u otra.</p>
-          <form onSubmit={(event) => void addSpecies(event)} className="mt-3 flex gap-2">
-            <input
-              className="pe-input h-8 min-w-0 flex-1 py-1 text-sm"
-              placeholder="Nueva especie"
-              value={label}
-              onChange={(e) => setLabel(e.target.value)}
-              required
-            />
-            <button type="submit" className="pe-btn-primary h-8 px-3 text-sm">
-              Agregar
-            </button>
-          </form>
-          <ul className="mt-3 divide-y divide-pe-line">
-            {species.map((item) => (
-              <li key={item.id} className="flex items-center gap-1.5 py-1.5">
-                <input
-                  className="pe-input h-8 min-w-0 flex-1 py-1 text-sm"
-                  defaultValue={item.label}
-                  disabled={busy === item.id}
-                  onBlur={(event) => {
-                    const next = event.target.value.trim();
-                    if (next && next !== item.label) void patchSpecies(item.id, { label: next });
-                  }}
-                />
-                <button
-                  type="button"
-                  className="pe-btn-ghost px-2 py-1 text-[11px]"
-                  disabled={busy === item.id}
-                  onClick={() => void patchSpecies(item.id, { isActive: !item.is_active })}
-                >
-                  {item.is_active ? 'Ocultar' : 'Mostrar'}
-                </button>
-                <button
-                  type="button"
-                  className="pe-btn-ghost px-2 py-1 text-[11px] text-pe-danger"
-                  disabled={busy === item.id}
-                  onClick={() => void removeSpecies(item.id)}
-                >
-                  Quitar
-                </button>
-              </li>
-            ))}
-          </ul>
-        </ChartCard>
-      </div>
     </section>
   );
 }
