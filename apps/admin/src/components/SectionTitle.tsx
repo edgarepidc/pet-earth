@@ -54,13 +54,15 @@ export function PageHeading({
       : `text-2xl font-semibold tracking-tight ${serif ? 'font-serif' : ''}`;
 
   return (
-    <div>
-      {kicker ? <p className="pe-kicker">{kicker}</p> : null}
-      <div className={`${kicker ? 'mt-1' : ''} flex items-center gap-3`}>
+    <div className="min-w-0">
+      <p className={`pe-kicker h-4 truncate leading-4 ${kicker ? '' : 'invisible'}`}>{kicker || '\u00a0'}</p>
+      <div className="mt-1 flex h-11 items-center gap-3">
         <SectionMark name={mark} />
-        <h1 className={titleClass}>{title}</h1>
+        <h1 className={`${titleClass} truncate whitespace-nowrap`}>{title}</h1>
       </div>
-      {description ? <p className="mt-1 text-sm text-pe-muted">{description}</p> : null}
+      <p className={`mt-1 h-5 truncate text-sm leading-5 text-pe-muted ${description ? '' : 'invisible'}`}>
+        {description || '\u00a0'}
+      </p>
     </div>
   );
 }

@@ -126,28 +126,28 @@ export function DayBoard({
 
   return (
     <section className="space-y-4">
-      <div className="flex flex-wrap items-end justify-between gap-3">
+      <div className="flex items-end justify-between gap-3">
         <PageHeading
           mark={mark}
           kicker={kicker ?? `Sala de espera · ${branchName ?? clinicName}`}
           title={title}
-          description="Si coinciden dos veterinarios a la misma hora, se ven en paralelo. Un hueco abre la ficha para agendar."
+          description="Pica un horario libre para agendar."
         />
-        <div className="flex flex-wrap gap-2">
-          <button type="button" className="pe-btn-primary px-4 py-2 text-sm" onClick={() => setBookTime(nextFreeClock())}>
+        <div className="flex shrink-0 flex-nowrap items-center gap-2">
+          <button type="button" className="pe-btn-primary whitespace-nowrap px-3 py-1.5 text-sm" onClick={() => setBookTime(nextFreeClock())}>
             Agendar
           </button>
           {backHref ? (
             <>
-              <Link href={backHref} className="pe-btn-secondary px-4 py-2 text-sm">
+              <Link href={backHref} className="pe-btn-secondary whitespace-nowrap px-3 py-1.5 text-sm">
                 {backLabel}
               </Link>
-              <Link href="/" className="pe-btn-ghost px-4 py-2 text-sm">
+              <Link href="/" className="pe-btn-ghost whitespace-nowrap px-3 py-1.5 text-sm">
                 Hoy
               </Link>
             </>
           ) : (
-            <Link href="/agenda" className="pe-btn-secondary px-4 py-2 text-sm">
+            <Link href="/agenda" className="pe-btn-secondary whitespace-nowrap px-3 py-1.5 text-sm">
               Semana / mes
             </Link>
           )}

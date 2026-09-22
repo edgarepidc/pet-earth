@@ -92,34 +92,35 @@ export function AgendaCalendar({
 
   return (
     <section className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex items-end justify-between gap-3">
         <PageHeading
           mark="agenda"
+          kicker={`Agenda · ${branchName ?? 'Clínica'}`}
           title="Agenda"
-          description={`${branchName ? `${branchName} · ` : ''}${description}`}
+          description={description}
         />
-        <div className="flex flex-wrap gap-2">
-          <Link href="/" className="pe-btn-primary px-3 py-1.5 text-sm">
+        <div className="flex shrink-0 flex-nowrap items-center gap-2">
+          <Link href="/" className="pe-btn-primary whitespace-nowrap px-3 py-1.5 text-sm">
             Hoy
           </Link>
           <button
             type="button"
-            className={`pe-btn-ghost px-3 py-1.5 text-sm ${view === 'week' ? 'pe-chip-active' : ''}`}
+            className={`pe-btn-ghost whitespace-nowrap px-3 py-1.5 text-sm ${view === 'week' ? 'pe-chip-active' : ''}`}
             onClick={() => open('week', today)}
           >
             Semana
           </button>
           <button
             type="button"
-            className={`pe-btn-ghost px-3 py-1.5 text-sm ${view === 'month' ? 'pe-chip-active' : ''}`}
+            className={`pe-btn-ghost whitespace-nowrap px-3 py-1.5 text-sm ${view === 'month' ? 'pe-chip-active' : ''}`}
             onClick={() => open('month', cursor)}
           >
             Mes
           </button>
-          <button type="button" className="pe-btn-secondary px-3 py-1.5 text-sm" onClick={() => go(-1)}>
+          <button type="button" className="pe-btn-secondary whitespace-nowrap px-3 py-1.5 text-sm" onClick={() => go(-1)}>
             Anterior
           </button>
-          <button type="button" className="pe-btn-secondary px-3 py-1.5 text-sm" onClick={() => go(1)}>
+          <button type="button" className="pe-btn-secondary whitespace-nowrap px-3 py-1.5 text-sm" onClick={() => go(1)}>
             Siguiente
           </button>
         </div>
