@@ -24,6 +24,7 @@ export default async function HomePage() {
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_260px]">
         <DayBoard
           title="Hoy"
+          date={ymd}
           appointments={appointments as AppointmentRow[]}
           invoices={invoices as OpenInvoiceRow[]}
           clinicName={staff.organizationName}
