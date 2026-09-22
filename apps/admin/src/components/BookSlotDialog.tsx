@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { DEFAULT_SPECIES_OPTIONS, formatMexicoDate, type ClinicListOption } from '@petearth/shared';
 
 import type { ClinicVet } from '@/components/AppointmentPeek';
+import { clinicSlotClocks } from '@/lib/day-slots';
 
 type PatientOption = {
   id: string;
@@ -48,6 +49,8 @@ export function BookSlotDialog({
   const [petSpecies, setPetSpecies] = useState(DEFAULT_SPECIES_OPTIONS[0]?.slug ?? 'dog');
   const [reason, setReason] = useState('');
   const [vetId, setVetId] = useState(vets[0]?.id ?? '');
+  const [slotTime, setSlotTime] = useState(time);
+  const hours = useMemo(() => clinicSlotClocks(), []);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -58,6 +61,10 @@ export function BookSlotDialog({
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
+
+  useEffect(() => {
+    setSlotTime(hours.includes(time) ? time : hours[0] ?? time);
+  }, [time, hours]);
 
   useEffect(() => {
     void Promise.all([
@@ -131,7 +138,7 @@ export function BookSlotDialog({
       const response = await fetch('/api/appointments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ patientId: nextPatientId, date, time, reason, vetId: vetId || null }),
+        body: JSON.stringify({ patientId: nextPatientId, date, time: slotTime, reason, vetId: vetId || null }),
       });
       const payload = (await response.json()) as { error?: string };
       if (!response.ok) throw new Error(payload.error ?? 'No se pudo agendar');
@@ -156,11 +163,22 @@ export function BookSlotDialog({
       >
         <p className="pe-kicker">Nueva cita</p>
         <h2 id="book-slot-title" className="mt-1 text-xl font-semibold tracking-tight">
-          {formatMexicoDate(date, { weekday: 'long', day: 'numeric', month: 'long' })} · {time}
+          {formatMexicoDate(date, { weekday: 'long', day: 'numeric', month: 'long' })}
         </h2>
         <p className="mt-1 text-sm text-pe-muted">
           Consulta de una hora. Si otro veterinario ya tiene este horario, se agenda en paralelo.
         </p>
+
+        <label className="mt-4 block text-sm font-medium">
+          Hora
+          <select className="pe-input mt-1" value={slotTime} onChange={(event) => setSlotTime(event.target.value)}>
+            {hours.map((hour) => (
+              <option key={hour} value={hour}>
+                {hour}
+              </option>
+            ))}
+          </select>
+        </label>
 
         <div className="mt-4 flex gap-2">
           <button

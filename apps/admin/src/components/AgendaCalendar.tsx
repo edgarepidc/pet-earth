@@ -16,9 +16,11 @@ import {
   type AppointmentStatus,
 } from '@petearth/shared';
 
-import { AppointmentPeek, floorStatus, one, type AppointmentRow } from '@/components/AppointmentPeek';
+import { AppointmentPeek, floorStatus, one, type AppointmentRow, type ClinicVet } from '@/components/AppointmentPeek';
+import { BookSlotDialog } from '@/components/BookSlotDialog';
 import { PageHeading } from '@/components/SectionTitle';
-import { appointmentOutline, StatusPill } from '@/components/StatusPill';
+import { appointmentOutline } from '@/components/StatusPill';
+import { CLINIC_OPEN_MIN, CLINIC_CLOSE_MIN, SLOT_MINUTES, clockToMinutes, minutesToClock, slotFloor } from '@/lib/day-slots';
 
 const WEEKDAYS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'] as const;
 
@@ -40,17 +42,20 @@ export function AgendaCalendar({
   initialDate,
   initialView = 'week',
   appointments,
+  vets = [],
   branchName,
 }: {
   initialDate: string;
   initialView?: 'week' | 'month';
   appointments: AppointmentRow[];
+  vets?: ClinicVet[];
   branchName?: string;
 }) {
   const router = useRouter();
   const [view, setView] = useState<'week' | 'month'>(initialView);
   const [cursor, setCursor] = useState(initialDate);
   const [openId, setOpenId] = useState<string | null>(null);
+  const [book, setBook] = useState<{ date: string; time: string } | null>(null);
   const today = todayMexicoYmd();
   const monthStart = mexicoMonthStart(cursor);
   const range = mexicoAgendaRange(cursor, view);
@@ -82,6 +87,16 @@ export function AgendaCalendar({
     const nextCursor =
       view === 'week' ? addMexicoDays(mexicoWeekStart(cursor), delta * 7) : shiftMonth(monthStart, delta);
     open(view, nextCursor);
+  }
+
+  function nextFreeClock(day: string): string {
+    const taken = new Set(
+      (byDay.get(day) ?? []).map((row) => slotFloor(clockToMinutes(formatMexicoTime(row.starts_at)))),
+    );
+    for (let minutes = CLINIC_OPEN_MIN; minutes < CLINIC_CLOSE_MIN; minutes += SLOT_MINUTES) {
+      if (!taken.has(minutes)) return minutesToClock(minutes);
+    }
+    return minutesToClock(CLINIC_OPEN_MIN);
   }
 
   const selected = appointments.find((row) => row.id === openId) ?? null;
@@ -149,51 +164,73 @@ export function AgendaCalendar({
                       <div
                         className={`pe-card h-full ${view === 'week' ? 'min-h-[16rem]' : 'min-h-[7.5rem]'} p-2.5 ${
                           day === today ? 'ring-1 ring-pe-clay' : ''
-                        } ${outside ? 'bg-pe-wash/70' : ''}`}
+                        } ${outside ? 'bg-pe-wash/70' : ''} ${view === 'month' ? 'cursor-pointer' : ''}`}
+                        onClick={view === 'month' ? () => open('week', day) : undefined}
                       >
-                        <p className={`text-xs font-semibold ${outside ? 'text-pe-muted' : 'text-pe-ink'}`}>
-                          {view === 'week' || outside
-                            ? formatMexicoDate(day, { day: 'numeric', month: 'short' })
-                            : String(Number(day.slice(8)))}
-                        </p>
-                        <ul className={`mt-2 ${view === 'month' ? 'max-h-28 space-y-1 overflow-y-auto' : 'space-y-1.5'}`}>
+                        <div className="flex items-start justify-between gap-1">
+                          <p className={`text-xs font-semibold ${outside ? 'text-pe-muted' : 'text-pe-ink'}`}>
+                            {view === 'week' || outside
+                              ? formatMexicoDate(day, { day: 'numeric', month: 'short' })
+                              : String(Number(day.slice(8)))}
+                          </p>
+                          {view === 'week' ? (
+                            <button
+                              type="button"
+                              className="shrink-0 text-[11px] font-medium text-pe-clay-700 hover:underline"
+                              onClick={() => setBook({ date: day, time: nextFreeClock(day) })}
+                            >
+                              Agendar
+                            </button>
+                          ) : null}
+                        </div>
+                        <ul
+                          className={`mt-2 ${view === 'month' ? 'max-h-28 space-y-1 overflow-y-auto' : 'space-y-2'}`}
+                        >
+                          {view === 'week' && rows.length === 0 ? (
+                            <li>
+                              <button
+                                type="button"
+                                className="text-left text-sm text-pe-clay-700 hover:underline"
+                                onClick={() => setBook({ date: day, time: nextFreeClock(day) })}
+                              >
+                                Libre · agendar
+                              </button>
+                            </li>
+                          ) : null}
                           {rows.map((row) => {
                             const patient = one(row.patients);
                             const status = floorStatus(row.status as AppointmentStatus);
-                            if (view === 'month') {
-                              return (
-                                <li key={row.id}>
-                                  <button
-                                    type="button"
-                                    title={`${formatMexicoTime(row.starts_at)} ${patient?.name ?? 'Paciente'} · ${APPOINTMENT_STATUS_LABELS[status]}`}
-                                    className={`w-full rounded border bg-white/70 px-1.5 py-1 text-left text-[11px] leading-tight hover:bg-white ${appointmentOutline(status)}`}
-                                    onClick={() => setOpenId(row.id)}
-                                  >
-                                    <span className="block truncate">
-                                      <span className="tabular-nums">{formatMexicoTime(row.starts_at)}</span>{' '}
-                                      {patient?.name ?? 'Paciente'}
-                                    </span>
-                                  </button>
-                                </li>
-                              );
-                            }
                             return (
                               <li key={row.id}>
                                 <button
                                   type="button"
-                                  className="w-full rounded-md bg-white p-2 text-left text-xs hover:bg-pe-wash"
-                                  onClick={() => setOpenId(row.id)}
+                                  title={`${formatMexicoTime(row.starts_at)} ${patient?.name ?? 'Paciente'} · ${APPOINTMENT_STATUS_LABELS[status]}`}
+                                  className={`w-full rounded-md border bg-white text-left hover:bg-pe-wash ${appointmentOutline(status)} ${
+                                    view === 'month'
+                                      ? 'px-1.5 py-1 text-[11px] leading-tight'
+                                      : 'p-2 text-xs shadow-[0_1px_4px_rgba(22,26,22,0.08)]'
+                                  }`}
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    setOpenId(row.id);
+                                  }}
                                 >
-                                  <p className="font-semibold">
-                                    {formatMexicoTime(row.starts_at)} {patient?.name}
-                                  </p>
-                                  <p className="mt-0.5 truncate text-pe-muted">
-                                    {row.reason?.trim() || 'Sin motivo'}
-                                  </p>
-                                  {row.vet_name ? (
-                                    <p className="mt-0.5 truncate text-[11px] font-medium text-pe-clay-700">{row.vet_name}</p>
+                                  <span className={`block truncate ${view === 'week' ? 'font-semibold' : ''}`}>
+                                    <span className="tabular-nums">{formatMexicoTime(row.starts_at)}</span>{' '}
+                                    {patient?.name ?? 'Paciente'}
+                                  </span>
+                                  {view === 'week' ? (
+                                    <>
+                                      <p className="mt-0.5 truncate text-pe-muted">
+                                        {row.reason?.trim() || 'Sin motivo'}
+                                      </p>
+                                      {row.vet_name ? (
+                                        <p className="mt-0.5 truncate text-[11px] font-medium text-pe-clay-700">
+                                          {row.vet_name}
+                                        </p>
+                                      ) : null}
+                                    </>
                                   ) : null}
-                                  <StatusPill status={status} />
                                 </button>
                               </li>
                             );
@@ -210,6 +247,18 @@ export function AgendaCalendar({
       </div>
       {selected ? (
         <AppointmentPeek appointment={selected} onClose={() => setOpenId(null)} onMoved={() => router.refresh()} />
+      ) : null}
+      {book ? (
+        <BookSlotDialog
+          date={book.date}
+          time={book.time}
+          vets={vets}
+          onClose={() => setBook(null)}
+          onCreated={() => {
+            setBook(null);
+            router.refresh();
+          }}
+        />
       ) : null}
     </section>
   );

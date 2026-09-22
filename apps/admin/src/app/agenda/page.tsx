@@ -5,7 +5,7 @@ import { AgendaCalendar } from '@/components/AgendaCalendar';
 import { ClinicNotices } from '@/components/ClinicNotices';
 import type { AppointmentRow } from '@/components/DayBoard';
 import { loadClinicSession } from '@/lib/auth';
-import { loadAppointmentsInRange, loadFollowUps, loadLowStock } from '@/lib/queries';
+import { loadAppointmentsInRange, loadClinicVets, loadFollowUps, loadLowStock } from '@/lib/queries';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,10 +20,11 @@ export default async function AgendaPage({
   const view = params.view === 'month' ? 'month' : 'week';
   const anchor = params.start && isValidYmd(params.start) ? params.start : today;
   const range = mexicoAgendaRange(anchor, view);
-  const [appointments, reminders, lowStock] = await Promise.all([
+  const [appointments, reminders, lowStock, vets] = await Promise.all([
     loadAppointmentsInRange(staff.branchId, `${range.start}T00:00:00-06:00`, `${range.end}T00:00:00-06:00`),
     loadFollowUps(staff.organizationId),
     loadLowStock(staff.organizationId),
+    loadClinicVets(staff.organizationId),
   ]);
   const overdue = reminders.filter((row) => row.due_on <= today);
 
@@ -35,6 +36,7 @@ export default async function AgendaPage({
           initialDate={anchor}
           initialView={view}
           appointments={appointments as AppointmentRow[]}
+          vets={vets}
           branchName={staff.branchName}
         />
         <ClinicNotices overdue={overdue} lowStock={lowStock} />

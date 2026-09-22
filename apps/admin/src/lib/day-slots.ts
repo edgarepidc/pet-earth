@@ -13,6 +13,14 @@ export function minutesToClock(total: number): string {
   return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
 }
 
+export function clinicSlotClocks(): string[] {
+  const slots: string[] = [];
+  for (let cursor = CLINIC_OPEN_MIN; cursor < CLINIC_CLOSE_MIN; cursor += SLOT_MINUTES) {
+    slots.push(minutesToClock(cursor));
+  }
+  return slots;
+}
+
 export function slotFloor(minutes: number): number {
   return Math.floor(minutes / SLOT_MINUTES) * SLOT_MINUTES;
 }
