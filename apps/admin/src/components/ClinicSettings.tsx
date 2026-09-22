@@ -13,7 +13,7 @@ import {
 
 import { ClinicFiscalForm } from '@/components/ClinicFiscalForm';
 import { ClinicTeam, type ClinicStaffRow } from '@/components/ClinicTeam';
-import { ChartCard, PageHeading } from '@/components/SectionTitle';
+import { ChartCard, PageHeading, SectionMark } from '@/components/SectionTitle';
 import type { ClinicListRow } from '@/lib/clinicLists';
 
 export type ClinicBranchRow = {
@@ -245,80 +245,135 @@ export function ClinicSettings({
         </ChartCard>
       </div>
 
-      <div className="grid items-start gap-4 lg:grid-cols-2">
-        <ChartCard mark="sala" title="Sucursales">
-          <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
-            <p className="text-xs text-pe-muted">Nombre, dirección, teléfono y horario. Eso sale en la web y arma el piso.</p>
-            <button
-              type="button"
-              className={`whitespace-nowrap px-3 py-1.5 text-sm ${editingId === 'new' ? 'pe-chip-active pe-btn-ghost' : 'pe-btn-secondary'}`}
-              onClick={() => (editingId === 'new' ? setEditingId(null) : openNew())}
-            >
-              Agregar sucursal
-            </button>
+      <section className="space-y-2">
+        <div className="flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <h2 className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-pe-muted">
+              <SectionMark name="sala" size="sm" />
+              Sucursales
+            </h2>
+            <p className="mt-1 text-xs text-pe-muted">Nombre, dirección, teléfono y horario. Eso sale en la web y arma el piso.</p>
           </div>
-          {editingId === 'new' ? (
-            <BranchForm
-              clocks={clocks}
-              draft={draft}
-              preview={preview}
-              busy={busy === 'branch'}
-              submitLabel="Agregar"
-              onChange={setDraft}
-              onCancel={() => setEditingId(null)}
-              onSubmit={(event) => void saveBranch(event)}
-            />
-          ) : null}
-          <ul className="mt-2 divide-y divide-pe-line">
-            {branches.map((branch) => {
-              const schedule = parseBranchSettings(branch.settings);
-              const open = editingId === branch.id;
-              return (
-                <li key={branch.id} className="py-2.5">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <span className="min-w-0">
-                      <span className="font-medium">{branch.name}</span>
-                      {!branch.is_active ? <span className="ml-2 text-xs text-pe-muted">Oculta</span> : null}
-                      <span className="mt-0.5 block truncate text-sm text-pe-muted">
-                        {[branch.address, schedule.phone, schedule.hours].filter(Boolean).join(' · ')}
-                      </span>
-                    </span>
-                    <span className="flex shrink-0 gap-2">
-                      <button
-                        type="button"
-                        className={`px-3 py-1.5 text-sm ${open ? 'pe-chip-active pe-btn-ghost' : 'pe-btn-ghost'}`}
-                        onClick={() => (open ? setEditingId(null) : openEdit(branch))}
-                      >
-                        {open ? 'Cerrar' : 'Editar'}
-                      </button>
-                      <button
-                        type="button"
-                        className="pe-btn-ghost px-3 py-1.5 text-sm"
-                        disabled={busy === branch.id}
-                        onClick={() => void toggleBranch(branch)}
-                      >
-                        {branch.is_active ? 'Ocultar' : 'Mostrar'}
-                      </button>
-                    </span>
-                  </div>
-                  {open ? (
-                    <BranchForm
-                      clocks={clocks}
-                      draft={draft}
-                      preview={preview}
-                      busy={busy === 'branch'}
-                      submitLabel="Guardar"
-                      onChange={setDraft}
-                      onCancel={() => setEditingId(null)}
-                      onSubmit={(event) => void saveBranch(event)}
-                    />
-                  ) : null}
-                </li>
-              );
-            })}
-          </ul>
-        </ChartCard>
+          <button
+            type="button"
+            className={`whitespace-nowrap px-3 py-1.5 text-sm ${editingId === 'new' ? 'pe-chip-active pe-btn-ghost' : 'pe-btn-secondary'}`}
+            onClick={() => (editingId === 'new' ? setEditingId(null) : openNew())}
+          >
+            Agregar
+          </button>
+        </div>
+        {editingId === 'new' ? (
+          <BranchForm
+            clocks={clocks}
+            draft={draft}
+            preview={preview}
+            busy={busy === 'branch'}
+            submitLabel="Agregar"
+            onChange={setDraft}
+            onCancel={() => setEditingId(null)}
+            onSubmit={(event) => void saveBranch(event)}
+          />
+        ) : null}
+        <div className="pe-card overflow-x-auto px-1 py-2">
+          <table className="w-full min-w-[48rem] text-left text-sm">
+            <thead>
+              <tr className="border-b border-pe-line text-[10px] font-bold uppercase tracking-[0.12em] text-pe-muted">
+                <th className="w-16 px-3 py-2.5">Foto</th>
+                <th className="px-3 py-2.5">Nombre</th>
+                <th className="px-3 py-2.5">Dirección</th>
+                <th className="px-3 py-2.5">Teléfono</th>
+                <th className="px-3 py-2.5">Horario</th>
+                <th className="px-3 py-2.5">Sitio</th>
+                <th className="px-3 py-2.5 text-right"> </th>
+              </tr>
+            </thead>
+            <tbody>
+              {branches.length === 0 ? (
+                <tr className="border-b border-pe-line">
+                  <td className="px-3 py-6 text-pe-muted" colSpan={7}>
+                    No hay sucursales.
+                  </td>
+                </tr>
+              ) : (
+                branches.flatMap((branch) => {
+                  const schedule = parseBranchSettings(branch.settings);
+                  const open = editingId === branch.id;
+                  const main = (
+                    <tr
+                      key={branch.id}
+                      className={`border-b border-pe-line last:border-0 ${
+                        branch.is_active
+                          ? 'bg-[#fbfcf8] shadow-[0_4px_14px_rgba(22,26,22,0.08)] hover:bg-white'
+                          : 'bg-pe-wash/40 text-pe-muted'
+                      }`}
+                    >
+                      <td className="border-l-[3px] border-pe-clay bg-[#eef2e6] px-3 py-2">
+                        {schedule.image ? (
+                          <img src={schedule.image} alt="" className="h-11 w-14 rounded-md object-cover" />
+                        ) : (
+                          <span className="flex h-11 w-14 items-center justify-center rounded-md text-[10px] font-bold uppercase tracking-[0.08em] text-pe-clay-700">
+                            {branch.name.slice(0, 1)}
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-3 py-2.5 font-medium text-pe-ink">{branch.name}</td>
+                      <td className="max-w-[14rem] truncate px-3 py-2.5 text-pe-muted">{branch.address || '—'}</td>
+                      <td className="px-3 py-2.5 tabular-nums text-pe-muted">{schedule.phone || '—'}</td>
+                      <td className="px-3 py-2.5 text-pe-muted">{schedule.hours}</td>
+                      <td className="px-3 py-2.5">
+                        <span className={`text-xs font-semibold ${branch.is_active ? 'text-pe-clay-700' : 'text-pe-muted'}`}>
+                          {branch.is_active ? 'Visible' : 'Oculta'}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2.5 text-right">
+                        <span className="inline-flex gap-1">
+                          <button
+                            type="button"
+                            className={`px-3 py-1.5 text-sm ${open ? 'pe-chip-active pe-btn-ghost' : 'pe-btn-ghost'}`}
+                            onClick={() => (open ? setEditingId(null) : openEdit(branch))}
+                          >
+                            {open ? 'Cerrar' : 'Editar'}
+                          </button>
+                          <button
+                            type="button"
+                            className="pe-btn-ghost px-3 py-1.5 text-sm"
+                            disabled={busy === branch.id}
+                            onClick={() => void toggleBranch(branch)}
+                          >
+                            {branch.is_active ? 'Ocultar' : 'Mostrar'}
+                          </button>
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                  if (!open) return [main];
+                  return [
+                    main,
+                    <tr key={`${branch.id}-edit`} className="border-b border-pe-line bg-white">
+                      <td className="px-3 py-3" colSpan={7}>
+                        <BranchForm
+                          clocks={clocks}
+                          draft={draft}
+                          preview={preview}
+                          busy={busy === 'branch'}
+                          submitLabel="Guardar"
+                          onChange={setDraft}
+                          onCancel={() => setEditingId(null)}
+                          onSubmit={(event) => void saveBranch(event)}
+                        />
+                      </td>
+                    </tr>,
+                  ];
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
 
+      <ClinicTeam staff={staff} branches={branches} />
+
+      <div className="grid items-start gap-4 lg:grid-cols-2">
         <ChartCard mark="pacientes" title="Especies">
           <p className="mt-1 text-xs text-pe-muted">Perro y gato vienen de fábrica. Agrega conejo, ave u otra.</p>
           <form onSubmit={(event) => void addSpecies(event)} className="mt-3 flex gap-2">
@@ -366,8 +421,6 @@ export function ClinicSettings({
           </ul>
         </ChartCard>
       </div>
-
-      <ClinicTeam staff={staff} branches={branches} />
     </section>
   );
 }
@@ -397,7 +450,7 @@ function BranchForm({
   }
 
   return (
-    <form onSubmit={onSubmit} className="mt-3 grid gap-2 sm:grid-cols-2">
+    <form onSubmit={onSubmit} className={`${submitLabel === 'Agregar' ? 'pe-card p-4' : 'py-1'} grid gap-2 sm:grid-cols-2`}>
       <input
         className="pe-input"
         placeholder="Nombre"

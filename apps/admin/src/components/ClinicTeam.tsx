@@ -5,7 +5,7 @@ import { useState } from 'react';
 
 import { STAFF_ROLE_LABELS, STAFF_ROLES, type StaffRole } from '@petearth/shared';
 
-import { ChartCard } from '@/components/SectionTitle';
+import { SectionMark } from '@/components/SectionTitle';
 
 export type ClinicStaffRow = {
   id: string;
@@ -33,6 +33,13 @@ type Draft = {
 
 function emptyDraft(branchId: string): Draft {
   return { fullName: '', email: '', password: '', role: 'vet', branchId };
+}
+
+function initials(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return '·';
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return `${parts[0][0] ?? ''}${parts[1][0] ?? ''}`.toUpperCase();
 }
 
 export function ClinicTeam({
@@ -128,9 +135,15 @@ export function ClinicTeam({
   }
 
   return (
-    <ChartCard mark="tutores" title="Equipo">
-      <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
-        <p className="text-xs text-pe-muted">MVZ, recepción y dueño. La sucursal habitual es el piso al entrar.</p>
+    <section className="space-y-2">
+      <div className="flex flex-wrap items-end justify-between gap-2">
+        <div>
+          <h2 className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-pe-muted">
+            <SectionMark name="tutores" size="sm" />
+            Equipo
+          </h2>
+          <p className="mt-1 text-xs text-pe-muted">MVZ, recepción y dueño. La sucursal habitual es el piso al entrar.</p>
+        </div>
         <button
           type="button"
           className={`whitespace-nowrap px-3 py-1.5 text-sm ${editingId === 'new' ? 'pe-chip-active pe-btn-ghost' : 'pe-btn-secondary'}`}
@@ -139,7 +152,7 @@ export function ClinicTeam({
           Agregar
         </button>
       </div>
-      {error ? <p className="pe-callout-amber mt-2 p-3 text-sm">{error}</p> : null}
+      {error ? <p className="pe-callout-amber p-3 text-sm">{error}</p> : null}
       {editingId === 'new' ? (
         <StaffForm
           draft={draft}
@@ -152,55 +165,99 @@ export function ClinicTeam({
           onSubmit={(event) => void save(event)}
         />
       ) : null}
-      <ul className="mt-2 divide-y divide-pe-line">
-        {staff.map((row) => {
-          const open = editingId === row.id;
-          const branchName = branches.find((branch) => branch.id === row.branch_id)?.name;
-          return (
-            <li key={row.id} className="py-2.5">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="min-w-0">
-                  <span className="font-medium">{row.fullName || row.email || 'Sin nombre'}</span>
-                  {row.status !== 'active' ? <span className="ml-2 text-xs text-pe-muted">Inactivo</span> : null}
-                  <span className="mt-0.5 block truncate text-sm text-pe-muted">
-                    {[row.email, STAFF_ROLE_LABELS[row.role], branchName ?? 'Toda la clínica'].filter(Boolean).join(' · ')}
-                  </span>
-                </span>
-                <span className="flex shrink-0 gap-2">
-                  <button
-                    type="button"
-                    className={`px-3 py-1.5 text-sm ${open ? 'pe-chip-active pe-btn-ghost' : 'pe-btn-ghost'}`}
-                    onClick={() => (open ? setEditingId(null) : openEdit(row))}
+      <div className="pe-card overflow-x-auto px-1 py-2">
+        <table className="w-full min-w-[48rem] text-left text-sm">
+          <thead>
+            <tr className="border-b border-pe-line text-[10px] font-bold uppercase tracking-[0.12em] text-pe-muted">
+              <th className="w-16 px-3 py-2.5"> </th>
+              <th className="px-3 py-2.5">Nombre</th>
+              <th className="px-3 py-2.5">Correo</th>
+              <th className="px-3 py-2.5">Rol</th>
+              <th className="px-3 py-2.5">Sucursal</th>
+              <th className="px-3 py-2.5">Piso</th>
+              <th className="px-3 py-2.5 text-right"> </th>
+            </tr>
+          </thead>
+          <tbody>
+            {staff.length === 0 ? (
+              <tr className="border-b border-pe-line">
+                <td className="px-3 py-6 text-pe-muted" colSpan={7}>
+                  Nadie en el equipo.
+                </td>
+              </tr>
+            ) : (
+              staff.flatMap((row) => {
+                const open = editingId === row.id;
+                const branchName = branches.find((branch) => branch.id === row.branch_id)?.name;
+                const name = row.fullName || row.email || 'Sin nombre';
+                const main = (
+                  <tr
+                    key={row.id}
+                    className={`border-b border-pe-line last:border-0 ${
+                      row.status === 'active'
+                        ? 'bg-[#fbfcf8] shadow-[0_4px_14px_rgba(22,26,22,0.08)] hover:bg-white'
+                        : 'bg-pe-wash/40 text-pe-muted'
+                    }`}
                   >
-                    {open ? 'Cerrar' : 'Editar'}
-                  </button>
-                  <button
-                    type="button"
-                    className="pe-btn-ghost px-3 py-1.5 text-sm"
-                    disabled={busy === row.id}
-                    onClick={() => void toggle(row)}
-                  >
-                    {row.status === 'active' ? 'Desactivar' : 'Activar'}
-                  </button>
-                </span>
-              </div>
-              {open ? (
-                <StaffForm
-                  draft={draft}
-                  branches={activeBranches}
-                  busy={busy === 'save'}
-                  creating={false}
-                  submitLabel="Guardar"
-                  onChange={setDraft}
-                  onCancel={() => setEditingId(null)}
-                  onSubmit={(event) => void save(event)}
-                />
-              ) : null}
-            </li>
-          );
-        })}
-      </ul>
-    </ChartCard>
+                    <td className="border-l-[3px] border-pe-clay bg-[#eef2e6] px-3 py-2">
+                      <span className="flex h-11 w-11 items-center justify-center rounded-md text-[11px] font-bold tracking-[0.08em] text-pe-clay-700">
+                        {initials(name)}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2.5 font-medium text-pe-ink">{name}</td>
+                    <td className="px-3 py-2.5 text-pe-muted">{row.email ?? '—'}</td>
+                    <td className="px-3 py-2.5">{STAFF_ROLE_LABELS[row.role]}</td>
+                    <td className="px-3 py-2.5 text-pe-muted">{branchName ?? 'Toda la clínica'}</td>
+                    <td className="px-3 py-2.5">
+                      <span className={`text-xs font-semibold ${row.status === 'active' ? 'text-pe-clay-700' : 'text-pe-muted'}`}>
+                        {row.status === 'active' ? 'Activo' : 'Inactivo'}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2.5 text-right">
+                      <span className="inline-flex gap-1">
+                        <button
+                          type="button"
+                          className={`px-3 py-1.5 text-sm ${open ? 'pe-chip-active pe-btn-ghost' : 'pe-btn-ghost'}`}
+                          onClick={() => (open ? setEditingId(null) : openEdit(row))}
+                        >
+                          {open ? 'Cerrar' : 'Editar'}
+                        </button>
+                        <button
+                          type="button"
+                          className="pe-btn-ghost px-3 py-1.5 text-sm"
+                          disabled={busy === row.id}
+                          onClick={() => void toggle(row)}
+                        >
+                          {row.status === 'active' ? 'Desactivar' : 'Activar'}
+                        </button>
+                      </span>
+                    </td>
+                  </tr>
+                );
+                if (!open) return [main];
+                return [
+                  main,
+                  <tr key={`${row.id}-edit`} className="border-b border-pe-line bg-white">
+                    <td className="px-3 py-3" colSpan={7}>
+                      <StaffForm
+                        draft={draft}
+                        branches={activeBranches}
+                        busy={busy === 'save'}
+                        creating={false}
+                        submitLabel="Guardar"
+                        onChange={setDraft}
+                        onCancel={() => setEditingId(null)}
+                        onSubmit={(event) => void save(event)}
+                      />
+                    </td>
+                  </tr>,
+                ];
+              })
+            )}
+          </tbody>
+        </table>
+      </div>
+    </section>
   );
 }
 
@@ -224,9 +281,9 @@ function StaffForm({
   onSubmit: (event: React.FormEvent) => void;
 }) {
   return (
-    <form onSubmit={onSubmit} className="mt-3 grid gap-2 sm:grid-cols-2">
+    <form onSubmit={onSubmit} className={`${creating ? 'pe-card p-4' : 'py-1'} grid gap-2 sm:grid-cols-2 lg:grid-cols-4`}>
       <input
-        className="pe-input"
+        className="pe-input lg:col-span-2"
         placeholder="Nombre"
         value={draft.fullName}
         onChange={(e) => onChange({ ...draft, fullName: e.target.value })}
@@ -235,19 +292,19 @@ function StaffForm({
       {creating ? (
         <input
           type="email"
-          className="pe-input"
+          className="pe-input lg:col-span-2"
           placeholder="Correo"
           value={draft.email}
           onChange={(e) => onChange({ ...draft, email: e.target.value })}
           required
         />
       ) : (
-        <p className="self-center truncate text-sm text-pe-muted">{draft.email || 'Sin correo'}</p>
+        <p className="self-center truncate text-sm text-pe-muted lg:col-span-2">{draft.email || 'Sin correo'}</p>
       )}
       {creating ? (
         <input
           type="password"
-          className="pe-input"
+          className="pe-input lg:col-span-2"
           placeholder="Contraseña (si es cuenta nueva)"
           minLength={8}
           value={draft.password}
@@ -269,7 +326,7 @@ function StaffForm({
           </option>
         ))}
       </select>
-      <div className="flex gap-2 sm:col-span-2">
+      <div className="flex gap-2 sm:col-span-2 lg:col-span-4">
         <button type="submit" className="pe-btn-primary px-4 py-2 text-sm" disabled={busy}>
           {busy ? 'Guardando…' : submitLabel}
         </button>
