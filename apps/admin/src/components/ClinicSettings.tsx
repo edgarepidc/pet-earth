@@ -4,15 +4,21 @@ import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 
 import {
+  FLOOR_CAPABILITIES,
   hourSelectClocks,
   hoursLabelFromSchedule,
   parseBranchSettings,
+  STAFF_ROLE_LABELS,
+  STAFF_ROLES,
   WEEKDAY_CHIPS,
+  roleCan,
   type BranchSchedule,
+  type ClinicLetterhead,
 } from '@petearth/shared';
 
 import { ClinicFiscalForm } from '@/components/ClinicFiscalForm';
 import { ClinicTeam, type ClinicStaffRow } from '@/components/ClinicTeam';
+import { PublicPhotoField } from '@/components/PublicPhotoField';
 import { ChartCard, PageHeading, SectionMark } from '@/components/SectionTitle';
 import type { ClinicListRow } from '@/lib/clinicLists';
 
@@ -57,6 +63,7 @@ export function ClinicSettings({
   clinicName,
   branches,
   staff,
+  letterhead,
   fiscal,
   pacReady = false,
 }: {
@@ -64,6 +71,7 @@ export function ClinicSettings({
   clinicName: string;
   branches: ClinicBranchRow[];
   staff: ClinicStaffRow[];
+  letterhead: ClinicLetterhead;
   fiscal: {
     rfc?: string | null;
     razonSocial?: string | null;
@@ -75,6 +83,7 @@ export function ClinicSettings({
   const router = useRouter();
   const clocks = useMemo(() => hourSelectClocks(), []);
   const [name, setName] = useState(clinicName);
+  const [sheet, setSheet] = useState(letterhead);
   const [label, setLabel] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
@@ -106,6 +115,24 @@ export function ClinicSettings({
     setBusy(null);
     if (!response.ok) {
       setError(payload.error ?? 'No se pudo guardar la clínica.');
+      return;
+    }
+    router.refresh();
+  }
+
+  async function saveLetterhead(event: React.FormEvent) {
+    event.preventDefault();
+    setError(null);
+    setBusy('letterhead');
+    const response = await fetch('/api/clinic/organization', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ letterhead: sheet }),
+    });
+    const payload = (await response.json()) as { error?: string };
+    setBusy(null);
+    if (!response.ok) {
+      setError(payload.error ?? 'No se pudo guardar la receta.');
       return;
     }
     router.refresh();
@@ -295,6 +322,55 @@ export function ClinicSettings({
         <div className="flex flex-wrap items-end justify-between gap-2">
           <div>
             <h2 className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-pe-muted">
+              <SectionMark name="consulta" size="sm" />
+              Receta y cartilla
+            </h2>
+            <p className="mt-1 text-xs text-pe-muted">Membrete, pie de hoja y qué bloques salen al imprimir.</p>
+          </div>
+        </div>
+        <form onSubmit={(event) => void saveLetterhead(event)} className="pe-card grid gap-2 p-3 sm:grid-cols-[auto_1fr_auto]">
+          <PublicPhotoField
+            src={sheet.logo}
+            name={name}
+            folder="letterhead"
+            disabled={busy === 'letterhead'}
+            onUploaded={(url) => setSheet((current) => ({ ...current, logo: url }))}
+          />
+          <input
+            className="pe-input h-8 py-1 text-sm"
+            placeholder="Pie de receta"
+            value={sheet.footer}
+            onChange={(e) => setSheet((current) => ({ ...current, footer: e.target.value }))}
+          />
+          <button type="submit" className="pe-btn-primary h-8 px-3 text-sm" disabled={busy === 'letterhead'}>
+            {busy === 'letterhead' ? 'Guardando…' : 'Guardar'}
+          </button>
+          <div className="flex flex-wrap gap-1 sm:col-span-3">
+            {(
+              [
+                ['showAssessment', 'Evaluación'],
+                ['showPlan', 'Plan'],
+                ['showMeds', 'Medicamentos'],
+                ['showVaccines', 'Vacunas'],
+              ] as const
+            ).map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                className={`px-2.5 py-1 text-sm ${sheet[key] ? 'pe-chip-active pe-btn-ghost' : 'pe-btn-ghost'}`}
+                onClick={() => setSheet((current) => ({ ...current, [key]: !current[key] }))}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </form>
+      </section>
+
+      <section className="space-y-2">
+        <div className="flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <h2 className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-pe-muted">
               <SectionMark name="sala" size="sm" />
               Sucursales
             </h2>
@@ -418,6 +494,47 @@ export function ClinicSettings({
       </section>
 
       <ClinicTeam staff={staff} branches={branches} />
+
+      <section className="space-y-2">
+        <div>
+          <h2 className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-pe-muted">
+            <SectionMark name="tutores" size="sm" />
+            Permisos del piso
+          </h2>
+          <p className="mt-1 text-xs text-pe-muted">Así trabaja cada rol. No se editan; el consultorio usa cuatro cortes fijos.</p>
+        </div>
+        <div className="pe-card overflow-x-auto px-1 py-2">
+          <table className="w-full min-w-[40rem] text-left text-sm">
+            <thead>
+              <tr className="border-b border-pe-line text-[10px] font-bold uppercase tracking-[0.12em] text-pe-muted">
+                <th className="px-3 py-2.5">Rol</th>
+                {FLOOR_CAPABILITIES.map((item) => (
+                  <th key={item.key} className="px-3 py-2.5">
+                    {item.label}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {STAFF_ROLES.map((role) => (
+                <tr
+                  key={role}
+                  className="border-b border-pe-line bg-[#fbfcf8] shadow-[0_4px_14px_rgba(22,26,22,0.08)] last:border-0 hover:bg-white"
+                >
+                  <td className="border-l-[3px] border-pe-clay bg-[#eef2e6] px-3 py-2.5 font-medium">{STAFF_ROLE_LABELS[role]}</td>
+                  {FLOOR_CAPABILITIES.map((item) => (
+                    <td key={item.key} className="px-3 py-2.5">
+                      <span className={`text-xs font-semibold ${roleCan(role, item.key) ? 'text-pe-clay-700' : 'text-pe-muted'}`}>
+                        {roleCan(role, item.key) ? 'Sí' : '—'}
+                      </span>
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
     </section>
   );
 }
@@ -441,29 +558,11 @@ function BranchForm({
   onCancel: () => void;
   onSubmit: (event: React.FormEvent) => void;
 }) {
-  const [uploading, setUploading] = useState(false);
-  const [photoError, setPhotoError] = useState<string | null>(null);
-
   function toggleDay(day: number) {
     onChange((current) => {
       const days = current.days.includes(day) ? current.days.filter((value) => value !== day) : [...current.days, day];
       return { ...current, days };
     });
-  }
-
-  async function uploadPhoto(file: File) {
-    setPhotoError(null);
-    setUploading(true);
-    const data = new FormData();
-    data.set('file', file);
-    const response = await fetch('/api/clinic/public-media', { method: 'POST', body: data });
-    const payload = (await response.json().catch(() => null)) as { url?: string; error?: string } | null;
-    setUploading(false);
-    if (!response.ok || !payload?.url) {
-      setPhotoError(payload?.error ?? 'No se pudo subir la foto.');
-      return;
-    }
-    onChange((current) => ({ ...current, image: payload.url ?? current.image }));
   }
 
   return (
@@ -531,35 +630,20 @@ function BranchForm({
         <span className="truncate text-[11px] text-pe-muted">{preview}</span>
       </div>
       <div className="flex flex-wrap items-center gap-2 sm:col-span-2">
-        {draft.image ? (
-          <img src={draft.image} alt="" className="h-11 w-14 rounded-md object-cover" />
-        ) : (
-          <span className="flex h-11 w-14 items-center justify-center rounded-md bg-[#eef2e6] text-[10px] font-bold uppercase tracking-[0.08em] text-pe-clay-700">
-            {draft.name.slice(0, 1) || '·'}
-          </span>
-        )}
-        <label className="pe-btn-ghost cursor-pointer px-3 py-1.5 text-sm">
-          {uploading ? 'Subiendo…' : draft.image ? 'Cambiar foto' : 'Cargar foto'}
-          <input
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            className="sr-only"
-            disabled={uploading || busy}
-            onChange={(event) => {
-              const file = event.target.files?.[0];
-              event.target.value = '';
-              if (file) void uploadPhoto(file);
-            }}
-          />
-        </label>
-        <button type="submit" className="pe-btn-primary px-4 py-1.5 text-sm" disabled={busy || uploading}>
+        <PublicPhotoField
+          src={draft.image || null}
+          name={draft.name}
+          folder="branches"
+          disabled={busy}
+          onUploaded={(url) => onChange((current) => ({ ...current, image: url }))}
+        />
+        <button type="submit" className="pe-btn-primary px-4 py-1.5 text-sm" disabled={busy}>
           {busy ? 'Guardando…' : submitLabel}
         </button>
         <button type="button" className="pe-btn-ghost px-3 py-1.5 text-sm" onClick={onCancel}>
           Cancelar
         </button>
       </div>
-      {photoError ? <p className="pe-callout-amber p-2 text-sm sm:col-span-2">{photoError}</p> : null}
     </form>
   );
 }

@@ -1,4 +1,4 @@
-import { mexicoYmdBoundsIso } from '@petearth/shared';
+import { mexicoYmdBoundsIso, parseLetterhead } from '@petearth/shared';
 import { createAdminClient } from '@petearth/supabase/admin';
 
 export async function loadAppointmentsInRange(branchId: string, startIso: string, endIso: string) {
@@ -201,6 +201,7 @@ export async function loadLetterhead(organizationId: string, branchId: string) {
     branchName: branch?.name ?? '',
     branchAddress: branch?.address ?? null,
     fiscal,
+    letterhead: parseLetterhead(org?.settings),
   };
 }
 

@@ -15,6 +15,7 @@ export type ClinicStaffRow = {
   branch_id: string | null;
   fullName: string | null;
   email: string | null;
+  license: string | null;
 };
 
 type BranchOption = {
@@ -29,10 +30,11 @@ type Draft = {
   password: string;
   role: StaffRole;
   branchId: string;
+  license: string;
 };
 
 function emptyDraft(branchId: string): Draft {
-  return { fullName: '', email: '', password: '', role: 'vet', branchId };
+  return { fullName: '', email: '', password: '', role: 'vet', branchId, license: '' };
 }
 
 function initials(name: string) {
@@ -70,6 +72,7 @@ export function ClinicTeam({
       password: '',
       role: row.role,
       branchId: row.branch_id ?? '',
+      license: row.license ?? '',
     });
     setEditingId(row.id);
   }
@@ -98,12 +101,14 @@ export function ClinicTeam({
               password: draft.password || undefined,
               role: draft.role,
               branchId: draft.branchId || null,
+              license: draft.license,
             }
           : {
               id: editingId,
               fullName: draft.fullName,
               role: draft.role,
               branchId: draft.branchId || null,
+              license: draft.license,
             },
       ),
     });
@@ -173,6 +178,7 @@ export function ClinicTeam({
               <th className="px-3 py-2.5">Nombre</th>
               <th className="px-3 py-2.5">Correo</th>
               <th className="px-3 py-2.5">Rol</th>
+              <th className="px-3 py-2.5">Cédula</th>
               <th className="px-3 py-2.5">Sucursal</th>
               <th className="px-3 py-2.5">Piso</th>
               <th className="px-3 py-2.5 text-right"> </th>
@@ -181,7 +187,7 @@ export function ClinicTeam({
           <tbody>
             {staff.length === 0 ? (
               <tr className="border-b border-pe-line">
-                <td className="px-3 py-6 text-pe-muted" colSpan={7}>
+                <td className="px-3 py-6 text-pe-muted" colSpan={8}>
                   Nadie en el equipo.
                 </td>
               </tr>
@@ -207,6 +213,7 @@ export function ClinicTeam({
                     <td className="px-3 py-2.5 font-medium text-pe-ink">{name}</td>
                     <td className="px-3 py-2.5 text-pe-muted">{row.email ?? '—'}</td>
                     <td className="px-3 py-2.5">{STAFF_ROLE_LABELS[row.role]}</td>
+                    <td className="px-3 py-2.5 text-pe-muted">{row.license || '—'}</td>
                     <td className="px-3 py-2.5 text-pe-muted">{branchName ?? 'Toda la clínica'}</td>
                     <td className="px-3 py-2.5">
                       <span className={`text-xs font-semibold ${row.status === 'active' ? 'text-pe-clay-700' : 'text-pe-muted'}`}>
@@ -238,7 +245,7 @@ export function ClinicTeam({
                 return [
                   main,
                   <tr key={`${row.id}-edit`} className="border-b border-pe-line bg-white">
-                    <td className="px-3 py-3" colSpan={7}>
+                    <td className="px-3 py-3" colSpan={8}>
                       <StaffForm
                         draft={draft}
                         branches={activeBranches}
@@ -281,30 +288,36 @@ function StaffForm({
   onSubmit: (event: React.FormEvent) => void;
 }) {
   return (
-    <form onSubmit={onSubmit} className={`${creating ? 'pe-card p-4' : 'py-1'} grid gap-2 sm:grid-cols-2 lg:grid-cols-4`}>
+    <form onSubmit={onSubmit} className={`${creating ? 'pe-card p-4' : 'py-1'} grid min-w-0 gap-2 sm:grid-cols-2`}>
       <input
-        className="pe-input lg:col-span-2"
+        className="pe-input"
         placeholder="Nombre"
         value={draft.fullName}
         onChange={(e) => onChange({ ...draft, fullName: e.target.value })}
         required
       />
+      <input
+        className="pe-input"
+        placeholder="Cédula profesional"
+        value={draft.license}
+        onChange={(e) => onChange({ ...draft, license: e.target.value })}
+      />
       {creating ? (
         <input
           type="email"
-          className="pe-input lg:col-span-2"
+          className="pe-input"
           placeholder="Correo"
           value={draft.email}
           onChange={(e) => onChange({ ...draft, email: e.target.value })}
           required
         />
       ) : (
-        <p className="self-center truncate text-sm text-pe-muted lg:col-span-2">{draft.email || 'Sin correo'}</p>
+        <p className="self-center truncate text-sm text-pe-muted">{draft.email || 'Sin correo'}</p>
       )}
       {creating ? (
         <input
           type="password"
-          className="pe-input lg:col-span-2"
+          className="pe-input"
           placeholder="Contraseña (si es cuenta nueva)"
           minLength={8}
           value={draft.password}
@@ -326,7 +339,7 @@ function StaffForm({
           </option>
         ))}
       </select>
-      <div className="flex gap-2 sm:col-span-2 lg:col-span-4">
+      <div className="flex gap-2 sm:col-span-2">
         <button type="submit" className="pe-btn-primary px-4 py-2 text-sm" disabled={busy}>
           {busy ? 'Guardando…' : submitLabel}
         </button>

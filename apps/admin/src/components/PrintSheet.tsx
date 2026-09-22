@@ -7,6 +7,8 @@ export function PrintSheet({
   clinicName,
   branchName,
   branchAddress,
+  logo,
+  footer,
   fiscal,
   children,
 }: {
@@ -14,6 +16,8 @@ export function PrintSheet({
   clinicName: string;
   branchName?: string;
   branchAddress?: string | null;
+  logo?: string | null;
+  footer?: string | null;
   fiscal?: {
     rfc?: string | null;
     razonSocial?: string | null;
@@ -30,18 +34,23 @@ export function PrintSheet({
         <PrintButton />
       </div>
       <article className="pe-print-sheet mx-auto max-w-3xl p-8">
-        <p className="pe-kicker">Pet Earth</p>
-        <p className="font-serif text-xl font-semibold">{fiscal?.razonSocial || clinicName}</p>
-        {branchName ? <p className="text-sm text-pe-muted">{branchName}</p> : null}
-        {branchAddress ? <p className="text-sm text-pe-muted">{branchAddress}</p> : null}
-        {fiscal?.rfc || fiscal?.codigoPostal ? (
-          <p className="mt-1 text-sm text-pe-muted">
-            {fiscal.rfc ? `RFC ${fiscal.rfc}` : null}
-            {fiscal.rfc && fiscal.codigoPostal ? ' · ' : null}
-            {fiscal.codigoPostal ? `C.P. ${fiscal.codigoPostal}` : null}
-          </p>
-        ) : null}
+        <header className="flex items-start gap-4">
+          {logo ? <img src={logo} alt="" className="h-16 w-16 rounded-md object-cover" /> : null}
+          <div className="min-w-0">
+            <p className="font-serif text-xl font-semibold">{fiscal?.razonSocial || clinicName}</p>
+            {branchName ? <p className="text-sm text-pe-muted">{branchName}</p> : null}
+            {branchAddress ? <p className="text-sm text-pe-muted">{branchAddress}</p> : null}
+            {fiscal?.rfc || fiscal?.codigoPostal ? (
+              <p className="mt-1 text-sm text-pe-muted">
+                {fiscal.rfc ? `RFC ${fiscal.rfc}` : null}
+                {fiscal.rfc && fiscal.codigoPostal ? ' · ' : null}
+                {fiscal.codigoPostal ? `C.P. ${fiscal.codigoPostal}` : null}
+              </p>
+            ) : null}
+          </div>
+        </header>
         {children}
+        {footer ? <p className="mt-10 text-xs text-pe-muted">{footer}</p> : null}
       </article>
     </div>
   );

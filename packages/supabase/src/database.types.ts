@@ -56,6 +56,7 @@ export interface Database {
           id: string;
           full_name: string | null;
           phone: string | null;
+          license: string | null;
           is_platform_admin: boolean;
           created_at: string;
           updated_at: string;
@@ -64,6 +65,7 @@ export interface Database {
           id: string;
           full_name?: string | null;
           phone?: string | null;
+          license?: string | null;
           is_platform_admin?: boolean;
           created_at?: string;
           updated_at?: string;
@@ -441,6 +443,7 @@ export interface Database {
           quantity: number;
           unit_price: number;
           line_total: number;
+          directions: string | null;
           created_at: string;
         };
         Insert: {
@@ -452,6 +455,7 @@ export interface Database {
           quantity?: number;
           unit_price?: number;
           line_total?: number;
+          directions?: string | null;
           created_at?: string;
         };
         Update: Partial<Database['public']['Tables']['visit_lines']['Insert']>;

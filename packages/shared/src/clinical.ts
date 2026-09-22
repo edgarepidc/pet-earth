@@ -31,6 +31,36 @@ export function canManageClinic(role: StaffRole): boolean {
   return canManageCatalog(role) || role === 'vet';
 }
 
+export const FLOOR_CAPABILITIES = [
+  { key: 'hoy', label: 'Hoy' },
+  { key: 'consulta', label: 'Consulta' },
+  { key: 'receta', label: 'Receta' },
+  { key: 'caja', label: 'Caja' },
+  { key: 'catalogo', label: 'Catálogo' },
+  { key: 'config', label: 'Configuración' },
+  { key: 'informes', label: 'Informes' },
+] as const;
+
+export type FloorCapability = (typeof FLOOR_CAPABILITIES)[number]['key'];
+
+export function roleCan(role: StaffRole, capability: FloorCapability): boolean {
+  switch (capability) {
+    case 'hoy':
+      return true;
+    case 'consulta':
+    case 'receta':
+      return canEditClinical(role);
+    case 'caja':
+      return canTakePayment(role);
+    case 'catalogo':
+      return canManageCatalog(role) || role === 'vet' || role === 'reception';
+    case 'config':
+      return canManageClinic(role);
+    case 'informes':
+      return canManageCatalog(role) || role === 'vet';
+  }
+}
+
 export function slugify(value: string): string {
   const slug = value
     .normalize('NFD')

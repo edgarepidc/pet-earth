@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 
 import { PatientHeader } from '@/components/PatientHeader';
 import {
@@ -37,6 +37,7 @@ type Line = {
   quantity: number;
   unit_price: number;
   line_total: number;
+  directions?: string | null;
 };
 
 type VisitPayload = {
@@ -97,6 +98,7 @@ export function VisitWorkspace({
   const [rr, setRr] = useState(visit.respiratory_rate?.toString() ?? '');
   const [followup, setFollowup] = useState(visit.followup_at ?? '');
   const [itemId, setItemId] = useState(initial.catalog[0]?.id ?? '');
+  const [directions, setDirections] = useState('');
   const [vaccineItem, setVaccineItem] = useState(
     initial.catalog.find((item) => item.kind === 'product' && item.name.toLowerCase().includes('vacuna'))?.id ?? '',
   );
@@ -132,7 +134,13 @@ export function VisitWorkspace({
     const response = await fetch('/api/visits', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ visitId: visit.id, action: 'add-line', catalogItemId: itemId, quantity: 1 }),
+      body: JSON.stringify({
+        visitId: visit.id,
+        action: 'add-line',
+        catalogItemId: itemId,
+        quantity: 1,
+        directions: directions.trim() || undefined,
+      }),
     });
     const payload = (await response.json()) as { error?: string };
     setBusy(false);
@@ -140,6 +148,7 @@ export function VisitWorkspace({
       setError(payload.error ?? 'No se pudo agregar el cargo');
       return;
     }
+    setDirections('');
     await refresh();
   }
 
@@ -335,27 +344,48 @@ export function VisitWorkspace({
 
       <aside className="space-y-4">
         <ChartCard mark="caja" title="Cargos">
-          <p className="mt-1 text-sm text-pe-muted">Lo que documentas aquí se cobra.</p>
-          <div className="mt-3 flex gap-2">
-            <select className="pe-input" value={itemId} onChange={(e) => setItemId(e.target.value)} disabled={closed}>
-              {initial.catalog.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {CATALOG_KIND_LABELS[item.kind]} · {item.name} · {formatMoney(Number(item.unit_price))}
-                </option>
-              ))}
-            </select>
-            <button type="button" className="pe-btn-secondary px-3 text-sm" disabled={closed || busy} onClick={() => void addLine()}>
-              Agregar
-            </button>
+          <p className="mt-1 text-sm text-pe-muted">Lo que documentas aquí se cobra. La indicación sale en la receta, no el precio.</p>
+          <div className="mt-3 grid gap-2">
+            <div className="flex gap-2">
+              <select className="pe-input" value={itemId} onChange={(e) => setItemId(e.target.value)} disabled={closed}>
+                {initial.catalog.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {CATALOG_KIND_LABELS[item.kind]} · {item.name} · {formatMoney(Number(item.unit_price))}
+                  </option>
+                ))}
+              </select>
+              <button type="button" className="pe-btn-secondary px-3 text-sm" disabled={closed || busy} onClick={() => void addLine()}>
+                Agregar
+              </button>
+            </div>
+            <input
+              className="pe-input h-8 py-1 text-sm"
+              placeholder="Indicación (dosis, vía, días) — para la receta"
+              value={directions}
+              onChange={(e) => setDirections(e.target.value)}
+              disabled={closed}
+            />
           </div>
           <ul className="mt-3 divide-y divide-pe-line text-sm">
             {lines.map((line) => (
-              <li key={line.id} className="flex justify-between gap-3 py-2.5">
-                <span>
-                  {line.description}
-                  <span className="block text-xs text-pe-muted">{CATALOG_KIND_LABELS[line.kind]}</span>
+              <li key={line.id} className="py-2.5">
+                <span className="flex justify-between gap-3">
+                  <span>
+                    {line.description}
+                    <span className="block text-xs text-pe-muted">{CATALOG_KIND_LABELS[line.kind]}</span>
+                  </span>
+                  <span className="tabular-nums">{formatMoney(Number(line.line_total))}</span>
                 </span>
-                <span className="tabular-nums">{formatMoney(Number(line.line_total))}</span>
+                {line.kind === 'product' ? (
+                  <ProductLineDirections
+                    visitId={visit.id}
+                    lineId={line.id}
+                    initial={line.directions ?? ''}
+                    disabled={busy || closed}
+                    onError={setError}
+                    onSaved={refresh}
+                  />
+                ) : null}
               </li>
             ))}
             {lines.length === 0 ? <li className="py-2.5 text-pe-muted">Sin cargos aún.</li> : null}
@@ -421,5 +451,67 @@ export function VisitWorkspace({
         </ChartCard>
       </aside>
     </div>
+  );
+}
+
+function ProductLineDirections({
+  visitId,
+  lineId,
+  initial,
+  disabled,
+  onError,
+  onSaved,
+}: {
+  visitId: string;
+  lineId: string;
+  initial: string;
+  disabled: boolean;
+  onError: (message: string) => void;
+  onSaved: () => Promise<void>;
+}) {
+  const [value, setValue] = useState(initial);
+  const saved = useRef(initial.trim());
+  const timer = useRef<number | null>(null);
+
+  async function persist(next = value.trim()) {
+    if (next === saved.current) return;
+    const response = await fetch('/api/visits', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        visitId,
+        action: 'directions',
+        lineId,
+        directions: next,
+      }),
+    });
+    const payload = (await response.json()) as { error?: string };
+    if (!response.ok) {
+      onError(payload.error ?? 'No se pudo guardar la indicación.');
+      return;
+    }
+    saved.current = next;
+    await onSaved();
+  }
+
+  return (
+    <input
+      className="pe-input mt-1 h-8 py-1 text-sm"
+      value={value}
+      placeholder="Indicación al tutor"
+      disabled={disabled}
+      onChange={(event) => {
+        const next = event.target.value;
+        setValue(next);
+        if (timer.current) window.clearTimeout(timer.current);
+        timer.current = window.setTimeout(() => {
+          void persist(next.trim());
+        }, 400);
+      }}
+      onBlur={() => {
+        if (timer.current) window.clearTimeout(timer.current);
+        void persist();
+      }}
+    />
   );
 }

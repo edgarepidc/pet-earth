@@ -1,4 +1,4 @@
-import { formatMexicoDate, formatMoney } from '@petearth/shared';
+import { formatMexicoDate } from '@petearth/shared';
 import { createAdminClient } from '@petearth/supabase/admin';
 import { notFound } from 'next/navigation';
 
@@ -32,6 +32,8 @@ export default async function RecetaPage({ params }: { params: Promise<{ id: str
       : [];
   const meds = lines.filter((line) => line.kind === 'product');
   const dateLabel = formatMexicoDate((visit.completed_at ?? visit.started_at).slice(0, 10));
+  const sheet = letterhead.letterhead;
+  const license = staff.license?.trim();
 
   return (
     <PrintSheet
@@ -39,11 +41,14 @@ export default async function RecetaPage({ params }: { params: Promise<{ id: str
       clinicName={letterhead.clinicName}
       branchName={letterhead.branchName}
       branchAddress={letterhead.branchAddress}
+      logo={sheet.logo}
+      footer={sheet.footer}
       fiscal={letterhead.fiscal}
     >
       <h1 className="mt-4 font-serif text-3xl font-semibold">Receta y alta</h1>
       <p className="text-sm text-pe-muted">
         {dateLabel} · {staff.fullName ?? staff.email}
+        {license ? ` · Cédula ${license}` : ''}
       </p>
       <section className="mt-6 grid gap-2 text-sm">
         <p>
@@ -64,26 +69,33 @@ export default async function RecetaPage({ params }: { params: Promise<{ id: str
           {visit.respiratory_rate ?? '—'}
         </p>
       </section>
-      <section className="mt-6">
-        <h2 className="font-semibold">Evaluación</h2>
-        <p className="mt-1 whitespace-pre-wrap text-sm">{visit.assessment || '—'}</p>
-      </section>
-      <section className="mt-4">
-        <h2 className="font-semibold">Plan / indicaciones</h2>
-        <p className="mt-1 whitespace-pre-wrap text-sm">{visit.plan || '—'}</p>
-      </section>
-      <section className="mt-4">
-        <h2 className="font-semibold">Medicamentos</h2>
-        <ul className="mt-2 space-y-1 text-sm">
-          {meds.map((line) => (
-            <li key={line.id}>
-              {line.description} · {Number(line.quantity)} · {formatMoney(Number(line.unit_price))}
-            </li>
-          ))}
-          {meds.length === 0 ? <li>Sin medicamentos en el ticket.</li> : null}
-        </ul>
-      </section>
-      {(vaccines ?? []).length > 0 ? (
+      {sheet.showAssessment ? (
+        <section className="mt-6">
+          <h2 className="font-semibold">Evaluación</h2>
+          <p className="mt-1 whitespace-pre-wrap text-sm">{visit.assessment || '—'}</p>
+        </section>
+      ) : null}
+      {sheet.showPlan ? (
+        <section className="mt-4">
+          <h2 className="font-semibold">Plan / indicaciones</h2>
+          <p className="mt-1 whitespace-pre-wrap text-sm">{visit.plan || '—'}</p>
+        </section>
+      ) : null}
+      {sheet.showMeds ? (
+        <section className="mt-4">
+          <h2 className="font-semibold">Medicamentos</h2>
+          <ul className="mt-2 space-y-2 text-sm">
+            {meds.map((line) => (
+              <li key={line.id}>
+                <p className="font-medium">{line.description}</p>
+                <p className="text-pe-muted">{line.directions?.trim() || 'Según indicación del médico.'}</p>
+              </li>
+            ))}
+            {meds.length === 0 ? <li>Sin medicamentos recetados.</li> : null}
+          </ul>
+        </section>
+      ) : null}
+      {sheet.showVaccines && (vaccines ?? []).length > 0 ? (
         <section className="mt-4">
           <h2 className="font-semibold">Vacunas aplicadas hoy</h2>
           <ul className="mt-2 space-y-1 text-sm">
@@ -98,7 +110,9 @@ export default async function RecetaPage({ params }: { params: Promise<{ id: str
         </section>
       ) : null}
       <p className="mt-10 text-sm text-pe-muted">
-        Firma y sello ________________________________ · {letterhead.fiscal.razonSocial || staff.organizationName}
+        Firma y sello ________________________________
+        {staff.fullName ? ` · ${staff.fullName}` : ''}
+        {license ? ` · Cédula ${license}` : ''}
       </p>
     </PrintSheet>
   );

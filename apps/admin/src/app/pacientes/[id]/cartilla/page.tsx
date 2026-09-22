@@ -33,6 +33,7 @@ export default async function CartillaPage({ params }: { params: Promise<{ id: s
       clinicName={letterhead.clinicName}
       branchName={letterhead.branchName}
       branchAddress={letterhead.branchAddress}
+      logo={letterhead.letterhead.logo}
       fiscal={letterhead.fiscal}
     >
       <h1 className="mt-4 font-serif text-3xl font-semibold">Cartilla de vacunación</h1>

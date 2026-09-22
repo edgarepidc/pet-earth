@@ -11,7 +11,7 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test src/money.test.ts src/clinical.test.ts src/dates.test.ts src/whatsapp.test.ts src/handoff.test.ts src/hours.test.ts"
+    "test": "tsx --test src/money.test.ts src/clinical.test.ts src/dates.test.ts src/whatsapp.test.ts src/handoff.test.ts src/hours.test.ts src/letterhead.test.ts"
   },
   "devDependencies": {
     "tsx": "^4.20.3",

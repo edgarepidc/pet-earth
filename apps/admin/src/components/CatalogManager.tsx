@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { CATALOG_KIND_LABELS, formatMoney, type CatalogKind } from '@petearth/shared';
 
 import { PageHeading } from '@/components/SectionTitle';
+import { PublicPhotoField } from '@/components/PublicPhotoField';
 
 type Item = {
   id: string;
@@ -307,10 +308,10 @@ function ItemForm({
   onSubmit: (event: React.FormEvent) => void;
 }) {
   return (
-    <form onSubmit={onSubmit} className={`${creating ? 'pe-card p-4' : 'py-1'} grid gap-2 sm:grid-cols-2 lg:grid-cols-4`}>
+    <form onSubmit={onSubmit} className={`${creating ? 'pe-card p-3' : 'py-1'} grid min-w-0 gap-1.5 sm:grid-cols-2`}>
       {creating ? (
         <select
-          className="pe-input"
+          className="pe-input h-8 py-1 text-sm"
           value={draft.kind}
           onChange={(e) => onChange({ ...draft, kind: e.target.value as CatalogKind })}
         >
@@ -323,37 +324,30 @@ function ItemForm({
         </p>
       )}
       <input
-        className="pe-input lg:col-span-2"
+        className="pe-input h-8 py-1 text-sm"
         placeholder="Nombre"
         value={draft.name}
         onChange={(e) => onChange({ ...draft, name: e.target.value })}
         required
       />
       <input
-        className="pe-input"
+        className="pe-input h-8 py-1 text-sm"
         type="number"
         min="0"
         step="0.01"
         value={draft.price}
         onChange={(e) => onChange({ ...draft, price: e.target.value })}
       />
-      <input className="pe-input" placeholder="SKU" value={draft.sku} onChange={(e) => onChange({ ...draft, sku: e.target.value })} />
       <input
-        className="pe-input lg:col-span-3"
-        placeholder="Foto (/catalog/… o https://)"
-        value={draft.imageUrl}
-        onChange={(e) => onChange({ ...draft, imageUrl: e.target.value })}
-      />
-      <textarea
-        className="pe-input min-h-[4rem] sm:col-span-2 lg:col-span-4"
-        placeholder="Texto en el sitio público"
-        value={draft.description}
-        onChange={(e) => onChange({ ...draft, description: e.target.value })}
+        className="pe-input h-8 py-1 text-sm"
+        placeholder="SKU"
+        value={draft.sku}
+        onChange={(e) => onChange({ ...draft, sku: e.target.value })}
       />
       {draft.kind === 'product' ? (
         <>
           <input
-            className="pe-input"
+            className="pe-input h-8 py-1 text-sm"
             type="number"
             min="0"
             value={draft.stock}
@@ -361,7 +355,7 @@ function ItemForm({
             placeholder="Stock"
           />
           <input
-            className="pe-input"
+            className="pe-input h-8 py-1 text-sm"
             type="number"
             min="0"
             value={draft.minStock}
@@ -370,11 +364,24 @@ function ItemForm({
           />
         </>
       ) : null}
-      <div className="flex gap-2 sm:col-span-2 lg:col-span-4">
-        <button type="submit" className="pe-btn-primary px-4 py-2 text-sm" disabled={busy}>
+      <textarea
+        className="pe-input min-h-[3rem] sm:col-span-2"
+        placeholder="Texto en el sitio público"
+        value={draft.description}
+        onChange={(e) => onChange({ ...draft, description: e.target.value })}
+      />
+      <div className="flex flex-wrap items-center gap-2 sm:col-span-2">
+        <PublicPhotoField
+          src={draft.imageUrl || null}
+          name={draft.name}
+          folder="catalog"
+          disabled={busy}
+          onUploaded={(url) => onChange({ ...draft, imageUrl: url })}
+        />
+        <button type="submit" className="pe-btn-primary px-4 py-1.5 text-sm" disabled={busy}>
           {busy ? 'Guardando…' : creating ? 'Agregar' : 'Guardar'}
         </button>
-        <button type="button" className="pe-btn-ghost px-3 py-2 text-sm" onClick={onCancel}>
+        <button type="button" className="pe-btn-ghost px-3 py-1.5 text-sm" onClick={onCancel}>
           Cancelar
         </button>
       </div>

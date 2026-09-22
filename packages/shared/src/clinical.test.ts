@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import { canEditClinical, canTakePayment, normalizeStaffRole, slugify } from './clinical';
+import { canEditClinical, canTakePayment, normalizeStaffRole, roleCan, slugify } from './clinical';
 
 test('reception cannot edit SOAP', () => {
   assert.equal(canEditClinical('reception'), false);
@@ -21,4 +21,12 @@ test('normalizeStaffRole rejects unknown values', () => {
 test('slugify strips accents and punctuation', () => {
   assert.equal(slugify('Clínica Roma Norte'), 'clinica-roma-norte');
   assert.equal(slugify('  '), 'clinica');
+});
+
+test('roleCan matches the floor cut', () => {
+  assert.equal(roleCan('reception', 'caja'), true);
+  assert.equal(roleCan('vet', 'caja'), false);
+  assert.equal(roleCan('reception', 'consulta'), false);
+  assert.equal(roleCan('vet', 'config'), true);
+  assert.equal(roleCan('reception', 'config'), false);
 });

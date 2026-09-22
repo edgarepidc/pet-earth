@@ -24,6 +24,7 @@ export interface StaffContext extends TenantContext {
   userId: string;
   email: string;
   fullName: string | null;
+  license: string | null;
   role: StaffRole;
   isPlatformAdmin: boolean;
   viaPlatform: boolean;
@@ -59,6 +60,7 @@ async function buildStaffContext(input: {
   userId: string;
   email: string;
   fullName: string | null;
+  license: string | null;
   isPlatformAdmin: boolean;
   viaPlatform: boolean;
   tenant: TenantContext;
@@ -84,6 +86,7 @@ async function buildStaffContext(input: {
     userId: input.userId,
     email: input.email,
     fullName: input.fullName,
+    license: input.license,
     role: role ?? 'owner',
     isPlatformAdmin: input.isPlatformAdmin,
     viaPlatform: input.viaPlatform,
@@ -98,7 +101,7 @@ export async function getStaffSession(): Promise<StaffContext | null> {
   const admin = createAdminClient();
   const { data: profile } = await admin
     .from('profiles')
-    .select('full_name, is_platform_admin')
+    .select('full_name, license, is_platform_admin')
     .eq('id', user.id)
     .maybeSingle();
 
@@ -112,6 +115,7 @@ export async function getStaffSession(): Promise<StaffContext | null> {
         userId: user.id,
         email: user.email,
         fullName: profile?.full_name ?? null,
+        license: profile?.license ?? null,
         isPlatformAdmin: true,
         viaPlatform: true,
         tenant,
@@ -126,6 +130,7 @@ export async function getStaffSession(): Promise<StaffContext | null> {
     userId: user.id,
     email: user.email,
     fullName: profile?.full_name ?? null,
+    license: profile?.license ?? null,
     isPlatformAdmin,
     viaPlatform: false,
     tenant,

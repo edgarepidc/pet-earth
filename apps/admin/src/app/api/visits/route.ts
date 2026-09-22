@@ -64,6 +64,8 @@ export async function PATCH(request: Request) {
     heartRate?: number | null;
     respiratoryRate?: number | null;
     followupOn?: string | null;
+    lineId?: string;
+    directions?: string | null;
   };
   if (!body.visitId || !body.action) {
     return NextResponse.json({ error: 'Falta la acción' }, { status: 400 });
@@ -71,7 +73,7 @@ export async function PATCH(request: Request) {
 
   const userClient = await createSupabaseServerClient();
   if (body.action === 'add-line') {
-    const { error } = await userClient.rpc('pe_add_visit_line', {
+    const { data: lineId, error } = await userClient.rpc('pe_add_visit_line', {
       p_visit_id: body.visitId,
       p_catalog_item_id: body.catalogItemId ?? null,
       p_quantity: body.quantity ?? 1,
@@ -79,7 +81,13 @@ export async function PATCH(request: Request) {
       p_description: body.description ?? null,
     });
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
-    return NextResponse.json({ ok: true });
+    const directions = body.directions?.trim() || null;
+    if (directions && lineId) {
+      const supabase = createAdminClient();
+      const { error: dirError } = await supabase.from('visit_lines').update({ directions }).eq('id', lineId);
+      if (dirError) return NextResponse.json({ error: dirError.message }, { status: 400 });
+    }
+    return NextResponse.json({ ok: true, id: lineId });
   }
   if (body.action === 'vaccine') {
     const { error } = await userClient.rpc('pe_apply_vaccine', {
@@ -90,6 +98,25 @@ export async function PATCH(request: Request) {
       p_next_due: body.nextDue ?? null,
       p_notes: body.notes ?? null,
     });
+    if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+    return NextResponse.json({ ok: true });
+  }
+  if (body.action === 'directions') {
+    if (!body.lineId) return NextResponse.json({ error: 'Falta el medicamento.' }, { status: 400 });
+    const supabase = createAdminClient();
+    const { data: line } = await supabase.from('visit_lines').select('id, visit_id').eq('id', body.lineId).maybeSingle();
+    if (!line) return NextResponse.json({ error: 'Cargo no encontrado.' }, { status: 404 });
+    const { data: visit } = await supabase
+      .from('visits')
+      .select('id')
+      .eq('id', line.visit_id)
+      .eq('organization_id', auth.organizationId)
+      .maybeSingle();
+    if (!visit) return NextResponse.json({ error: 'Cargo no encontrado.' }, { status: 404 });
+    const { error } = await supabase
+      .from('visit_lines')
+      .update({ directions: body.directions?.trim() || null })
+      .eq('id', line.id);
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
     return NextResponse.json({ ok: true });
   }

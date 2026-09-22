@@ -20,11 +20,13 @@ export {
   STAFF_ROLES,
   STAFF_ROLE_LABELS,
   VISIT_STATUSES,
+  FLOOR_CAPABILITIES,
   canEditClinical,
   canManageCatalog,
   canManageClinic,
   canTakePayment,
   normalizeStaffRole,
+  roleCan,
   slugify,
   type AppointmentStatus,
   type CatalogKind,
@@ -36,9 +38,16 @@ export {
   type ReminderStatus,
   type Sex,
   type Species,
+  type FloorCapability,
   type StaffRole,
   type VisitStatus,
 } from './clinical';
+export {
+  DEFAULT_RX_FOOTER,
+  letterheadPayload,
+  parseLetterhead,
+  type ClinicLetterhead,
+} from './letterhead';
 export {
   MEXICO_TZ,
   addMexicoDays,

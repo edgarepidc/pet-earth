@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 
-import { canManageClinic } from '@petearth/shared';
 import { createAdminClient } from '@petearth/supabase/admin';
 
 import { requireStaffApi } from '@/lib/auth';
 
 const BUCKET = 'clinic-public';
+const FOLDERS = new Set(['branches', 'letterhead', 'catalog']);
 const ALLOWED = new Set(['image/jpeg', 'image/png', 'image/webp']);
 const MAX_BYTES = 5 * 1024 * 1024;
 
@@ -33,9 +33,6 @@ async function ensurePublicBucket() {
 export async function POST(request: Request) {
   const auth = await requireStaffApi();
   if (auth instanceof NextResponse) return auth;
-  if (!canManageClinic(auth.role) && !auth.isPlatformAdmin) {
-    return NextResponse.json({ error: 'Sin permiso para subir fotos.' }, { status: 403 });
-  }
 
   const form = await request.formData();
   const file = form.get('file');
@@ -51,7 +48,8 @@ export async function POST(request: Request) {
 
   try {
     const supabase = await ensurePublicBucket();
-    const path = `${auth.organizationId}/branches/${crypto.randomUUID()}.${extensionFor(file.type)}`;
+    const folder = FOLDERS.has(String(form.get('folder'))) ? String(form.get('folder')) : 'branches';
+    const path = `${auth.organizationId}/${folder}/${crypto.randomUUID()}.${extensionFor(file.type)}`;
     const buffer = Buffer.from(await file.arrayBuffer());
     const { error: uploadError } = await supabase.storage.from(BUCKET).upload(path, buffer, {
       contentType: file.type,

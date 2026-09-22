@@ -4,7 +4,7 @@ import type { ClinicStaffRow } from '@/components/ClinicTeam';
 import { loadClinicSession } from '@/lib/auth';
 import { loadSpeciesList } from '@/lib/clinicLists';
 import { pacConfigured } from '@/lib/cfdi';
-import { canManageClinic, normalizeStaffRole } from '@petearth/shared';
+import { canManageClinic, normalizeStaffRole, parseLetterhead } from '@petearth/shared';
 import { createAdminClient } from '@petearth/supabase/admin';
 import { redirect } from 'next/navigation';
 
@@ -31,7 +31,7 @@ export default async function ConfiguracionPage() {
   const memberships = membershipsResult.data ?? [];
   const userIds = [...new Set(memberships.map((row) => row.user_id))];
   const { data: profiles } = userIds.length
-    ? await supabase.from('profiles').select('id, full_name').in('id', userIds)
+    ? await supabase.from('profiles').select('id, full_name, license').in('id', userIds)
     : { data: [] };
   const emails = new Map<string, string>();
   await Promise.all(
@@ -52,6 +52,7 @@ export default async function ConfiguracionPage() {
         branch_id: row.branch_id,
         fullName: profiles?.find((profile) => profile.id === row.user_id)?.full_name ?? null,
         email: emails.get(row.user_id) ?? null,
+        license: profiles?.find((profile) => profile.id === row.user_id)?.license ?? null,
       },
     ];
   });
@@ -68,6 +69,7 @@ export default async function ConfiguracionPage() {
         clinicName={orgResult.data?.name ?? staff.organizationName}
         branches={branchesResult.data ?? []}
         staff={team}
+        letterhead={parseLetterhead(orgResult.data?.settings)}
         fiscal={fiscal}
         pacReady={pacConfigured()}
       />

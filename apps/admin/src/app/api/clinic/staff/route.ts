@@ -35,6 +35,7 @@ export async function POST(request: Request) {
     password?: string;
     role?: string;
     branchId?: string | null;
+    license?: string | null;
   } | null;
   const email = body?.email?.trim().toLowerCase() ?? '';
   const role = normalizeStaffRole(body?.role);
@@ -68,6 +69,12 @@ export async function POST(request: Request) {
       branchId: body?.branchId || null,
       role,
     });
+    if (body?.license !== undefined) {
+      await supabase
+        .from('profiles')
+        .update({ license: String(body.license ?? '').trim() || null })
+        .eq('id', user.userId);
+    }
     return NextResponse.json({ ok: true, created: user.created });
   } catch (error) {
     return NextResponse.json(
@@ -89,6 +96,7 @@ export async function PATCH(request: Request) {
     role?: string;
     branchId?: string | null;
     status?: 'active' | 'inactive';
+    license?: string | null;
   } | null;
   if (!body?.id) return NextResponse.json({ error: 'Falta el integrante.' }, { status: 400 });
 
@@ -142,6 +150,13 @@ export async function PATCH(request: Request) {
 
   if (typeof body.fullName === 'string' && body.fullName.trim()) {
     const { error } = await supabase.from('profiles').update({ full_name: body.fullName.trim() }).eq('id', row.user_id);
+    if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  }
+  if (body.license !== undefined) {
+    const { error } = await supabase
+      .from('profiles')
+      .update({ license: String(body.license ?? '').trim() || null })
+      .eq('id', row.user_id);
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
   }
 
