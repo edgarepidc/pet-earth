@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
-import { formatMexicoDateTime } from '@petearth/shared';
+import { APPOINTMENT_STATUS_LABELS, formatMexicoDateTime, type AppointmentStatus } from '@petearth/shared';
 import { createAdminClient } from '@petearth/supabase/admin';
 
 import { AdminShell } from '@/components/AdminShell';
@@ -105,6 +105,7 @@ export default async function PatientPage({ params }: { params: Promise<{ id: st
                   {row.next_due ? ` · próxima ${row.next_due}` : ''}
                 </li>
               ))}
+              {(vaccines ?? []).length === 0 ? <li className="text-pe-muted">Sin vacunas en cartilla.</li> : null}
             </ul>
           </div>
           <ClinicalMedia patientId={patient.id} />
@@ -122,6 +123,7 @@ export default async function PatientPage({ params }: { params: Promise<{ id: st
                   {Number(row.weight_kg)} kg · {formatMexicoDateTime(row.recorded_at)}
                 </li>
               ))}
+              {(weights ?? []).length === 0 ? <li>Sin pesos registrados.</li> : null}
             </ul>
           </div>
           <div className="pe-glass-card p-4">
@@ -132,9 +134,12 @@ export default async function PatientPage({ params }: { params: Promise<{ id: st
             <ul className="mt-2 space-y-1 text-sm">
               {(appointments ?? []).map((row) => (
                 <li key={row.id}>
-                  {formatMexicoDateTime(row.starts_at)} · {row.status}
+                  {formatMexicoDateTime(row.starts_at)} ·{' '}
+                  {APPOINTMENT_STATUS_LABELS[row.status as AppointmentStatus] ?? row.status}
+                  {row.reason?.trim() ? ` · ${row.reason}` : ''}
                 </li>
               ))}
+              {(appointments ?? []).length === 0 ? <li className="text-pe-muted">Sin citas aún.</li> : null}
             </ul>
           </div>
         </aside>

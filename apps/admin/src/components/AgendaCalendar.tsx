@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 import {
   APPOINTMENT_STATUS_LABELS,
@@ -14,10 +14,11 @@ import {
   type AppointmentStatus,
 } from '@petearth/shared';
 
-import { AppointmentPeek, floorStatus, one, type AppointmentRow } from '@/components/AppointmentPeek';
-import { FloorNav } from '@/components/FloorNav';
+import { AppointmentPeek, floorStatus, one, type AppointmentRow, type ClinicVet } from '@/components/AppointmentPeek';
+import { FloorNav, withVetParam } from '@/components/FloorNav';
 import { PageHeading } from '@/components/SectionTitle';
 import { appointmentOutline } from '@/components/StatusPill';
+import { matchesVetFilter, VetFilter } from '@/components/VetFilter';
 
 const WEEKDAYS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'] as const;
 
@@ -39,14 +40,17 @@ export function AgendaCalendar({
   initialDate,
   initialView = 'week',
   appointments,
+  vets = [],
   branchName,
 }: {
   initialDate: string;
   initialView?: 'week' | 'month';
   appointments: AppointmentRow[];
+  vets?: ClinicVet[];
   branchName?: string;
 }) {
   const router = useRouter();
+  const vet = useSearchParams().get('vet');
   const [view, setView] = useState<'week' | 'month'>(initialView);
   const [cursor, setCursor] = useState(initialDate);
   const [openId, setOpenId] = useState<string | null>(null);
@@ -55,24 +59,29 @@ export function AgendaCalendar({
   const range = mexicoAgendaRange(cursor, view);
   const weeks = chunkWeeks(range.days);
 
+  const visible = useMemo(
+    () => appointments.filter((row) => matchesVetFilter(row.vet_id, vet)),
+    [appointments, vet],
+  );
+
   const byDay = useMemo(() => {
     const map = new Map<string, AppointmentRow[]>();
-    for (const row of appointments) {
+    for (const row of visible) {
       const day = todayMexicoYmd(new Date(row.starts_at));
       map.set(day, [...(map.get(day) ?? []), row]);
     }
     return map;
-  }, [appointments]);
+  }, [visible]);
 
   function open(nextView: 'week' | 'month' | 'day', nextCursor: string) {
     if (nextView !== 'day') setView(nextView);
     setCursor(nextCursor);
     const start =
       nextView === 'month' ? mexicoMonthStart(nextCursor) : nextView === 'day' ? nextCursor : mexicoWeekStart(nextCursor);
-    router.push(`/agenda?view=${nextView}&start=${start}`);
+    router.push(withVetParam(`/agenda?view=${nextView}&start=${start}`, vet));
   }
 
-  const selected = appointments.find((row) => row.id === openId) ?? null;
+  const selected = visible.find((row) => row.id === openId) ?? null;
   const description = view === 'week'
     ? `${formatMexicoDate(range.days[0], { day: 'numeric', month: 'short' })} – ${formatMexicoDate(range.days[6], { day: 'numeric', month: 'short' })}`
     : monthTitle(monthStart);
@@ -86,7 +95,10 @@ export function AgendaCalendar({
           title="Agenda"
           description={description}
         />
-        <FloorNav active={view} date={view === 'week' ? range.days[0] : monthStart} />
+        <div className="flex shrink-0 flex-col items-end gap-2">
+          <FloorNav active={view} date={view === 'week' ? range.days[0] : monthStart} />
+          <VetFilter vets={vets} />
+        </div>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[52rem] table-fixed border-separate border-spacing-2">

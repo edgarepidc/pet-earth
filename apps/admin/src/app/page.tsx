@@ -1,3 +1,5 @@
+import { Suspense } from 'react';
+
 import { todayMexicoYmd } from '@petearth/shared';
 
 import { AdminShell } from '@/components/AdminShell';
@@ -23,15 +25,17 @@ export default async function HomePage() {
   return (
     <AdminShell>
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_260px]">
-        <DayBoard
-          title="Hoy"
-          date={ymd}
-          appointments={appointments as AppointmentRow[]}
-          invoices={invoices as OpenInvoiceRow[]}
-          vets={vets}
-          clinicName={staff.organizationName}
-          branchName={staff.branchName}
-        />
+        <Suspense fallback={null}>
+          <DayBoard
+            title="Hoy"
+            date={ymd}
+            appointments={appointments as AppointmentRow[]}
+            invoices={invoices as OpenInvoiceRow[]}
+            vets={vets}
+            clinicName={staff.organizationName}
+            branchName={staff.branchName}
+          />
+        </Suspense>
         <ClinicNotices overdue={overdue} lowStock={lowStock} />
       </div>
     </AdminShell>

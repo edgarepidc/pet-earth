@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import {
@@ -14,6 +14,7 @@ import {
 } from '@petearth/shared';
 
 import { appointmentTone, StatusPill } from '@/components/StatusPill';
+import { clinicSlotClocks } from '@/lib/day-slots';
 
 export const FLOOR_STATUSES: AppointmentStatus[] = [
   'scheduled',
@@ -62,6 +63,17 @@ export async function moveAppointment(id: string, status: AppointmentStatus) {
   return { ok: true as const };
 }
 
+export async function rescheduleAppointment(id: string, date: string, time: string) {
+  const response = await fetch('/api/appointments', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id, action: 'reschedule', date, time }),
+  });
+  const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+  if (!response.ok) return { ok: false as const, error: payload?.error ?? 'No se pudo reagendar' };
+  return { ok: true as const };
+}
+
 export async function startAppointmentVisit(id: string) {
   const response = await fetch('/api/appointments', {
     method: 'PATCH',
@@ -103,6 +115,12 @@ export function AppointmentPeek({
   const [error, setError] = useState<string | null>(null);
   const [visit, setVisit] = useState<VisitPeek | null>(null);
   const [status, setStatus] = useState<AppointmentStatus>(floorStatus(appointment.status));
+  const hours = useMemo(() => clinicSlotClocks(), []);
+  const [moveDate, setMoveDate] = useState(todayMexicoYmd(new Date(appointment.starts_at)));
+  const [moveTime, setMoveTime] = useState(() => {
+    const clock = formatMexicoTime(appointment.starts_at);
+    return hours.includes(clock) ? clock : hours[0] ?? clock;
+  });
 
   const client = one(appointment.clients);
   const patient = one(appointment.patients);
@@ -111,6 +129,10 @@ export function AppointmentPeek({
 
   useEffect(() => {
     setStatus(floorStatus(appointment.status));
+    const nextDay = todayMexicoYmd(new Date(appointment.starts_at));
+    const clock = formatMexicoTime(appointment.starts_at);
+    setMoveDate(nextDay);
+    setMoveTime(hours.includes(clock) ? clock : hours[0] ?? clock);
     const controller = new AbortController();
     void fetch(`/api/appointments?id=${appointment.id}`, { signal: controller.signal })
       .then(async (response) => {
@@ -120,7 +142,7 @@ export function AppointmentPeek({
       })
       .catch(() => undefined);
     return () => controller.abort();
-  }, [appointment.id, appointment.status]);
+  }, [appointment.id, appointment.status, appointment.starts_at, hours]);
 
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
@@ -143,6 +165,21 @@ export function AppointmentPeek({
     setStatus(next);
     onMoved?.();
     router.refresh();
+  }
+
+  async function reschedule() {
+    if (moveDate === day && moveTime === formatMexicoTime(appointment.starts_at)) return;
+    setBusy(true);
+    setError(null);
+    const result = await rescheduleAppointment(appointment.id, moveDate, moveTime);
+    setBusy(false);
+    if (!result.ok) {
+      setError(result.error);
+      return;
+    }
+    onMoved?.();
+    router.refresh();
+    onClose();
   }
 
   async function openVisit() {
@@ -238,6 +275,46 @@ export function AppointmentPeek({
             ))}
           </select>
         </label>
+
+        {status !== 'completed' && status !== 'in_consult' ? (
+          <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_7rem_auto]">
+            <label className="block text-sm font-medium">
+              Nueva fecha
+              <input
+                className="pe-input mt-1 py-1.5 text-sm"
+                type="date"
+                value={moveDate}
+                disabled={busy}
+                onChange={(event) => setMoveDate(event.target.value)}
+              />
+            </label>
+            <label className="block text-sm font-medium">
+              Hora
+              <select
+                className="pe-input mt-1 py-1.5 text-sm"
+                value={moveTime}
+                disabled={busy}
+                onChange={(event) => setMoveTime(event.target.value)}
+              >
+                {hours.map((hour) => (
+                  <option key={hour} value={hour}>
+                    {hour}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <div className="flex items-end">
+              <button
+                type="button"
+                className="pe-btn-secondary w-full px-3 py-1.5 text-sm"
+                disabled={busy || (moveDate === day && moveTime === formatMexicoTime(appointment.starts_at))}
+                onClick={() => void reschedule()}
+              >
+                Reagendar
+              </button>
+            </div>
+          </div>
+        ) : null}
 
         {visit ? (
           <section className="mt-4 border-t border-pe-line pt-3">

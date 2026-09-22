@@ -258,3 +258,31 @@ export async function loadClinicVets(organizationId: string): Promise<ClinicVet[
     .map((profile) => ({ id: profile.id, full_name: profile.full_name?.trim() || 'MVZ' }))
     .sort((a, b) => a.full_name.localeCompare(b.full_name, 'es'));
 }
+
+export type UpcomingPatientAppointment = {
+  id: string;
+  starts_at: string;
+  reason: string | null;
+};
+
+export async function loadUpcomingByPatient(
+  organizationId: string,
+  fromIso: string,
+): Promise<Record<string, UpcomingPatientAppointment>> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from('appointments')
+    .select('id, patient_id, starts_at, reason, status')
+    .eq('organization_id', organizationId)
+    .gte('starts_at', fromIso)
+    .in('status', ['scheduled', 'confirmed', 'waiting', 'in_consult'])
+    .order('starts_at')
+    .limit(500);
+  if (error) throw new Error(error.message);
+  const next: Record<string, UpcomingPatientAppointment> = {};
+  for (const row of data ?? []) {
+    if (!row.patient_id || next[row.patient_id]) continue;
+    next[row.patient_id] = { id: row.id, starts_at: row.starts_at, reason: row.reason };
+  }
+  return next;
+}

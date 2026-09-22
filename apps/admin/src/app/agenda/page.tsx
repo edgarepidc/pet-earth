@@ -1,4 +1,5 @@
 import { formatMexicoDate, isValidYmd, mexicoAgendaRange, todayMexicoYmd } from '@petearth/shared';
+import { Suspense } from 'react';
 
 import { AdminShell } from '@/components/AdminShell';
 import { AgendaCalendar } from '@/components/AgendaCalendar';
@@ -35,7 +36,8 @@ export default async function AgendaPage({
     return (
       <AdminShell>
         <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_260px]">
-          <DayBoard
+          <Suspense fallback={null}>
+            <DayBoard
             mark="agenda"
             title={title.charAt(0).toUpperCase() + title.slice(1)}
             date={anchor}
@@ -46,6 +48,7 @@ export default async function AgendaPage({
             kicker={`Agenda · ${staff.branchName ?? staff.organizationName}`}
             showCash={false}
           />
+          </Suspense>
           <ClinicNotices overdue={overdue} lowStock={lowStock} />
         </div>
       </AdminShell>
@@ -53,22 +56,26 @@ export default async function AgendaPage({
   }
 
   const range = mexicoAgendaRange(anchor, view);
-  const [appointments, overdue, lowStock] = await Promise.all([
+  const [appointments, overdue, lowStock, vets] = await Promise.all([
     loadAppointmentsInRange(staff.branchId, `${range.start}T00:00:00-06:00`, `${range.end}T00:00:00-06:00`),
     overduePromise,
     lowStockPromise,
+    loadClinicVets(staff.organizationId),
   ]);
 
   return (
     <AdminShell>
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_260px]">
-        <AgendaCalendar
+        <Suspense fallback={null}>
+          <AgendaCalendar
           key={`${view}-${range.start}`}
           initialDate={anchor}
           initialView={view}
           appointments={appointments as AppointmentRow[]}
+          vets={vets}
           branchName={staff.branchName}
         />
+        </Suspense>
         <ClinicNotices overdue={overdue} lowStock={lowStock} />
       </div>
     </AdminShell>

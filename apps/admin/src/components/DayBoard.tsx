@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 import { APPOINTMENT_STATUS_LABELS, formatMexicoTime, formatMoney, todayMexicoYmd, type AppointmentStatus } from '@petearth/shared';
 
@@ -18,6 +18,7 @@ import {
 import { BookSlotDialog } from '@/components/BookSlotDialog';
 import { FloorNav } from '@/components/FloorNav';
 import { PageHeading, SectionMark } from '@/components/SectionTitle';
+import { matchesVetFilter, VetFilter } from '@/components/VetFilter';
 import { appointmentTone } from '@/components/StatusPill';
 import { clockToMinutes, daySlotStarts, minutesToClock, slotFloor } from '@/lib/day-slots';
 
@@ -60,6 +61,7 @@ export function DayBoard({
   mark?: 'hoy' | 'agenda';
 }) {
   const router = useRouter();
+  const vetFilter = useSearchParams().get('vet');
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [overrides, setOverrides] = useState<Record<string, AppointmentStatus>>({});
@@ -69,9 +71,10 @@ export function DayBoard({
   const visible = useMemo(
     () =>
       appointments
+        .filter((row) => matchesVetFilter(row.vet_id, vetFilter))
         .map((row) => (overrides[row.id] ? { ...row, status: overrides[row.id] } : row))
         .sort((a, b) => a.starts_at.localeCompare(b.starts_at)),
-    [appointments, overrides],
+    [appointments, overrides, vetFilter],
   );
   const selected = visible.find((row) => row.id === openId) ?? null;
   const isToday = date === todayMexicoYmd();
@@ -123,7 +126,10 @@ export function DayBoard({
           title={title}
           description="Pica un horario libre para agendar."
         />
-        <FloorNav active={isToday ? 'hoy' : 'day'} date={date} />
+        <div className="flex shrink-0 flex-col items-end gap-2">
+          <FloorNav active={isToday ? 'hoy' : 'day'} date={date} />
+          <VetFilter vets={vets} />
+        </div>
       </div>
       {error ? <p className="pe-callout-amber p-3 text-sm">{error}</p> : null}
       <div className="pe-card overflow-x-auto px-1 py-2">
