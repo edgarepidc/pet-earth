@@ -1,4 +1,4 @@
-import { formatMexicoDate, isValidYmd, mexicoAgendaRange, mexicoWeekStart, todayMexicoYmd } from '@petearth/shared';
+import { formatMexicoDate, isValidYmd, mexicoAgendaRange, todayMexicoYmd } from '@petearth/shared';
 
 import { AdminShell } from '@/components/AdminShell';
 import { AgendaCalendar } from '@/components/AgendaCalendar';
@@ -44,8 +44,6 @@ export default async function AgendaPage({
             clinicName={staff.organizationName}
             branchName={staff.branchName}
             kicker={`Agenda · ${staff.branchName ?? staff.organizationName}`}
-            backHref={`/agenda?view=week&start=${mexicoWeekStart(anchor)}`}
-            backLabel="Semana"
             showCash={false}
           />
           <ClinicNotices overdue={overdue} lowStock={lowStock} />

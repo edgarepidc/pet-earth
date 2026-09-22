@@ -16,6 +16,7 @@ import {
   type ClinicVet,
 } from '@/components/AppointmentPeek';
 import { BookSlotDialog } from '@/components/BookSlotDialog';
+import { FloorNav } from '@/components/FloorNav';
 import { PageHeading, SectionMark } from '@/components/SectionTitle';
 import { appointmentTone } from '@/components/StatusPill';
 import { clockToMinutes, daySlotStarts, minutesToClock, slotFloor } from '@/lib/day-slots';
@@ -44,8 +45,6 @@ export function DayBoard({
   clinicName,
   branchName,
   kicker,
-  backHref,
-  backLabel = 'Semana',
   showCash = true,
   mark = 'hoy',
 }: {
@@ -57,8 +56,6 @@ export function DayBoard({
   clinicName: string;
   branchName?: string;
   kicker?: string;
-  backHref?: string;
-  backLabel?: string;
   showCash?: boolean;
   mark?: 'hoy' | 'agenda';
 }) {
@@ -117,13 +114,6 @@ export function DayBoard({
     router.refresh();
   }
 
-  function nextFreeClock() {
-    const firstEmpty = slots.find((slot) => slot.rows.length === 0);
-    if (!isToday) return firstEmpty?.clock ?? '09:00';
-    const upcoming = slots.find((slot) => slot.start >= nowSlot && slot.rows.length === 0);
-    return upcoming?.clock ?? firstEmpty?.clock ?? '09:00';
-  }
-
   return (
     <section className="space-y-4">
       <div className="flex items-end justify-between gap-3">
@@ -133,25 +123,7 @@ export function DayBoard({
           title={title}
           description="Pica un horario libre para agendar."
         />
-        <div className="flex shrink-0 flex-nowrap items-center gap-2">
-          <button type="button" className="pe-btn-primary whitespace-nowrap px-3 py-1.5 text-sm" onClick={() => setBookTime(nextFreeClock())}>
-            Agendar
-          </button>
-          {backHref ? (
-            <>
-              <Link href={backHref} className="pe-btn-secondary whitespace-nowrap px-3 py-1.5 text-sm">
-                {backLabel}
-              </Link>
-              <Link href="/" className="pe-btn-ghost whitespace-nowrap px-3 py-1.5 text-sm">
-                Hoy
-              </Link>
-            </>
-          ) : (
-            <Link href="/agenda" className="pe-btn-secondary whitespace-nowrap px-3 py-1.5 text-sm">
-              Semana / mes
-            </Link>
-          )}
-        </div>
+        <FloorNav active={isToday ? 'hoy' : 'day'} date={date} />
       </div>
       {error ? <p className="pe-callout-amber p-3 text-sm">{error}</p> : null}
       <div className="pe-card overflow-x-auto px-1 py-2">

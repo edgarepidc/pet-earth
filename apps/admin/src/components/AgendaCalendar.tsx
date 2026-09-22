@@ -1,12 +1,10 @@
 'use client';
 
-import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import {
   APPOINTMENT_STATUS_LABELS,
-  addMexicoDays,
   formatMexicoDate,
   formatMexicoTime,
   mexicoAgendaRange,
@@ -17,6 +15,7 @@ import {
 } from '@petearth/shared';
 
 import { AppointmentPeek, floorStatus, one, type AppointmentRow } from '@/components/AppointmentPeek';
+import { FloorNav } from '@/components/FloorNav';
 import { PageHeading } from '@/components/SectionTitle';
 import { appointmentOutline } from '@/components/StatusPill';
 
@@ -65,24 +64,12 @@ export function AgendaCalendar({
     return map;
   }, [appointments]);
 
-  function shiftMonth(ymd: string, delta: number): string {
-    const [year, month] = ymd.split('-').map(Number);
-    const date = new Date(Date.UTC(year, month - 1 + delta, 1));
-    return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-01`;
-  }
-
   function open(nextView: 'week' | 'month' | 'day', nextCursor: string) {
     if (nextView !== 'day') setView(nextView);
     setCursor(nextCursor);
     const start =
       nextView === 'month' ? mexicoMonthStart(nextCursor) : nextView === 'day' ? nextCursor : mexicoWeekStart(nextCursor);
     router.push(`/agenda?view=${nextView}&start=${start}`);
-  }
-
-  function go(delta: number) {
-    const nextCursor =
-      view === 'week' ? addMexicoDays(mexicoWeekStart(cursor), delta * 7) : shiftMonth(monthStart, delta);
-    open(view, nextCursor);
   }
 
   const selected = appointments.find((row) => row.id === openId) ?? null;
@@ -99,31 +86,7 @@ export function AgendaCalendar({
           title="Agenda"
           description={description}
         />
-        <div className="flex shrink-0 flex-nowrap items-center gap-2">
-          <Link href="/" className="pe-btn-primary whitespace-nowrap px-3 py-1.5 text-sm">
-            Hoy
-          </Link>
-          <button
-            type="button"
-            className={`pe-btn-ghost whitespace-nowrap px-3 py-1.5 text-sm ${view === 'week' ? 'pe-chip-active' : ''}`}
-            onClick={() => open('week', today)}
-          >
-            Semana
-          </button>
-          <button
-            type="button"
-            className={`pe-btn-ghost whitespace-nowrap px-3 py-1.5 text-sm ${view === 'month' ? 'pe-chip-active' : ''}`}
-            onClick={() => open('month', cursor)}
-          >
-            Mes
-          </button>
-          <button type="button" className="pe-btn-secondary whitespace-nowrap px-3 py-1.5 text-sm" onClick={() => go(-1)}>
-            Anterior
-          </button>
-          <button type="button" className="pe-btn-secondary whitespace-nowrap px-3 py-1.5 text-sm" onClick={() => go(1)}>
-            Siguiente
-          </button>
-        </div>
+        <FloorNav active={view} date={view === 'week' ? range.days[0] : monthStart} />
       </div>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[52rem] table-fixed border-separate border-spacing-2">
