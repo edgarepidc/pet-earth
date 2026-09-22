@@ -4,18 +4,19 @@ import { AdminShell } from '@/components/AdminShell';
 import { ClinicNotices } from '@/components/ClinicNotices';
 import { DayBoard, type AppointmentRow, type OpenInvoiceRow } from '@/components/DayBoard';
 import { loadClinicSession } from '@/lib/auth';
-import { loadDayAppointments, loadFollowUps, loadLowStock, loadOpenInvoices } from '@/lib/queries';
+import { loadClinicVets, loadDayAppointments, loadFollowUps, loadLowStock, loadOpenInvoices } from '@/lib/queries';
 
 export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
   const staff = await loadClinicSession();
   const ymd = todayMexicoYmd();
-  const [appointments, reminders, invoices, lowStock] = await Promise.all([
+  const [appointments, reminders, invoices, lowStock, vets] = await Promise.all([
     loadDayAppointments(staff.branchId, ymd),
     loadFollowUps(staff.organizationId),
     loadOpenInvoices(staff.organizationId, staff.branchId),
     loadLowStock(staff.organizationId),
+    loadClinicVets(staff.organizationId),
   ]);
   const overdue = reminders.filter((row) => row.due_on <= ymd);
 
@@ -27,6 +28,7 @@ export default async function HomePage() {
           date={ymd}
           appointments={appointments as AppointmentRow[]}
           invoices={invoices as OpenInvoiceRow[]}
+          vets={vets}
           clinicName={staff.organizationName}
           branchName={staff.branchName}
         />

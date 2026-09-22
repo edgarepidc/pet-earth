@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { DEFAULT_SPECIES_OPTIONS, formatMexicoDate, type ClinicListOption } from '@petearth/shared';
 
+import type { ClinicVet } from '@/components/AppointmentPeek';
+
 type PatientOption = {
   id: string;
   name: string;
@@ -22,11 +24,13 @@ type ClientOption = {
 export function BookSlotDialog({
   date,
   time,
+  vets = [],
   onClose,
   onCreated,
 }: {
   date: string;
   time: string;
+  vets?: ClinicVet[];
   onClose: () => void;
   onCreated: () => void;
 }) {
@@ -43,6 +47,7 @@ export function BookSlotDialog({
   const [petName, setPetName] = useState('');
   const [petSpecies, setPetSpecies] = useState(DEFAULT_SPECIES_OPTIONS[0]?.slug ?? 'dog');
   const [reason, setReason] = useState('');
+  const [vetId, setVetId] = useState(vets[0]?.id ?? '');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -126,7 +131,7 @@ export function BookSlotDialog({
       const response = await fetch('/api/appointments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ patientId: nextPatientId, date, time, reason }),
+        body: JSON.stringify({ patientId: nextPatientId, date, time, reason, vetId: vetId || null }),
       });
       const payload = (await response.json()) as { error?: string };
       if (!response.ok) throw new Error(payload.error ?? 'No se pudo agendar');
@@ -153,7 +158,9 @@ export function BookSlotDialog({
         <h2 id="book-slot-title" className="mt-1 text-xl font-semibold tracking-tight">
           {formatMexicoDate(date, { weekday: 'long', day: 'numeric', month: 'long' })} · {time}
         </h2>
-        <p className="mt-1 text-sm text-pe-muted">Consulta de una hora. Puedes usar un tutor existente o registrar uno nuevo.</p>
+        <p className="mt-1 text-sm text-pe-muted">
+          Consulta de una hora. Si otro veterinario ya tiene este horario, se agenda en paralelo.
+        </p>
 
         <div className="mt-4 flex gap-2">
           <button
@@ -306,6 +313,18 @@ export function BookSlotDialog({
             value={reason}
             onChange={(event) => setReason(event.target.value)}
           />
+        </label>
+
+        <label className="mt-4 block text-sm font-medium">
+          Veterinario
+          <select className="pe-input mt-1" value={vetId} onChange={(event) => setVetId(event.target.value)}>
+            <option value="">Sin asignar</option>
+            {vets.map((vet) => (
+              <option key={vet.id} value={vet.id}>
+                {vet.full_name}
+              </option>
+            ))}
+          </select>
         </label>
 
         {error ? <p className="pe-callout-amber mt-3 p-3 text-sm">{error}</p> : null}

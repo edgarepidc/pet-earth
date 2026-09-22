@@ -49,6 +49,7 @@ export async function POST(request: Request) {
     time?: string;
     durationMin?: number;
     reason?: string;
+    vetId?: string | null;
   };
   if (!body.patientId || !body.date || !body.time) {
     return NextResponse.json({ error: 'Paciente, fecha y hora son obligatorios.' }, { status: 400 });
@@ -68,6 +69,22 @@ export async function POST(request: Request) {
   const ends = new Date(startsAt);
   ends.setMinutes(ends.getMinutes() + duration);
 
+  let vetId: string | null = null;
+  if (body.vetId) {
+    const { data: membership } = await supabase
+      .from('staff_memberships')
+      .select('user_id')
+      .eq('user_id', body.vetId)
+      .eq('organization_id', auth.organizationId)
+      .eq('status', 'active')
+      .eq('role', 'vet')
+      .maybeSingle();
+    if (!membership) return NextResponse.json({ error: 'Veterinario no válido.' }, { status: 400 });
+    vetId = membership.user_id;
+  } else if (auth.role === 'vet') {
+    vetId = auth.userId;
+  }
+
   const { data, error } = await supabase
     .from('appointments')
     .insert({
@@ -75,7 +92,7 @@ export async function POST(request: Request) {
       branch_id: auth.branchId,
       client_id: patient.client_id,
       patient_id: patient.id,
-      vet_id: auth.role === 'vet' ? auth.userId : null,
+      vet_id: vetId,
       starts_at: startsAt,
       ends_at: ends.toISOString(),
       reason: body.reason?.trim() || null,

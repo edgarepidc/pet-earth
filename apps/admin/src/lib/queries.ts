@@ -13,7 +13,12 @@ export async function loadAppointmentsInRange(branchId: string, startIso: string
     .lt('starts_at', endIso)
     .order('starts_at');
   if (error) throw new Error(error.message);
-  return data ?? [];
+  const rows = data ?? [];
+  const vetIds = [...new Set(rows.map((row) => row.vet_id).filter((id): id is string => Boolean(id)))];
+  if (vetIds.length === 0) return rows.map((row) => ({ ...row, vet_name: null as string | null }));
+  const { data: profiles } = await supabase.from('profiles').select('id, full_name').in('id', vetIds);
+  const nameById = new Map((profiles ?? []).map((profile) => [profile.id, profile.full_name ?? 'MVZ']));
+  return rows.map((row) => ({ ...row, vet_name: row.vet_id ? (nameById.get(row.vet_id) ?? 'MVZ') : null }));
 }
 
 export async function loadDayAppointments(branchId: string, ymd: string) {
@@ -213,6 +218,16 @@ export async function loadAppointmentPeek(organizationId: string, branchId: stri
   if (error) throw new Error(error.message);
   if (!appointment) return null;
 
+  let vet_name: string | null = null;
+  if (appointment.vet_id) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('full_name')
+      .eq('id', appointment.vet_id)
+      .maybeSingle();
+    vet_name = profile?.full_name?.trim() || 'MVZ';
+  }
+
   const { data: visit } = await supabase
     .from('visits')
     .select(
@@ -222,5 +237,24 @@ export async function loadAppointmentPeek(organizationId: string, branchId: stri
     .eq('organization_id', organizationId)
     .maybeSingle();
 
-  return { appointment, visit: visit ?? null };
+  return { appointment: { ...appointment, vet_name }, visit: visit ?? null };
+}
+
+export type ClinicVet = { id: string; full_name: string };
+
+export async function loadClinicVets(organizationId: string): Promise<ClinicVet[]> {
+  const supabase = createAdminClient();
+  const { data: memberships, error } = await supabase
+    .from('staff_memberships')
+    .select('user_id')
+    .eq('organization_id', organizationId)
+    .eq('status', 'active')
+    .eq('role', 'vet');
+  if (error) throw new Error(error.message);
+  const ids = [...new Set((memberships ?? []).map((row) => row.user_id))];
+  if (ids.length === 0) return [];
+  const { data: profiles } = await supabase.from('profiles').select('id, full_name').in('id', ids);
+  return (profiles ?? [])
+    .map((profile) => ({ id: profile.id, full_name: profile.full_name?.trim() || 'MVZ' }))
+    .sort((a, b) => a.full_name.localeCompare(b.full_name, 'es'));
 }

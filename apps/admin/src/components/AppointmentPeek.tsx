@@ -13,7 +13,7 @@ import {
   type AppointmentStatus,
 } from '@petearth/shared';
 
-import { StatusPill } from '@/components/StatusPill';
+import { appointmentTone, StatusPill } from '@/components/StatusPill';
 
 export const FLOOR_STATUSES: AppointmentStatus[] = [
   'scheduled',
@@ -33,12 +33,16 @@ export function one<T>(value: T | T[] | null | undefined): T | null {
   return Array.isArray(value) ? value[0] ?? null : value;
 }
 
+export type ClinicVet = { id: string; full_name: string };
+
 export type AppointmentRow = {
   id: string;
   starts_at: string;
   ends_at: string;
   status: AppointmentStatus;
   reason: string | null;
+  vet_id?: string | null;
+  vet_name?: string | null;
   clients: { full_name: string; phone: string | null } | { full_name: string; phone: string | null }[] | null;
   patients:
     | { id?: string; name: string; species: string; alerts: string | null }
@@ -207,6 +211,10 @@ export function AppointmentPeek({
               ) : null}
             </div>
           </div>
+          <div>
+            <dt className="text-[11px] font-bold uppercase tracking-[0.12em] text-pe-muted">Veterinario</dt>
+            <dd className="mt-0.5">{appointment.vet_name?.trim() || 'Sin asignar'}</dd>
+          </div>
           {patient?.alerts ? (
             <div className="pe-callout-amber p-3">
               <dt className="text-[11px] font-bold uppercase tracking-[0.12em]">Alertas</dt>
@@ -218,7 +226,7 @@ export function AppointmentPeek({
         <label className="mt-4 block text-sm font-medium">
           Estatus
           <select
-            className="pe-input mt-1 py-1.5 text-sm"
+            className={`pe-input mt-1 py-1.5 text-sm font-semibold ${appointmentTone(status)}`}
             value={status}
             disabled={busy}
             onChange={(event) => void changeStatus(event.target.value as AppointmentStatus)}

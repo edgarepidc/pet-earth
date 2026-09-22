@@ -13,13 +13,14 @@ import {
   moveAppointment,
   one,
   type AppointmentRow,
+  type ClinicVet,
 } from '@/components/AppointmentPeek';
 import { BookSlotDialog } from '@/components/BookSlotDialog';
 import { PageHeading, SectionMark } from '@/components/SectionTitle';
 import { appointmentTone } from '@/components/StatusPill';
 import { clockToMinutes, daySlotStarts, minutesToClock, slotFloor } from '@/lib/day-slots';
 
-export type { AppointmentRow };
+export type { AppointmentRow, ClinicVet };
 
 export type OpenInvoiceRow = {
   id: string;
@@ -29,11 +30,17 @@ export type OpenInvoiceRow = {
   visits: { patients: { name: string } | { name: string }[] | null } | { patients: { name: string } | { name: string }[] | null }[] | null;
 };
 
+function sameVetTwice(rows: AppointmentRow[]): boolean {
+  const ids = rows.map((row) => row.vet_id).filter((id): id is string => Boolean(id));
+  return ids.length !== new Set(ids).size;
+}
+
 export function DayBoard({
   title,
   date,
   appointments,
   invoices = [],
+  vets = [],
   clinicName,
   branchName,
 }: {
@@ -41,6 +48,7 @@ export function DayBoard({
   date: string;
   appointments: AppointmentRow[];
   invoices?: OpenInvoiceRow[];
+  vets?: ClinicVet[];
   clinicName: string;
   branchName?: string;
 }) {
@@ -71,7 +79,11 @@ export function DayBoard({
       list.push(row);
       bySlot.set(key, list);
     }
-    return starts.map((start) => ({ start, clock: minutesToClock(start), rows: bySlot.get(start) ?? [] }));
+    return starts.map((start) => ({
+      start,
+      clock: minutesToClock(start),
+      rows: (bySlot.get(start) ?? []).slice().sort((a, b) => (a.vet_name ?? '').localeCompare(b.vet_name ?? '', 'es')),
+    }));
   }, [visible]);
 
   async function changeStatus(id: string, next: AppointmentStatus, previous: AppointmentStatus) {
@@ -106,7 +118,7 @@ export function DayBoard({
           mark="hoy"
           kicker={`Sala de espera · ${branchName ?? clinicName}`}
           title={title}
-          description="Horario completo del día. Un hueco abre la ficha para agendar; una cita abre el detalle."
+          description="Si coinciden dos veterinarios a la misma hora, se ven en paralelo. Un hueco abre la ficha para agendar."
         />
         <div className="flex flex-wrap gap-2">
           <button type="button" className="pe-btn-primary px-4 py-2 text-sm" onClick={() => setBookTime(nextFreeClock())}>
@@ -118,14 +130,15 @@ export function DayBoard({
         </div>
       </div>
       {error ? <p className="pe-callout-amber p-3 text-sm">{error}</p> : null}
-      <div className="pe-card overflow-x-auto">
-        <table className="w-full min-w-[40rem] text-left text-sm">
+      <div className="pe-card overflow-x-auto px-1 py-2">
+        <table className="w-full min-w-[48rem] text-left text-sm">
           <thead>
             <tr className="border-b border-pe-line text-[10px] font-bold uppercase tracking-[0.12em] text-pe-muted">
               <th className="px-3 py-2.5">Hora</th>
               <th className="px-3 py-2.5">Paciente</th>
               <th className="px-3 py-2.5">Tutor</th>
               <th className="px-3 py-2.5">Motivo</th>
+              <th className="px-3 py-2.5">Veterinario</th>
               <th className="px-3 py-2.5">Estatus</th>
             </tr>
           </thead>
@@ -135,7 +148,7 @@ export function DayBoard({
                 return (
                   <tr key={slot.clock} className={`border-b border-pe-line ${slot.start === nowSlot ? 'bg-pe-wash/60' : ''}`}>
                     <td className="whitespace-nowrap px-3 py-2 tabular-nums text-pe-muted">{slot.clock}</td>
-                    <td colSpan={4} className="px-3 py-2">
+                    <td colSpan={5} className="px-3 py-2">
                       <button
                         type="button"
                         className="text-sm text-pe-clay-700 hover:underline"
@@ -147,20 +160,31 @@ export function DayBoard({
                   </tr>
                 );
               }
-              return slot.rows.map((row) => {
+              const clash = sameVetTwice(slot.rows);
+              return slot.rows.map((row, index) => {
                 const client = one(row.clients);
                 const patient = one(row.patients);
                 return (
                   <tr
                     key={row.id}
-                    className={`cursor-pointer border-b border-pe-line bg-white shadow-[0_1px_4px_rgba(22,26,22,0.1)] last:border-0 hover:bg-pe-wash ${
-                      slot.start === nowSlot ? 'ring-1 ring-inset ring-pe-clay/30' : ''
+                    className={`cursor-pointer border-b border-pe-line bg-[#fbfcf8] shadow-[0_4px_14px_rgba(22,26,22,0.14)] last:border-0 hover:bg-white ${
+                      slot.start === nowSlot ? 'ring-1 ring-inset ring-pe-clay/40' : ''
                     }`}
                     onClick={() => setOpenId(row.id)}
                   >
-                    <td className="whitespace-nowrap px-3 py-2.5 tabular-nums font-semibold">
-                      {formatMexicoTime(row.starts_at)}
-                    </td>
+                    {index === 0 ? (
+                      <td
+                        rowSpan={slot.rows.length}
+                        className="whitespace-nowrap border-l-[3px] border-pe-clay bg-[#eef2e6] px-3 py-2.5 align-top tabular-nums font-semibold"
+                      >
+                        {slot.clock}
+                        {slot.rows.length > 1 ? (
+                          <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-pe-clay-700">
+                            {clash ? 'Choque mismo MVZ' : `${slot.rows.length} en paralelo`}
+                          </p>
+                        ) : null}
+                      </td>
+                    ) : null}
                     <td className="px-3 py-2.5">
                       <p className="font-medium">{patient?.name ?? 'Paciente'}</p>
                       {patient?.alerts ? (
@@ -171,9 +195,10 @@ export function DayBoard({
                     <td className="max-w-[14rem] px-3 py-2.5 text-pe-ink">
                       {row.reason?.trim() || <span className="text-pe-muted">—</span>}
                     </td>
+                    <td className="px-3 py-2.5 font-medium text-pe-ink">{row.vet_name?.trim() || 'Sin asignar'}</td>
                     <td className="px-3 py-2.5" onClick={(event) => event.stopPropagation()}>
                       <select
-                        className={`pe-input py-1 text-xs ${appointmentTone(floorStatus(row.status))}`}
+                        className={`pe-input py-1 text-xs font-semibold ${appointmentTone(floorStatus(row.status))}`}
                         value={floorStatus(row.status)}
                         disabled={busyId === row.id}
                         aria-label={`Estatus de ${patient?.name ?? 'la cita'}`}
@@ -236,6 +261,7 @@ export function DayBoard({
         <BookSlotDialog
           date={date}
           time={bookTime}
+          vets={vets}
           onClose={() => setBookTime(null)}
           onCreated={() => {
             setBookTime(null);

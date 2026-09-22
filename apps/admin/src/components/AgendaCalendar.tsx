@@ -171,6 +171,9 @@ export function AgendaCalendar({
                                   <p className="mt-0.5 truncate text-pe-muted">
                                     {row.reason?.trim() || 'Sin motivo'}
                                   </p>
+                                  {row.vet_name ? (
+                                    <p className="mt-0.5 truncate text-[11px] font-medium text-pe-clay-700">{row.vet_name}</p>
+                                  ) : null}
                                   {view === 'week' ? <StatusPill status={row.status as AppointmentStatus} /> : null}
                                 </button>
                               </li>
