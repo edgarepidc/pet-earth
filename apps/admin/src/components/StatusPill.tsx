@@ -24,6 +24,25 @@ export function appointmentTone(status: AppointmentStatus): string {
   }
 }
 
+export function appointmentOutline(status: AppointmentStatus): string {
+  switch (status) {
+    case 'waiting':
+      return 'border-amber-400';
+    case 'in_consult':
+      return 'border-pe-clay';
+    case 'completed':
+      return 'border-emerald-500';
+    case 'no_show':
+      return 'border-rose-400';
+    case 'cancelled':
+      return 'border-zinc-300 text-pe-muted';
+    case 'confirmed':
+    case 'scheduled':
+    default:
+      return 'border-sky-400';
+  }
+}
+
 export function StatusPill({ status }: { status: AppointmentStatus }) {
   return (
     <span className={`pe-pill ${appointmentTone(status)}`}>{APPOINTMENT_STATUS_LABELS[status]}</span>

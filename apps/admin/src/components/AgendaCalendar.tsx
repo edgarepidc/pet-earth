@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import {
+  APPOINTMENT_STATUS_LABELS,
   addMexicoDays,
   formatMexicoDate,
   formatMexicoTime,
@@ -15,9 +16,9 @@ import {
   type AppointmentStatus,
 } from '@petearth/shared';
 
-import { AppointmentPeek, one, type AppointmentRow } from '@/components/AppointmentPeek';
+import { AppointmentPeek, floorStatus, one, type AppointmentRow } from '@/components/AppointmentPeek';
 import { PageHeading } from '@/components/SectionTitle';
-import { StatusPill } from '@/components/StatusPill';
+import { appointmentOutline, StatusPill } from '@/components/StatusPill';
 
 const WEEKDAYS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'] as const;
 
@@ -155,9 +156,27 @@ export function AgendaCalendar({
                             ? formatMexicoDate(day, { day: 'numeric', month: 'short' })
                             : String(Number(day.slice(8)))}
                         </p>
-                        <ul className={`mt-2 space-y-1.5 ${view === 'month' ? 'max-h-28 overflow-y-auto' : ''}`}>
+                        <ul className={`mt-2 ${view === 'month' ? 'max-h-28 space-y-1 overflow-y-auto' : 'space-y-1.5'}`}>
                           {rows.map((row) => {
                             const patient = one(row.patients);
+                            const status = floorStatus(row.status as AppointmentStatus);
+                            if (view === 'month') {
+                              return (
+                                <li key={row.id}>
+                                  <button
+                                    type="button"
+                                    title={`${formatMexicoTime(row.starts_at)} ${patient?.name ?? 'Paciente'} · ${APPOINTMENT_STATUS_LABELS[status]}`}
+                                    className={`w-full rounded border bg-white/70 px-1.5 py-1 text-left text-[11px] leading-tight hover:bg-white ${appointmentOutline(status)}`}
+                                    onClick={() => setOpenId(row.id)}
+                                  >
+                                    <span className="block truncate">
+                                      <span className="tabular-nums">{formatMexicoTime(row.starts_at)}</span>{' '}
+                                      {patient?.name ?? 'Paciente'}
+                                    </span>
+                                  </button>
+                                </li>
+                              );
+                            }
                             return (
                               <li key={row.id}>
                                 <button
@@ -174,7 +193,7 @@ export function AgendaCalendar({
                                   {row.vet_name ? (
                                     <p className="mt-0.5 truncate text-[11px] font-medium text-pe-clay-700">{row.vet_name}</p>
                                   ) : null}
-                                  {view === 'week' ? <StatusPill status={row.status as AppointmentStatus} /> : null}
+                                  <StatusPill status={status} />
                                 </button>
                               </li>
                             );
