@@ -153,8 +153,8 @@ export function DayBoard({
                 return (
                   <tr
                     key={row.id}
-                    className={`cursor-pointer border-b border-pe-line last:border-0 hover:bg-pe-wash ${
-                      slot.start === nowSlot ? 'bg-pe-wash/40' : ''
+                    className={`cursor-pointer border-b border-pe-line bg-white shadow-[0_1px_4px_rgba(22,26,22,0.1)] last:border-0 hover:bg-pe-wash ${
+                      slot.start === nowSlot ? 'ring-1 ring-inset ring-pe-clay/30' : ''
                     }`}
                     onClick={() => setOpenId(row.id)}
                   >

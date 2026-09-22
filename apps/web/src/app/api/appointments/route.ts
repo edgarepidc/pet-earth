@@ -59,7 +59,7 @@ export async function POST(request: Request) {
   const reason = body.reason?.trim() || 'Consulta';
   const startsAt = parseClockToIso(body.date, body.time);
   const ends = new Date(startsAt);
-  ends.setMinutes(ends.getMinutes() + 30);
+  ends.setMinutes(ends.getMinutes() + 60);
 
   const { data, error } = await supabase
     .from('appointments')

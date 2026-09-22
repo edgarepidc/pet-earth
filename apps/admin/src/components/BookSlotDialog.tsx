@@ -153,7 +153,7 @@ export function BookSlotDialog({
         <h2 id="book-slot-title" className="mt-1 text-xl font-semibold tracking-tight">
           {formatMexicoDate(date, { weekday: 'long', day: 'numeric', month: 'long' })} · {time}
         </h2>
-        <p className="mt-1 text-sm text-pe-muted">Consulta de 30 minutos. Puedes usar un tutor existente o registrar uno nuevo.</p>
+        <p className="mt-1 text-sm text-pe-muted">Consulta de una hora. Puedes usar un tutor existente o registrar uno nuevo.</p>
 
         <div className="mt-4 flex gap-2">
           <button

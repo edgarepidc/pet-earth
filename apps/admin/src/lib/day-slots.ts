@@ -1,6 +1,6 @@
 export const CLINIC_OPEN_MIN = 8 * 60;
 export const CLINIC_CLOSE_MIN = 19 * 60;
-export const SLOT_MINUTES = 30;
+export const SLOT_MINUTES = 60;
 
 export function clockToMinutes(clock: string): number {
   const [hour, minute] = clock.split(':').map(Number);

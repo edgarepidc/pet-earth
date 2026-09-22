@@ -156,7 +156,7 @@ export default async function ClinicHomePage() {
               </p>
             </div>
             <Link href={tutor ? '/cuenta' : '/login'} className="pe-btn-primary px-5 py-2.5 text-sm">
-              {tutor ? 'Ir a mi cuenta' : 'Entrar a mi cuenta'}
+              {tutor ? 'Ir a mi cuenta' : 'Entra o crea tu cuenta'}
             </Link>
           </div>
         </section>

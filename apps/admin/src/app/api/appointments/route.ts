@@ -64,7 +64,7 @@ export async function POST(request: Request) {
   if (!patient) return NextResponse.json({ error: 'Paciente no encontrado' }, { status: 404 });
 
   const startsAt = parseClockToIso(body.date, body.time);
-  const duration = body.durationMin ?? 30;
+  const duration = body.durationMin ?? 60;
   const ends = new Date(startsAt);
   ends.setMinutes(ends.getMinutes() + duration);
 

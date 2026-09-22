@@ -9,7 +9,7 @@ export function AccountActions({ signedIn }: { signedIn?: boolean }) {
     <div className="flex items-center gap-2">
       <CartBadge signedIn={signedIn} />
       <Link href={signedIn ? '/cuenta' : '/login'} className="pe-btn-primary px-4 py-2 text-sm">
-        Mi cuenta
+        {signedIn ? 'Mi cuenta' : 'Entra / crea cuenta'}
       </Link>
     </div>
   );

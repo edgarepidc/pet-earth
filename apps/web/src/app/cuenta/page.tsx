@@ -8,6 +8,7 @@ import { loadPublicClinic } from '@/lib/clinic';
 import { loadTutorMedia } from '@/lib/media';
 import { PreferredBranch } from '@/components/PreferredBranch';
 import { SectionMark, speciesMark } from '@/components/SectionTitle';
+import { TutorAddPetForm } from '@/components/TutorAddPetForm';
 import { TutorCart } from '@/components/TutorCart';
 import { TutorScheduleForm } from '@/components/TutorScheduleForm';
 import { TutorShell } from '@/components/TutorShell';
@@ -113,7 +114,11 @@ export default async function TutorHomePage({
               </article>
             );
           })}
+          <TutorAddPetForm speciesOptions={speciesOptions} />
         </div>
+        {(patients ?? []).length === 0 ? (
+          <p className="text-sm text-pe-muted">Agrega a tu mascota para poder agendar.</p>
+        ) : null}
       </section>
 
       <PreferredBranch branches={clinic.branches} currentId={clinic.selectedBranch.id} />

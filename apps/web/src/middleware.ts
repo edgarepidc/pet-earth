@@ -3,7 +3,7 @@ import { createServerClient } from '@supabase/ssr';
 
 import type { Database } from '@petearth/supabase';
 
-const PUBLIC_PATHS = ['/', '/login', '/api/auth/login', '/api/auth/logout'];
+const PUBLIC_PATHS = ['/', '/login', '/api/auth/login', '/api/auth/logout', '/api/auth/register'];
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
