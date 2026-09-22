@@ -1,11 +1,8 @@
 import { addMexicoDays, formatMoney, isValidYmd, todayMexicoYmd } from '@petearth/shared';
-import { createAdminClient } from '@petearth/supabase/admin';
 
 import { AdminShell } from '@/components/AdminShell';
-import { ClinicFiscalForm } from '@/components/ClinicFiscalForm';
 import { PageHeading, SectionMark } from '@/components/SectionTitle';
 import { loadClinicSession } from '@/lib/auth';
-import { pacConfigured } from '@/lib/cfdi';
 import { loadClinicReports, loadLowStock } from '@/lib/queries';
 
 export const dynamic = 'force-dynamic';
@@ -20,7 +17,7 @@ export default async function InformesPage({
   const today = todayMexicoYmd();
   const start = params.start && isValidYmd(params.start) ? params.start : addMexicoDays(today, -30);
   const end = params.end && isValidYmd(params.end) ? params.end : today;
-  const [report, lowStock, org] = await Promise.all([
+  const [report, lowStock] = await Promise.all([
     loadClinicReports(
       staff.organizationId,
       `${start}T00:00:00-06:00`,
@@ -28,14 +25,7 @@ export default async function InformesPage({
       staff.branchId,
     ),
     loadLowStock(staff.organizationId),
-    createAdminClient().from('organizations').select('settings').eq('id', staff.organizationId).maybeSingle(),
   ]);
-  const fiscal = ((org.data?.settings as { fiscal?: Record<string, string | null> } | null)?.fiscal ?? {}) as {
-    rfc?: string | null;
-    razonSocial?: string | null;
-    regimen?: string | null;
-    codigoPostal?: string | null;
-  };
 
   return (
     <AdminShell>
@@ -113,14 +103,6 @@ export default async function InformesPage({
           {lowStock.length === 0 ? <li className="text-pe-muted">Nada por debajo del mínimo.</li> : null}
         </ul>
       </section>
-
-      <ClinicFiscalForm
-        rfc={fiscal.rfc}
-        razonSocial={fiscal.razonSocial}
-        regimen={fiscal.regimen}
-        codigoPostal={fiscal.codigoPostal}
-        pacReady={pacConfigured()}
-      />
     </AdminShell>
   );
 }

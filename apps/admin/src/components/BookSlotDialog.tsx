@@ -26,12 +26,16 @@ export function BookSlotDialog({
   date,
   time,
   vets = [],
+  openMin,
+  closeMin,
   onClose,
   onCreated,
 }: {
   date: string;
   time: string;
   vets?: ClinicVet[];
+  openMin?: number;
+  closeMin?: number;
   onClose: () => void;
   onCreated: () => void;
 }) {
@@ -51,7 +55,7 @@ export function BookSlotDialog({
   const [reason, setReason] = useState('');
   const [vetId, setVetId] = useState(vets[0]?.id ?? '');
   const [slotTime, setSlotTime] = useState(time);
-  const hours = useMemo(() => clinicSlotClocks(), []);
+  const hours = useMemo(() => clinicSlotClocks(openMin, closeMin), [openMin, closeMin]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

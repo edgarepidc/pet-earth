@@ -18,6 +18,7 @@ export default async function LoginPage({
         branchName={clinic.branches.map((branch) => branch.name).join(' · ') || clinic.branchName}
         address={clinic.address}
         hours={clinic.hours}
+        phone={clinic.selectedBranch.phone}
       />
       <TutorLoginForm next={internalPath(next)} />
     </>

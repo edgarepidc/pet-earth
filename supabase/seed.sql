@@ -106,7 +106,7 @@ values
     'Roma Norte',
     'roma-norte',
     'Álvaro Obregón 210, Roma Norte, CDMX',
-    '{"hours":"Lunes a sábado · 9:00 a 19:00","image":"/catalog/srv-con.jpg"}'::jsonb
+    '{"hours":"Lunes a sábado · 9:00 a 19:00","open":"09:00","close":"19:00","days":[1,2,3,4,5,6],"image":"/catalog/srv-con.jpg"}'::jsonb
   ),
   (
     'b0000000-0000-4000-8000-000000000002',
@@ -114,14 +114,14 @@ values
     'Condesa',
     'condesa',
     'Amsterdam 45, Condesa, CDMX',
-    '{"hours":"Lunes a sábado · 10:00 a 20:00","image":"/catalog/branch-con.jpg"}'::jsonb
+    '{"hours":"Lunes a sábado · 10:00 a 20:00","open":"10:00","close":"20:00","days":[1,2,3,4,5,6],"image":"/catalog/branch-con.jpg"}'::jsonb
   )
 on conflict (id) do update set address = excluded.address, settings = excluded.settings;
 
 update public.branches
 set
   address = 'Amsterdam 45, Condesa, CDMX',
-  settings = '{"hours":"Lunes a sábado · 10:00 a 20:00","image":"/catalog/branch-con.jpg"}'::jsonb
+  settings = '{"hours":"Lunes a sábado · 10:00 a 20:00","open":"10:00","close":"20:00","days":[1,2,3,4,5,6],"image":"/catalog/branch-con.jpg"}'::jsonb
 where organization_id = 'a0000000-0000-4000-8000-000000000001'
   and slug = 'condesa';
 

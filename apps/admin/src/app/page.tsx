@@ -34,6 +34,8 @@ export default async function HomePage() {
             vets={vets}
             clinicName={staff.organizationName}
             branchName={staff.branchName}
+            openMin={staff.branchOpenMin}
+            closeMin={staff.branchCloseMin}
           />
         </Suspense>
         <ClinicNotices overdue={overdue} lowStock={lowStock} />

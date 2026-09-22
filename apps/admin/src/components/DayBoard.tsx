@@ -48,6 +48,8 @@ export function DayBoard({
   kicker,
   showCash = true,
   mark = 'hoy',
+  openMin,
+  closeMin,
 }: {
   title: string;
   date: string;
@@ -59,6 +61,8 @@ export function DayBoard({
   kicker?: string;
   showCash?: boolean;
   mark?: 'hoy' | 'agenda';
+  openMin?: number;
+  closeMin?: number;
 }) {
   const router = useRouter();
   const vetFilter = useSearchParams().get('vet');
@@ -81,7 +85,7 @@ export function DayBoard({
   const nowClock = formatMexicoTime(new Date().toISOString());
   const nowSlot = slotFloor(clockToMinutes(nowClock));
   const slots = useMemo(() => {
-    const starts = daySlotStarts(visible, formatMexicoTime);
+    const starts = daySlotStarts(visible, formatMexicoTime, openMin, closeMin);
     const bySlot = new Map<number, AppointmentRow[]>();
     for (const start of starts) bySlot.set(start, []);
     for (const row of visible) {
@@ -95,7 +99,7 @@ export function DayBoard({
       clock: minutesToClock(start),
       rows: (bySlot.get(start) ?? []).slice().sort((a, b) => (a.vet_name ?? '').localeCompare(b.vet_name ?? '', 'es')),
     }));
-  }, [visible]);
+  }, [visible, openMin, closeMin]);
 
   async function changeStatus(id: string, next: AppointmentStatus, previous: AppointmentStatus) {
     const normalized = floorStatus(previous);
@@ -259,13 +263,21 @@ export function DayBoard({
       </div>
       ) : null}
       {selected ? (
-        <AppointmentPeek appointment={selected} onClose={() => setOpenId(null)} onMoved={() => router.refresh()} />
+        <AppointmentPeek
+          appointment={selected}
+          openMin={openMin}
+          closeMin={closeMin}
+          onClose={() => setOpenId(null)}
+          onMoved={() => router.refresh()}
+        />
       ) : null}
       {bookTime ? (
         <BookSlotDialog
           date={date}
           time={bookTime}
           vets={vets}
+          openMin={openMin}
+          closeMin={closeMin}
           onClose={() => setBookTime(null)}
           onCreated={() => {
             setBookTime(null);

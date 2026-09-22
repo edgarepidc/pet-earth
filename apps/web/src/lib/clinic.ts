@@ -1,3 +1,4 @@
+import { parseBranchSettings } from '@petearth/shared';
 import { createAdminClient } from '@petearth/supabase/admin';
 
 const DEMO_ORG_ID = 'a0000000-0000-4000-8000-000000000001';
@@ -56,6 +57,7 @@ export type PublicBranch = {
   slug: string;
   address: string;
   hours: string;
+  phone: string;
   image: string;
 };
 
@@ -74,19 +76,9 @@ export function publicMediaUrl(value?: string | null, sku?: string | null) {
   return FALLBACK_IMAGES[sku ?? ''] ?? '/marks/catalogo.png';
 }
 
-function settingsHours(settings: unknown) {
-  if (settings && typeof settings === 'object' && 'hours' in settings) {
-    const hours = (settings as { hours?: unknown }).hours;
-    if (typeof hours === 'string' && hours.trim()) return hours.trim();
-  }
-  return DEFAULT_HOURS;
-}
-
 function settingsImage(settings: unknown, slug: string) {
-  if (settings && typeof settings === 'object' && 'image' in settings) {
-    const image = (settings as { image?: unknown }).image;
-    if (typeof image === 'string') return publicMediaUrl(image);
-  }
+  const image = parseBranchSettings(settings).image;
+  if (image) return publicMediaUrl(image);
   return BRANCH_IMAGES[slug] ?? '/catalog/srv-con.jpg';
 }
 
@@ -116,14 +108,18 @@ export async function loadPublicClinic(preferredBranchId?: string | null) {
       .order('name', { ascending: true }),
   ]);
 
-  const branches: PublicBranch[] = (branchRows ?? []).map((branch) => ({
-    id: branch.id,
-    name: branch.name,
-    slug: branch.slug,
-    address: branch.address ?? '',
-    hours: settingsHours(branch.settings),
-    image: settingsImage(branch.settings, branch.slug),
-  }));
+  const branches: PublicBranch[] = (branchRows ?? []).map((branch) => {
+    const schedule = parseBranchSettings(branch.settings);
+    return {
+      id: branch.id,
+      name: branch.name,
+      slug: branch.slug,
+      address: branch.address ?? '',
+      hours: schedule.hours || DEFAULT_HOURS,
+      phone: schedule.phone ?? '',
+      image: settingsImage(branch.settings, branch.slug),
+    };
+  });
 
   const selected =
     branches.find((branch) => branch.id === preferredBranchId) ??
@@ -157,6 +153,7 @@ export async function loadPublicClinic(preferredBranchId?: string | null) {
       slug: 'roma-norte',
       address: 'Roma Norte, CDMX',
       hours: DEFAULT_HOURS,
+      phone: '',
       image: '/catalog/srv-con.jpg',
     },
     branchName: selected?.name ?? 'Roma Norte',

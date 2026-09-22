@@ -34,6 +34,7 @@ export default async function ClinicHomePage() {
         branchName={branchNames}
         address={clinic.selectedBranch.address}
         hours={clinic.selectedBranch.hours}
+        phone={clinic.selectedBranch.phone}
         signedIn={Boolean(tutor)}
       />
 
@@ -73,6 +74,7 @@ export default async function ClinicHomePage() {
                   </p>
                   <p className="mt-2 font-serif text-3xl font-semibold">{branch.name}</p>
                   <p className="mt-3 text-sm leading-relaxed text-white/80">{branch.address}</p>
+                  {branch.phone ? <p className="mt-1 text-sm text-white/80">{branch.phone}</p> : null}
                   <p className="mt-2 text-sm text-white/80">{branch.hours}</p>
                 </div>
               </article>
@@ -166,6 +168,7 @@ export default async function ClinicHomePage() {
           {clinic.branches.map((branch) => (
             <p key={branch.id} className="mt-1">
               {branch.name} · {branch.address}
+              {branch.phone ? ` · ${branch.phone}` : ''}
             </p>
           ))}
         </footer>

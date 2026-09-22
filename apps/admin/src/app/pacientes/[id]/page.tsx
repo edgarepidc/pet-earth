@@ -108,7 +108,12 @@ export default async function PatientPage({ params }: { params: Promise<{ id: st
         </section>
         <aside className="space-y-4">
           <ChartCard mark="agenda" title="Citas">
-            <NewAppointmentForm patientId={patient.id} branchName={staff.branchName} />
+            <NewAppointmentForm
+              patientId={patient.id}
+              branchName={staff.branchName}
+              openMin={staff.branchOpenMin}
+              closeMin={staff.branchCloseMin}
+            />
             <ul className="mt-3 divide-y divide-pe-line text-sm">
               {(appointments ?? []).map((row) => (
                 <li key={row.id} className="flex flex-wrap items-baseline justify-between gap-2 py-2.5">

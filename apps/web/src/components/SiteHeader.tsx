@@ -7,22 +7,25 @@ export function SiteHeader({
   branchName,
   address,
   hours,
+  phone,
   signedIn,
 }: {
   clinicName: string;
   branchName?: string;
   address?: string;
   hours?: string;
+  phone?: string;
   signedIn?: boolean;
 }) {
   return (
     <header className="sticky top-0 z-40">
-      {address || hours ? (
+      {address || hours || phone ? (
         <div className="bg-pe-ink text-[11px] font-medium tracking-wide text-white/80">
           <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-6 gap-y-1 px-5 py-1.5 sm:px-8">
             <p>
               {branchName ?? clinicName}
               {address ? ` · ${address}` : ''}
+              {phone ? ` · ${phone}` : ''}
             </p>
             {hours ? <p className="hidden sm:block">{hours}</p> : null}
           </div>
@@ -35,7 +38,7 @@ export function SiteHeader({
               <img src="/brand/mark.png" alt="" width={44} height={44} />
             </span>
             <span className="min-w-0 leading-tight">
-              <span className="block text-base font-semibold tracking-tight text-pe-ink">Pet Earth</span>
+              <span className="block truncate text-base font-semibold tracking-tight text-pe-ink">{clinicName}</span>
               <span className="block truncate text-[11px] text-pe-muted">Consultorio Veterinario</span>
             </span>
           </Link>

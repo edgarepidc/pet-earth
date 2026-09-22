@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
-import { canManageCatalog, canTakePayment, type StaffRole } from '@petearth/shared';
+import { canManageCatalog, canManageClinic, canTakePayment, type StaffRole } from '@petearth/shared';
 
 import { GlobalSearch } from '@/components/GlobalSearch';
 
@@ -33,7 +33,7 @@ const GROUPS: {
       {
         href: '/configuracion',
         label: 'Configuración',
-        show: (role) => canManageCatalog(role) || role === 'vet',
+        show: (role) => canManageClinic(role),
       },
     ],
   },

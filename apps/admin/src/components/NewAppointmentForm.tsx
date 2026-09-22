@@ -7,9 +7,19 @@ import { todayMexicoYmd } from '@petearth/shared';
 
 import { clinicSlotClocks } from '@/lib/day-slots';
 
-export function NewAppointmentForm({ patientId, branchName }: { patientId: string; branchName?: string }) {
+export function NewAppointmentForm({
+  patientId,
+  branchName,
+  openMin,
+  closeMin,
+}: {
+  patientId: string;
+  branchName?: string;
+  openMin?: number;
+  closeMin?: number;
+}) {
   const router = useRouter();
-  const hours = useMemo(() => clinicSlotClocks(), []);
+  const hours = useMemo(() => clinicSlotClocks(openMin, closeMin), [openMin, closeMin]);
   const [open, setOpen] = useState(false);
   const [date, setDate] = useState(todayMexicoYmd());
   const [time, setTime] = useState(hours.includes('10:00') ? '10:00' : (hours[0] ?? '10:00'));

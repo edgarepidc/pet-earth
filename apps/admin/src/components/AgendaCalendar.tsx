@@ -42,12 +42,16 @@ export function AgendaCalendar({
   appointments,
   vets = [],
   branchName,
+  openMin,
+  closeMin,
 }: {
   initialDate: string;
   initialView?: 'week' | 'month';
   appointments: AppointmentRow[];
   vets?: ClinicVet[];
   branchName?: string;
+  openMin?: number;
+  closeMin?: number;
 }) {
   const router = useRouter();
   const vet = useSearchParams().get('vet');
@@ -196,7 +200,13 @@ export function AgendaCalendar({
         </table>
       </div>
       {selected ? (
-        <AppointmentPeek appointment={selected} onClose={() => setOpenId(null)} onMoved={() => router.refresh()} />
+        <AppointmentPeek
+          appointment={selected}
+          openMin={openMin}
+          closeMin={closeMin}
+          onClose={() => setOpenId(null)}
+          onMoved={() => router.refresh()}
+        />
       ) : null}
     </section>
   );

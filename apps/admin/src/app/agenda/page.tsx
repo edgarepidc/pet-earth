@@ -47,6 +47,8 @@ export default async function AgendaPage({
             branchName={staff.branchName}
             kicker={`Agenda · ${staff.branchName ?? staff.organizationName}`}
             showCash={false}
+            openMin={staff.branchOpenMin}
+            closeMin={staff.branchCloseMin}
           />
           </Suspense>
           <ClinicNotices overdue={overdue} lowStock={lowStock} />
@@ -74,6 +76,8 @@ export default async function AgendaPage({
           appointments={appointments as AppointmentRow[]}
           vets={vets}
           branchName={staff.branchName}
+          openMin={staff.branchOpenMin}
+          closeMin={staff.branchCloseMin}
         />
         </Suspense>
         <ClinicNotices overdue={overdue} lowStock={lowStock} />

@@ -105,17 +105,21 @@ export function AppointmentPeek({
   appointment,
   onClose,
   onMoved,
+  openMin,
+  closeMin,
 }: {
   appointment: AppointmentRow;
   onClose: () => void;
   onMoved?: () => void;
+  openMin?: number;
+  closeMin?: number;
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [visit, setVisit] = useState<VisitPeek | null>(null);
   const [status, setStatus] = useState<AppointmentStatus>(floorStatus(appointment.status));
-  const hours = useMemo(() => clinicSlotClocks(), []);
+  const hours = useMemo(() => clinicSlotClocks(openMin, closeMin), [openMin, closeMin]);
   const [moveDate, setMoveDate] = useState(todayMexicoYmd(new Date(appointment.starts_at)));
   const [moveTime, setMoveTime] = useState(() => {
     const clock = formatMexicoTime(appointment.starts_at);

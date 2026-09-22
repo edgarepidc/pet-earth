@@ -27,6 +27,10 @@ export function canManageCatalog(role: StaffRole): boolean {
   return role === 'owner' || role === 'admin';
 }
 
+export function canManageClinic(role: StaffRole): boolean {
+  return canManageCatalog(role) || role === 'vet';
+}
+
 export function slugify(value: string): string {
   const slug = value
     .normalize('NFD')

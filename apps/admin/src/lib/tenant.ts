@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 
+import { clockToMinutes, parseBranchSettings } from '@petearth/shared';
 import { createAdminClient } from '@petearth/supabase/admin';
 
 import { createSupabaseServerClient } from '@/lib/supabase/server';
@@ -13,6 +14,8 @@ export interface TenantContext {
   branchId: string;
   branchName: string;
   branchSlug: string;
+  branchOpenMin: number;
+  branchCloseMin: number;
 }
 
 export interface BranchOption {
@@ -58,17 +61,20 @@ export async function resolveTenantByIds(
   if (!org) return null;
   const { data: branch } = await supabase
     .from('branches')
-    .select('id, name, slug, organization_id')
+    .select('id, name, slug, organization_id, settings')
     .eq('id', branchId)
     .eq('organization_id', organizationId)
     .maybeSingle();
   if (!branch) return null;
+  const schedule = parseBranchSettings(branch.settings);
   return {
     organizationId: org.id,
     organizationName: org.name,
     branchId: branch.id,
     branchName: branch.name,
     branchSlug: branch.slug,
+    branchOpenMin: clockToMinutes(schedule.open),
+    branchCloseMin: clockToMinutes(schedule.close),
   };
 }
 
