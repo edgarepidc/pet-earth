@@ -5,8 +5,6 @@ import { useState } from 'react';
 
 import { SEX_LABELS, SEXES, type ClinicListOption, type Sex } from '@petearth/shared';
 
-import { SectionMark } from '@/components/SectionTitle';
-
 export function PatientFileForm({
   patientId,
   name,
@@ -86,18 +84,14 @@ export function PatientFileForm({
   }
 
   return (
-    <form onSubmit={(event) => void save(event)} className="pe-glass-card space-y-3 p-4">
-      <h2 className="flex items-center gap-2 font-semibold">
-        <SectionMark name="pacientes" size="sm" />
-        Ficha
-      </h2>
-      <p className="text-sm text-pe-muted">Nombre, manejo y datos clínicos. Vacía un campo para quitarlo.</p>
-      <div className="grid gap-3 xl:grid-cols-2">
-        <label className="block text-sm">
+    <form onSubmit={(event) => void save(event)} className="pe-card space-y-3 p-4">
+      <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-pe-muted">Ficha</p>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <label className="block text-sm font-medium">
           Nombre
           <input className="pe-input mt-1" required value={petName} onChange={(e) => setPetName(e.target.value)} />
         </label>
-        <label className="block text-sm">
+        <label className="block text-sm font-medium">
           Especie
           <select className="pe-input mt-1" value={petSpecies} onChange={(e) => setPetSpecies(e.target.value)}>
             {(speciesOptions.some((item) => item.slug === petSpecies)
@@ -110,11 +104,11 @@ export function PatientFileForm({
             ))}
           </select>
         </label>
-        <label className="block text-sm">
+        <label className="block text-sm font-medium">
           Raza
           <input className="pe-input mt-1" value={petBreed} onChange={(e) => setPetBreed(e.target.value)} />
         </label>
-        <label className="block text-sm">
+        <label className="block text-sm font-medium">
           Sexo
           <select className="pe-input mt-1" value={petSex} onChange={(e) => setPetSex(e.target.value as Sex)}>
             {SEXES.map((item) => (
@@ -124,15 +118,15 @@ export function PatientFileForm({
             ))}
           </select>
         </label>
-        <label className="block text-sm">
+        <label className="block text-sm font-medium">
           Nacimiento
           <input className="pe-input mt-1" type="date" value={petBirthDate} onChange={(e) => setPetBirthDate(e.target.value)} />
         </label>
-        <label className="block text-sm">
+        <label className="block text-sm font-medium">
           Color
           <input className="pe-input mt-1" value={petColor} onChange={(e) => setPetColor(e.target.value)} />
         </label>
-        <label className="block text-sm">
+        <label className="block text-sm font-medium">
           Microchip
           <input className="pe-input mt-1" value={petMicrochip} onChange={(e) => setPetMicrochip(e.target.value)} />
         </label>
@@ -140,7 +134,7 @@ export function PatientFileForm({
           <input type="checkbox" checked={petNeutered} onChange={(e) => setPetNeutered(e.target.checked)} />
           Esterilizado / castrado
         </label>
-        <label className="block text-sm xl:col-span-2">
+        <label className="block text-sm font-medium sm:col-span-2">
           Alertas de manejo
           <input
             className="pe-input mt-1"
@@ -149,11 +143,11 @@ export function PatientFileForm({
             onChange={(e) => setPetAlerts(e.target.value)}
           />
         </label>
-        <label className="block text-sm xl:col-span-2">
+        <label className="block text-sm font-medium sm:col-span-2">
           Alergias
           <textarea className="pe-input mt-1 min-h-20" value={petAllergies} onChange={(e) => setPetAllergies(e.target.value)} />
         </label>
-        <label className="flex items-center gap-2 text-sm xl:col-span-2">
+        <label className="flex items-center gap-2 text-sm sm:col-span-2">
           <input type="checkbox" checked={petActive} onChange={(e) => setPetActive(e.target.checked)} />
           Paciente activo
         </label>

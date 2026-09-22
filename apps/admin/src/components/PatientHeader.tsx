@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 import { patientAgeLabel, SEX_LABELS, speciesLabel, type ClinicListOption, type Sex, whatsappHref } from '@petearth/shared';
 
-import { SectionMark, speciesMark } from '@/components/SectionTitle';
+import { PageHeading, speciesMark } from '@/components/SectionTitle';
 
 export function PatientHeader({
   name,
@@ -15,9 +15,11 @@ export function PatientHeader({
   alerts,
   allergies,
   weightKg,
+  microchip,
   href,
   clinicName,
   speciesOptions,
+  boxed = true,
 }: {
   name: string;
   species: string;
@@ -29,37 +31,38 @@ export function PatientHeader({
   alerts?: string | null;
   allergies?: string | null;
   weightKg?: number | null;
+  microchip?: string | null;
   href?: string;
   clinicName?: string;
   speciesOptions?: ClinicListOption[];
+  boxed?: boolean;
 }) {
   const title = href ? (
-    <Link href={href} className="text-2xl font-semibold tracking-tight text-pe-ink no-underline hover:underline">
+    <Link href={href} className="no-underline hover:underline">
       {name}
     </Link>
   ) : (
-    <h1 className="text-2xl font-semibold tracking-tight text-pe-ink">{name}</h1>
+    name
   );
+  const meta = [
+    speciesLabel(species, speciesOptions),
+    sex ? SEX_LABELS[sex] : null,
+    breed,
+    patientAgeLabel(birthDate ?? null),
+    weightKg != null ? `${weightKg} kg` : null,
+    microchip,
+  ]
+    .filter(Boolean)
+    .join(' · ');
   const wa = whatsappHref(
     tutorPhone,
     `Hola ${tutorName ?? 'tutor'}, te escribe ${clinicName ?? 'la clínica'} por ${name}.`,
   );
 
-  return (
-    <header className="pe-card p-4">
-      <p className="pe-kicker">Paciente</p>
-      <div className="mt-1 flex items-center gap-3">
-        <SectionMark name={speciesMark(species)} />
-        {title}
-      </div>
+  const body = (
+    <>
+      <PageHeading mark={speciesMark(species)} kicker="Paciente" title={title} description={meta} />
       <p className="mt-1 text-sm text-pe-muted">
-        {speciesLabel(species, speciesOptions)}
-        {sex ? ` · ${SEX_LABELS[sex]}` : ''}
-        {breed ? ` · ${breed}` : ''}
-        {patientAgeLabel(birthDate ?? null) ? ` · ${patientAgeLabel(birthDate ?? null)}` : ''}
-        {weightKg != null ? ` · ${weightKg} kg` : ''}
-      </p>
-      <p className="text-sm text-pe-muted">
         Tutor: {tutorName ?? '—'}
         {tutorPhone ? ` · ${tutorPhone}` : ''}
         {wa ? (
@@ -71,10 +74,15 @@ export function PatientHeader({
           </>
         ) : null}
       </p>
-      <div className="mt-3 flex flex-wrap gap-2">
-        {alerts ? <span className="pe-pill bg-amber-100 text-amber-900">Alerta: {alerts}</span> : null}
-        {allergies ? <span className="pe-pill bg-red-100 text-red-800">Alergias: {allergies}</span> : null}
-      </div>
-    </header>
+      {alerts || allergies ? (
+        <div className="mt-3 flex flex-wrap gap-2">
+          {alerts ? <span className="pe-pill bg-amber-100 text-amber-900">Alerta: {alerts}</span> : null}
+          {allergies ? <span className="pe-pill bg-red-100 text-red-800">Alergias: {allergies}</span> : null}
+        </div>
+      ) : null}
+    </>
   );
+
+  if (!boxed) return <header className="min-w-0">{body}</header>;
+  return <header className="pe-card p-4">{body}</header>;
 }

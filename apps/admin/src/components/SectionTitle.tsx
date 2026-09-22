@@ -67,6 +67,26 @@ export function PageHeading({
   );
 }
 
+export function ChartCard({
+  mark,
+  title,
+  children,
+}: {
+  mark: SectionMarkName;
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="pe-card p-4">
+      <h2 className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-pe-muted">
+        <SectionMark name={mark} size="sm" />
+        {title}
+      </h2>
+      {children}
+    </section>
+  );
+}
+
 export function speciesMark(species: string | null | undefined): SectionMarkName {
   const value = (species ?? '').toLowerCase();
   if (value === 'cat' || value === 'gato') return 'gato';

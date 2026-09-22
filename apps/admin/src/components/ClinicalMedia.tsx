@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
-import { SectionMark } from '@/components/SectionTitle';
+import { ChartCard } from '@/components/SectionTitle';
 
 type MediaItem = {
   id: string;
@@ -64,11 +64,7 @@ export function ClinicalMedia({
   }
 
   return (
-    <section className="pe-card p-4">
-      <h2 className="flex items-center gap-2 font-semibold">
-        <SectionMark name="consulta" size="sm" />
-        Fotos y estudios
-      </h2>
+    <ChartCard mark="consulta" title="Fotos y estudios">
       <p className="mt-1 text-sm text-pe-muted">Radiografías, laboratorios o fotos de lesión. Quedan en el expediente.</p>
       {error ? <p className="mt-2 text-sm text-pe-danger">{error}</p> : null}
       {canUpload ? (
@@ -108,6 +104,6 @@ export function ClinicalMedia({
           </li>
         ))}
       </ul>
-    </section>
+    </ChartCard>
   );
 }
