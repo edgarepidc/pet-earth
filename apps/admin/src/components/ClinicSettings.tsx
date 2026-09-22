@@ -242,80 +242,80 @@ export function ClinicSettings({
         </ChartCard>
       </div>
 
-      <ChartCard mark="sala" title="Sucursales">
-        <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
-          <p className="text-xs text-pe-muted">Nombre, dirección, teléfono y horario. Eso sale en la web y arma el piso.</p>
-          <button
-            type="button"
-            className={`whitespace-nowrap px-3 py-1.5 text-sm ${editingId === 'new' ? 'pe-chip-active pe-btn-ghost' : 'pe-btn-secondary'}`}
-            onClick={() => (editingId === 'new' ? setEditingId(null) : openNew())}
-          >
-            Agregar sucursal
-          </button>
-        </div>
-        {editingId === 'new' ? (
-          <BranchForm
-            clocks={clocks}
-            draft={draft}
-            preview={preview}
-            busy={busy === 'branch'}
-            submitLabel="Agregar"
-            onChange={setDraft}
-            onCancel={() => setEditingId(null)}
-            onSubmit={(event) => void saveBranch(event)}
-          />
-        ) : null}
-        <ul className="mt-2 divide-y divide-pe-line">
-          {branches.map((branch) => {
-            const schedule = parseBranchSettings(branch.settings);
-            const open = editingId === branch.id;
-            return (
-              <li key={branch.id} className="py-2.5">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="min-w-0">
-                    <span className="font-medium">{branch.name}</span>
-                    {!branch.is_active ? <span className="ml-2 text-xs text-pe-muted">Oculta</span> : null}
-                    <span className="mt-0.5 block truncate text-sm text-pe-muted">
-                      {[branch.address, schedule.phone, schedule.hours].filter(Boolean).join(' · ')}
+      <div className="grid items-start gap-4 lg:grid-cols-2">
+        <ChartCard mark="sala" title="Sucursales">
+          <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
+            <p className="text-xs text-pe-muted">Nombre, dirección, teléfono y horario. Eso sale en la web y arma el piso.</p>
+            <button
+              type="button"
+              className={`whitespace-nowrap px-3 py-1.5 text-sm ${editingId === 'new' ? 'pe-chip-active pe-btn-ghost' : 'pe-btn-secondary'}`}
+              onClick={() => (editingId === 'new' ? setEditingId(null) : openNew())}
+            >
+              Agregar sucursal
+            </button>
+          </div>
+          {editingId === 'new' ? (
+            <BranchForm
+              clocks={clocks}
+              draft={draft}
+              preview={preview}
+              busy={busy === 'branch'}
+              submitLabel="Agregar"
+              onChange={setDraft}
+              onCancel={() => setEditingId(null)}
+              onSubmit={(event) => void saveBranch(event)}
+            />
+          ) : null}
+          <ul className="mt-2 divide-y divide-pe-line">
+            {branches.map((branch) => {
+              const schedule = parseBranchSettings(branch.settings);
+              const open = editingId === branch.id;
+              return (
+                <li key={branch.id} className="py-2.5">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="min-w-0">
+                      <span className="font-medium">{branch.name}</span>
+                      {!branch.is_active ? <span className="ml-2 text-xs text-pe-muted">Oculta</span> : null}
+                      <span className="mt-0.5 block truncate text-sm text-pe-muted">
+                        {[branch.address, schedule.phone, schedule.hours].filter(Boolean).join(' · ')}
+                      </span>
                     </span>
-                  </span>
-                  <span className="flex shrink-0 gap-2">
-                    <button
-                      type="button"
-                      className={`px-3 py-1.5 text-sm ${open ? 'pe-chip-active pe-btn-ghost' : 'pe-btn-ghost'}`}
-                      onClick={() => (open ? setEditingId(null) : openEdit(branch))}
-                    >
-                      {open ? 'Cerrar' : 'Editar'}
-                    </button>
-                    <button
-                      type="button"
-                      className="pe-btn-ghost px-3 py-1.5 text-sm"
-                      disabled={busy === branch.id}
-                      onClick={() => void toggleBranch(branch)}
-                    >
-                      {branch.is_active ? 'Ocultar' : 'Mostrar'}
-                    </button>
-                  </span>
-                </div>
-                {open ? (
-                  <BranchForm
-                    clocks={clocks}
-                    draft={draft}
-                    preview={preview}
-                    busy={busy === 'branch'}
-                    submitLabel="Guardar"
-                    onChange={setDraft}
-                    onCancel={() => setEditingId(null)}
-                    onSubmit={(event) => void saveBranch(event)}
-                  />
-                ) : null}
-              </li>
-            );
-          })}
-        </ul>
-      </ChartCard>
+                    <span className="flex shrink-0 gap-2">
+                      <button
+                        type="button"
+                        className={`px-3 py-1.5 text-sm ${open ? 'pe-chip-active pe-btn-ghost' : 'pe-btn-ghost'}`}
+                        onClick={() => (open ? setEditingId(null) : openEdit(branch))}
+                      >
+                        {open ? 'Cerrar' : 'Editar'}
+                      </button>
+                      <button
+                        type="button"
+                        className="pe-btn-ghost px-3 py-1.5 text-sm"
+                        disabled={busy === branch.id}
+                        onClick={() => void toggleBranch(branch)}
+                      >
+                        {branch.is_active ? 'Ocultar' : 'Mostrar'}
+                      </button>
+                    </span>
+                  </div>
+                  {open ? (
+                    <BranchForm
+                      clocks={clocks}
+                      draft={draft}
+                      preview={preview}
+                      busy={busy === 'branch'}
+                      submitLabel="Guardar"
+                      onChange={setDraft}
+                      onCancel={() => setEditingId(null)}
+                      onSubmit={(event) => void saveBranch(event)}
+                    />
+                  ) : null}
+                </li>
+              );
+            })}
+          </ul>
+        </ChartCard>
 
-      <div className="max-w-xl">
         <ChartCard mark="pacientes" title="Especies">
           <p className="mt-1 text-xs text-pe-muted">Perro y gato vienen de fábrica. Agrega conejo, ave u otra.</p>
           <form onSubmit={(event) => void addSpecies(event)} className="mt-3 flex gap-2">
@@ -330,9 +330,9 @@ export function ClinicSettings({
               Agregar
             </button>
           </form>
-          <ul className="mt-3 grid gap-x-4 sm:grid-cols-2">
+          <ul className="mt-3 divide-y divide-pe-line">
             {species.map((item) => (
-              <li key={item.id} className="flex items-center gap-1.5 border-t border-pe-line py-1.5">
+              <li key={item.id} className="flex items-center gap-1.5 py-1.5">
                 <input
                   className="pe-input h-8 min-w-0 flex-1 py-1 text-sm"
                   defaultValue={item.label}
