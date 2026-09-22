@@ -440,86 +440,129 @@ function BranchForm({
   preview: string;
   busy: boolean;
   submitLabel: string;
-  onChange: (draft: Draft) => void;
+  onChange: (draft: Draft | ((current: Draft) => Draft)) => void;
   onCancel: () => void;
   onSubmit: (event: React.FormEvent) => void;
 }) {
+  const [uploading, setUploading] = useState(false);
+  const [photoError, setPhotoError] = useState<string | null>(null);
+
   function toggleDay(day: number) {
-    const days = draft.days.includes(day) ? draft.days.filter((value) => value !== day) : [...draft.days, day];
-    onChange({ ...draft, days });
+    onChange((current) => {
+      const days = current.days.includes(day) ? current.days.filter((value) => value !== day) : [...current.days, day];
+      return { ...current, days };
+    });
+  }
+
+  async function uploadPhoto(file: File) {
+    setPhotoError(null);
+    setUploading(true);
+    const data = new FormData();
+    data.set('file', file);
+    const response = await fetch('/api/clinic/public-media', { method: 'POST', body: data });
+    const payload = (await response.json().catch(() => null)) as { url?: string; error?: string } | null;
+    setUploading(false);
+    if (!response.ok || !payload?.url) {
+      setPhotoError(payload?.error ?? 'No se pudo subir la foto.');
+      return;
+    }
+    onChange((current) => ({ ...current, image: payload.url ?? current.image }));
   }
 
   return (
-    <form onSubmit={onSubmit} className={`${submitLabel === 'Agregar' ? 'pe-card p-4' : 'py-1'} grid gap-2 sm:grid-cols-2`}>
+    <form
+      onSubmit={onSubmit}
+      className={`${submitLabel === 'Agregar' ? 'pe-card p-3' : 'py-1'} grid gap-1.5 sm:grid-cols-2`}
+    >
       <input
-        className="pe-input"
+        className="pe-input h-8 py-1 text-sm"
         placeholder="Nombre"
         value={draft.name}
         onChange={(e) => onChange({ ...draft, name: e.target.value })}
         required
       />
       <input
-        className="pe-input"
+        className="pe-input h-8 py-1 text-sm"
         placeholder="Teléfono"
         value={draft.phone}
         onChange={(e) => onChange({ ...draft, phone: e.target.value })}
       />
       <input
-        className="pe-input sm:col-span-2"
+        className="pe-input h-8 py-1 text-sm sm:col-span-2"
         placeholder="Dirección"
         value={draft.address}
         onChange={(e) => onChange({ ...draft, address: e.target.value })}
       />
-      <input
-        className="pe-input sm:col-span-2"
-        placeholder="Foto (/catalog/… o https://)"
-        value={draft.image}
-        onChange={(e) => onChange({ ...draft, image: e.target.value })}
-      />
-      <div className="flex flex-wrap gap-1.5 sm:col-span-2">
+      <div className="flex flex-wrap items-center gap-1 sm:col-span-2">
         {WEEKDAY_CHIPS.map((chip) => {
           const on = draft.days.includes(chip.day);
           return (
             <button
               key={chip.day}
               type="button"
-              className={`px-2.5 py-1 text-sm ${on ? 'pe-chip-active pe-btn-ghost' : 'pe-btn-ghost'}`}
+              className={`px-2 py-0.5 text-xs ${on ? 'pe-chip-active pe-btn-ghost' : 'pe-btn-ghost'}`}
               onClick={() => toggleDay(chip.day)}
             >
               {chip.label}
             </button>
           );
         })}
+        <select
+          className="pe-input h-8 !w-[6.75rem] shrink-0 py-1 text-sm"
+          aria-label="Abre"
+          value={draft.open}
+          onChange={(e) => onChange({ ...draft, open: e.target.value })}
+        >
+          {clocks.map((clock) => (
+            <option key={clock} value={clock}>
+              {clock}
+            </option>
+          ))}
+        </select>
+        <select
+          className="pe-input h-8 !w-[6.75rem] shrink-0 py-1 text-sm"
+          aria-label="Cierra"
+          value={draft.close}
+          onChange={(e) => onChange({ ...draft, close: e.target.value })}
+        >
+          {clocks.map((clock) => (
+            <option key={clock} value={clock}>
+              {clock}
+            </option>
+          ))}
+        </select>
+        <span className="truncate text-[11px] text-pe-muted">{preview}</span>
       </div>
-      <label className="text-sm">
-        Abre
-        <select className="pe-input mt-1" value={draft.open} onChange={(e) => onChange({ ...draft, open: e.target.value })}>
-          {clocks.map((clock) => (
-            <option key={clock} value={clock}>
-              {clock}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label className="text-sm">
-        Cierra
-        <select className="pe-input mt-1" value={draft.close} onChange={(e) => onChange({ ...draft, close: e.target.value })}>
-          {clocks.map((clock) => (
-            <option key={clock} value={clock}>
-              {clock}
-            </option>
-          ))}
-        </select>
-      </label>
-      <p className="text-xs text-pe-muted sm:col-span-2">{preview}</p>
-      <div className="flex gap-2 sm:col-span-2">
-        <button type="submit" className="pe-btn-primary px-4 py-2 text-sm" disabled={busy}>
+      <div className="flex flex-wrap items-center gap-2 sm:col-span-2">
+        {draft.image ? (
+          <img src={draft.image} alt="" className="h-11 w-14 rounded-md object-cover" />
+        ) : (
+          <span className="flex h-11 w-14 items-center justify-center rounded-md bg-[#eef2e6] text-[10px] font-bold uppercase tracking-[0.08em] text-pe-clay-700">
+            {draft.name.slice(0, 1) || '·'}
+          </span>
+        )}
+        <label className="pe-btn-ghost cursor-pointer px-3 py-1.5 text-sm">
+          {uploading ? 'Subiendo…' : draft.image ? 'Cambiar foto' : 'Cargar foto'}
+          <input
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            className="sr-only"
+            disabled={uploading || busy}
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              event.target.value = '';
+              if (file) void uploadPhoto(file);
+            }}
+          />
+        </label>
+        <button type="submit" className="pe-btn-primary px-4 py-1.5 text-sm" disabled={busy || uploading}>
           {busy ? 'Guardando…' : submitLabel}
         </button>
-        <button type="button" className="pe-btn-ghost px-3 py-2 text-sm" onClick={onCancel}>
+        <button type="button" className="pe-btn-ghost px-3 py-1.5 text-sm" onClick={onCancel}>
           Cancelar
         </button>
       </div>
+      {photoError ? <p className="pe-callout-amber p-2 text-sm sm:col-span-2">{photoError}</p> : null}
     </form>
   );
 }
