@@ -47,6 +47,7 @@ export function BookSlotDialog({
   const [tutorEmail, setTutorEmail] = useState('');
   const [petName, setPetName] = useState('');
   const [petSpecies, setPetSpecies] = useState(DEFAULT_SPECIES_OPTIONS[0]?.slug ?? 'dog');
+  const [petAlerts, setPetAlerts] = useState('');
   const [reason, setReason] = useState('');
   const [vetId, setVetId] = useState(vets[0]?.id ?? '');
   const [slotTime, setSlotTime] = useState(time);
@@ -112,7 +113,7 @@ export function BookSlotDialog({
     const response = await fetch('/api/patients', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ clientId: ownerId, name: petName, species: petSpecies }),
+      body: JSON.stringify({ clientId: ownerId, name: petName, species: petSpecies, alerts: petAlerts }),
     });
     const payload = (await response.json()) as { id?: string; error?: string };
     if (!response.ok || !payload.id) throw new Error(payload.error ?? 'No se pudo crear la mascota');
@@ -277,6 +278,12 @@ export function BookSlotDialog({
                         </option>
                       ))}
                     </select>
+                    <input
+                      className="pe-input sm:col-span-2"
+                      placeholder="Alertas de manejo: muerde, sale si se abre la jaula…"
+                      value={petAlerts}
+                      onChange={(event) => setPetAlerts(event.target.value)}
+                    />
                   </div>
                 ) : null}
               </div>
@@ -320,6 +327,12 @@ export function BookSlotDialog({
                 </option>
               ))}
             </select>
+            <input
+              className="pe-input"
+              placeholder="Alertas de manejo: muerde, sale si se abre la jaula…"
+              value={petAlerts}
+              onChange={(event) => setPetAlerts(event.target.value)}
+            />
           </div>
         )}
 

@@ -4,7 +4,15 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 
-import { formatMexicoDateTime, speciesLabel, whatsappHref, type ClinicListOption } from '@petearth/shared';
+import {
+  CFDI_USO_LABELS,
+  CFDI_USOS,
+  formatMexicoDateTime,
+  speciesLabel,
+  whatsappHref,
+  type CfdiUso,
+  type ClinicListOption,
+} from '@petearth/shared';
 
 import { ClientFiscalForm } from '@/components/ClientFiscalForm';
 import { PageHeading, SectionMark, speciesMark, type SectionMarkName } from '@/components/SectionTitle';
@@ -91,8 +99,14 @@ export function PatientsDirectory({
   const [error, setError] = useState<string | null>(null);
   const [tutorName, setTutorName] = useState('');
   const [tutorPhone, setTutorPhone] = useState('');
+  const [tutorEmail, setTutorEmail] = useState('');
+  const [tutorRfc, setTutorRfc] = useState('');
+  const [tutorTaxZip, setTutorTaxZip] = useState('');
+  const [tutorFiscalName, setTutorFiscalName] = useState('');
+  const [tutorUso, setTutorUso] = useState<CfdiUso>('G03');
   const [petName, setPetName] = useState('');
   const [petSpecies, setPetSpecies] = useState(speciesOptions[0]?.slug ?? 'dog');
+  const [petAlerts, setPetAlerts] = useState('');
   const [selectedClient, setSelectedClient] = useState(clients[0]?.id ?? '');
   const tutorId = clients.some((client) => client.id === selectedClient) ? selectedClient : (clients[0]?.id ?? '');
 
@@ -136,10 +150,19 @@ export function PatientsDirectory({
   async function createTutor(event: React.FormEvent) {
     event.preventDefault();
     setError(null);
+    const hasFiscal = Boolean(tutorRfc.trim() || tutorTaxZip.trim() || tutorFiscalName.trim());
     const response = await fetch('/api/clients', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fullName: tutorName, phone: tutorPhone }),
+      body: JSON.stringify({
+        fullName: tutorName,
+        phone: tutorPhone,
+        email: tutorEmail,
+        rfc: hasFiscal ? tutorRfc : undefined,
+        taxZip: hasFiscal ? tutorTaxZip : undefined,
+        fiscalName: hasFiscal ? tutorFiscalName : undefined,
+        usoCfdi: hasFiscal ? tutorUso : undefined,
+      }),
     });
     const payload = (await response.json()) as { error?: string };
     if (!response.ok) {
@@ -148,6 +171,11 @@ export function PatientsDirectory({
     }
     setTutorName('');
     setTutorPhone('');
+    setTutorEmail('');
+    setTutorRfc('');
+    setTutorTaxZip('');
+    setTutorFiscalName('');
+    setTutorUso('G03');
     setAlta(null);
     router.refresh();
   }
@@ -158,7 +186,7 @@ export function PatientsDirectory({
     const response = await fetch('/api/patients', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ clientId: tutorId, name: petName, species: petSpecies }),
+      body: JSON.stringify({ clientId: tutorId, name: petName, species: petSpecies, alerts: petAlerts }),
     });
     const payload = (await response.json()) as { error?: string };
     if (!response.ok) {
@@ -166,6 +194,7 @@ export function PatientsDirectory({
       return;
     }
     setPetName('');
+    setPetAlerts('');
     setAlta(null);
     router.refresh();
   }
@@ -233,20 +262,68 @@ export function PatientsDirectory({
       {error ? <p className="pe-callout-amber p-3 text-sm">{error}</p> : null}
 
       {alta === 'tutor' ? (
-        <form onSubmit={createTutor} className="pe-card grid gap-3 p-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
-          <label className="block text-sm font-medium">
-            Nombre
-            <input
-              className="pe-input mt-1"
-              required
-              value={tutorName}
-              onChange={(event) => setTutorName(event.target.value)}
-            />
-          </label>
-          <label className="block text-sm font-medium">
-            Teléfono
-            <input className="pe-input mt-1" value={tutorPhone} onChange={(event) => setTutorPhone(event.target.value)} />
-          </label>
+        <form onSubmit={createTutor} className="pe-card space-y-3 p-4">
+          <div className="grid gap-3 sm:grid-cols-3">
+            <label className="block text-sm font-medium">
+              Nombre
+              <input
+                className="pe-input mt-1"
+                autoComplete="name"
+                required
+                value={tutorName}
+                onChange={(event) => setTutorName(event.target.value)}
+              />
+            </label>
+            <label className="block text-sm font-medium">
+              Teléfono
+              <input
+                className="pe-input mt-1"
+                type="tel"
+                autoComplete="tel"
+                value={tutorPhone}
+                onChange={(event) => setTutorPhone(event.target.value)}
+              />
+            </label>
+            <label className="block text-sm font-medium">
+              Correo
+              <input
+                className="pe-input mt-1"
+                type="email"
+                autoComplete="email"
+                value={tutorEmail}
+                onChange={(event) => setTutorEmail(event.target.value)}
+              />
+            </label>
+          </div>
+          <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-pe-muted">Facturación (opcional)</p>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <label className="block text-sm font-medium">
+              RFC
+              <input className="pe-input mt-1" value={tutorRfc} onChange={(event) => setTutorRfc(event.target.value)} />
+            </label>
+            <label className="block text-sm font-medium">
+              C.P. fiscal
+              <input className="pe-input mt-1" value={tutorTaxZip} onChange={(event) => setTutorTaxZip(event.target.value)} />
+            </label>
+            <label className="block text-sm font-medium">
+              Razón social
+              <input
+                className="pe-input mt-1"
+                value={tutorFiscalName}
+                onChange={(event) => setTutorFiscalName(event.target.value)}
+              />
+            </label>
+            <label className="block text-sm font-medium">
+              Uso CFDI
+              <select className="pe-input mt-1" value={tutorUso} onChange={(event) => setTutorUso(event.target.value as CfdiUso)}>
+                {CFDI_USOS.map((item) => (
+                  <option key={item} value={item}>
+                    {CFDI_USO_LABELS[item]}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
           <button type="submit" className="pe-btn-primary px-4 py-2 text-sm">
             Guardar tutor
           </button>
@@ -269,17 +346,26 @@ export function PatientsDirectory({
             Nombre de la mascota
             <input className="pe-input mt-1" required value={petName} onChange={(event) => setPetName(event.target.value)} />
           </label>
-          <div className="flex items-end gap-2">
-            <label className="block min-w-0 flex-1 text-sm font-medium">
-              Especie
-              <select className="pe-input mt-1" value={petSpecies} onChange={(event) => setPetSpecies(event.target.value)}>
-                {speciesOptions.map((item) => (
-                  <option key={item.slug} value={item.slug}>
-                    {item.label}
-                  </option>
-                ))}
-              </select>
-            </label>
+          <label className="block text-sm font-medium">
+            Especie
+            <select className="pe-input mt-1" value={petSpecies} onChange={(event) => setPetSpecies(event.target.value)}>
+              {speciesOptions.map((item) => (
+                <option key={item.slug} value={item.slug}>
+                  {item.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="block text-sm font-medium sm:col-span-4">
+            Alertas de manejo
+            <input
+              className="pe-input mt-1"
+              placeholder="Muerde si lo sujetan del lomo, sale si se abre la jaula…"
+              value={petAlerts}
+              onChange={(event) => setPetAlerts(event.target.value)}
+            />
+          </label>
+          <div className="sm:col-span-4">
             <button type="submit" className="pe-btn-primary px-4 py-2 text-sm" disabled={!tutorId}>
               Guardar
             </button>
