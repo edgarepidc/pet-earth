@@ -19,7 +19,7 @@ import {
 
 import { ClinicalMedia } from '@/components/ClinicalMedia';
 import { DictationButton } from '@/components/DictationButton';
-import { SectionMark } from '@/components/SectionTitle';
+import { ChartCard } from '@/components/SectionTitle';
 import { WhatsAppLink } from '@/components/WhatsAppLink';
 
 type CatalogItem = {
@@ -111,6 +111,13 @@ export function VisitWorkspace({
     () => splitInvoiceTotals(lines.map((line) => ({ kind: line.kind, lineTotal: Number(line.line_total) }))),
     [lines],
   );
+
+  const soap = [
+    { label: 'S — Motivo / tutor', value: subjective, set: setSubjective },
+    { label: 'O — Examen', value: objective, set: setObjective },
+    { label: 'A — Evaluación', value: assessment, set: setAssessment },
+    { label: 'P — Plan', value: plan, set: setPlan },
+  ];
 
   async function refresh() {
     const response = await fetch(`/api/visits?id=${visit.id}`);
@@ -210,6 +217,8 @@ export function VisitWorkspace({
 
   const patient = Array.isArray(visit.patients) ? visit.patients[0] : visit.patients;
   const client = Array.isArray(visit.clients) ? visit.clients[0] : visit.clients;
+  const recetaHref = `/consultas/${visit.id}/receta`;
+  const cartillaHref = patient?.id ? `/pacientes/${patient.id}/cartilla` : null;
 
   return (
     <div className="grid gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.9fr)]">
@@ -231,73 +240,35 @@ export function VisitWorkspace({
             clinicName={clinicName}
           />
           <div className="flex shrink-0 flex-nowrap items-center gap-2">
-            <a href={`/consultas/${visit.id}/receta`} className="pe-btn-secondary whitespace-nowrap px-3 py-1.5 text-sm">
+            <a href={recetaHref} className="pe-btn-secondary whitespace-nowrap px-3 py-1.5 text-sm">
               Receta / alta
             </a>
-            {patient?.id ? (
-              <a href={`/pacientes/${patient.id}/cartilla`} className="pe-btn-secondary whitespace-nowrap px-3 py-1.5 text-sm">
+            {cartillaHref ? (
+              <a href={cartillaHref} className="pe-btn-secondary whitespace-nowrap px-3 py-1.5 text-sm">
                 Cartilla
               </a>
             ) : null}
+            {!closed ? (
+              <button
+                type="button"
+                className="pe-btn-primary whitespace-nowrap px-3 py-1.5 text-sm"
+                disabled={busy}
+                onClick={() => void complete()}
+              >
+                Cerrar consulta
+              </button>
+            ) : (
+              <span className="pe-chip-active pe-btn-ghost whitespace-nowrap px-3 py-1.5 text-sm">Alta</span>
+            )}
           </div>
         </div>
         {error ? <p className="pe-callout-amber p-3 text-sm">{error}</p> : null}
-        <div className="grid gap-3 sm:grid-cols-4">
-          <label className="text-sm">
-            Peso (kg)
-            <input className="pe-input mt-1" value={weight} onChange={(e) => setWeight(e.target.value)} disabled={closed} />
-          </label>
-          <label className="text-sm">
-            Temp (°C)
-            <input className="pe-input mt-1" value={temp} onChange={(e) => setTemp(e.target.value)} disabled={closed} />
-          </label>
-          <label className="text-sm">
-            FC
-            <input className="pe-input mt-1" value={hr} onChange={(e) => setHr(e.target.value)} disabled={closed} />
-          </label>
-          <label className="text-sm">
-            FR
-            <input className="pe-input mt-1" value={rr} onChange={(e) => setRr(e.target.value)} disabled={closed} />
-          </label>
-        </div>
-        {(['S — Motivo / tutor', 'O — Examen', 'A — Evaluación', 'P — Plan'] as const).map((label, index) => {
-          const value = [subjective, objective, assessment, plan][index];
-          const setter = [setSubjective, setObjective, setAssessment, setPlan][index];
-          return (
-            <label key={label} className="block text-sm font-medium">
-              <span className="flex items-center justify-between gap-2">
-                {label}
-                <DictationButton
-                  disabled={closed}
-                  onTranscript={(text) => setter((current) => (current ? `${current} ${text}` : text))}
-                />
-              </span>
-              <textarea className="pe-input mt-1" value={value} onChange={(e) => setter(e.target.value)} disabled={closed} />
-            </label>
-          );
-        })}
-        <label className="block text-sm">
-          Control posterior
-          <input type="date" className="pe-input mt-1 max-w-xs" value={followup} onChange={(e) => setFollowup(e.target.value)} disabled={closed} />
-        </label>
-        {!closed ? (
-          <button type="button" className="pe-btn-primary px-5 py-2 text-sm" disabled={busy} onClick={complete}>
-            Cerrar consulta y generar seguimiento
-          </button>
-        ) : (
-          <div className="flex flex-wrap items-center gap-2">
-            <p className="text-sm font-medium text-emerald-800">Consulta cerrada. El tutor ya puede ver el alta en su portal.</p>
-            <a href={`/consultas/${visit.id}/receta`} className="pe-btn-secondary px-3 py-1.5 text-sm">
-              Receta / alta
-            </a>
-            {patient?.id ? (
-              <a href={`/pacientes/${patient.id}/cartilla`} className="pe-btn-secondary px-3 py-1.5 text-sm">
-                Cartilla
-              </a>
-            ) : null}
+        {closed ? (
+          <p className="text-sm text-pe-muted">
+            Consulta cerrada. El tutor ya puede ver el alta en su portal.
             <WhatsAppLink
               phone={client?.phone}
-              className="pe-btn-secondary px-3 py-1.5 text-sm"
+              className="pe-link ml-2"
               text={vaccineWhatsAppText({
                 tutorName: client?.full_name ?? 'tutor',
                 patientName: patient?.name ?? 'tu mascota',
@@ -308,17 +279,63 @@ export function VisitWorkspace({
             >
               WhatsApp al tutor
             </WhatsAppLink>
+          </p>
+        ) : null}
+
+        <ChartCard mark="pacientes" title="Signos">
+          <div className="mt-3 grid gap-3 sm:grid-cols-4">
+            <label className="text-sm">
+              Peso (kg)
+              <input className="pe-input mt-1" value={weight} onChange={(e) => setWeight(e.target.value)} disabled={closed} />
+            </label>
+            <label className="text-sm">
+              Temp (°C)
+              <input className="pe-input mt-1" value={temp} onChange={(e) => setTemp(e.target.value)} disabled={closed} />
+            </label>
+            <label className="text-sm">
+              FC
+              <input className="pe-input mt-1" value={hr} onChange={(e) => setHr(e.target.value)} disabled={closed} />
+            </label>
+            <label className="text-sm">
+              FR
+              <input className="pe-input mt-1" value={rr} onChange={(e) => setRr(e.target.value)} disabled={closed} />
+            </label>
           </div>
-        )}
+        </ChartCard>
+
+        <ChartCard mark="consulta" title="SOAP">
+          <div className="mt-3 space-y-3">
+            {soap.map((field) => (
+              <label key={field.label} className="block text-sm font-medium">
+                <span className="flex items-center justify-between gap-2">
+                  {field.label}
+                  <DictationButton
+                    disabled={closed}
+                    onTranscript={(text) => field.set((current) => (current ? `${current} ${text}` : text))}
+                  />
+                </span>
+                <textarea className="pe-input mt-1" value={field.value} onChange={(e) => field.set(e.target.value)} disabled={closed} />
+              </label>
+            ))}
+            <label className="block text-sm">
+              Control posterior
+              <input
+                type="date"
+                className="pe-input mt-1 max-w-xs"
+                value={followup}
+                onChange={(e) => setFollowup(e.target.value)}
+                disabled={closed}
+              />
+            </label>
+          </div>
+        </ChartCard>
+
         {patient?.id ? <ClinicalMedia patientId={patient.id} visitId={visit.id} canUpload={!closed} /> : null}
       </section>
 
       <aside className="space-y-4">
-        <div className="pe-glass-card p-4">
-          <h2 className="flex items-center gap-2 font-semibold">
-            <SectionMark name="caja" size="sm" />
-            Cargos (lo documentado se cobra)
-          </h2>
+        <ChartCard mark="caja" title="Cargos">
+          <p className="mt-1 text-sm text-pe-muted">Lo que documentas aquí se cobra.</p>
           <div className="mt-3 flex gap-2">
             <select className="pe-input" value={itemId} onChange={(e) => setItemId(e.target.value)} disabled={closed}>
               {initial.catalog.map((item) => (
@@ -327,37 +344,36 @@ export function VisitWorkspace({
                 </option>
               ))}
             </select>
-            <button type="button" className="pe-btn-secondary px-3 text-sm" disabled={closed || busy} onClick={addLine}>
+            <button type="button" className="pe-btn-secondary px-3 text-sm" disabled={closed || busy} onClick={() => void addLine()}>
               Agregar
             </button>
           </div>
-          <ul className="mt-3 space-y-2 text-sm">
+          <ul className="mt-3 divide-y divide-pe-line text-sm">
             {lines.map((line) => (
-              <li key={line.id} className="flex justify-between gap-3">
+              <li key={line.id} className="flex justify-between gap-3 py-2.5">
                 <span>
                   {line.description}
                   <span className="block text-xs text-pe-muted">{CATALOG_KIND_LABELS[line.kind]}</span>
                 </span>
-                <span>{formatMoney(Number(line.line_total))}</span>
+                <span className="tabular-nums">{formatMoney(Number(line.line_total))}</span>
               </li>
             ))}
+            {lines.length === 0 ? <li className="py-2.5 text-pe-muted">Sin cargos aún.</li> : null}
           </ul>
-          <div className="mt-3 space-y-1 border-t border-pe-line pt-3 text-sm">
+          <div className="mt-1 space-y-1 border-t border-pe-line pt-3 text-sm">
             <p className="flex justify-between">
               <span>Servicios</span>
-              <span>{formatMoney(split.services)}</span>
+              <span className="tabular-nums">{formatMoney(split.services)}</span>
             </p>
             <p className="flex justify-between">
               <span>Medicamentos</span>
-              <span>{formatMoney(split.products)}</span>
+              <span className="tabular-nums">{formatMoney(split.products)}</span>
             </p>
             <p className="flex justify-between font-semibold">
               <span>Total</span>
-              <span>{formatMoney(split.total)}</span>
+              <span className="tabular-nums">{formatMoney(split.total)}</span>
             </p>
-            <p className="text-xs text-pe-muted">
-              Ticket: {invoice ? INVOICE_STATUS_LABELS[invoice.status] : 'sin abrir'}
-            </p>
+            <p className="text-xs text-pe-muted">Ticket: {invoice ? INVOICE_STATUS_LABELS[invoice.status] : 'sin abrir'}</p>
           </div>
           {invoice && invoice.status !== 'paid' ? (
             <div className="mt-3 flex flex-wrap gap-2">
@@ -365,44 +381,44 @@ export function VisitWorkspace({
                 <button
                   key={method}
                   type="button"
-                  className="pe-btn-primary px-3 py-1.5 text-xs"
+                  className={method === 'cash' ? 'pe-btn-primary px-3 py-1.5 text-sm' : 'pe-btn-secondary px-3 py-1.5 text-sm'}
                   disabled={busy}
-                  onClick={() => pay(method)}
+                  onClick={() => void pay(method)}
                 >
-                  Cobrar {PAYMENT_METHOD_LABELS[method]}
+                  {PAYMENT_METHOD_LABELS[method]}
                 </button>
               ))}
             </div>
           ) : null}
-        </div>
+        </ChartCard>
 
-        <div className="pe-glass-card p-4">
-          <h2 className="flex items-center gap-2 font-semibold">
-            <SectionMark name="catalogo" size="sm" />
-            Vacuna / preventivo
-          </h2>
-          <select className="pe-input mt-3" value={vaccineItem} onChange={(e) => setVaccineItem(e.target.value)} disabled={closed}>
-            {initial.catalog
-              .filter((item) => item.kind === 'product')
-              .map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.name}
-                </option>
-              ))}
-          </select>
-          <input className="pe-input mt-2" placeholder="Lote" value={lot} onChange={(e) => setLot(e.target.value)} disabled={closed} />
-          <input type="date" className="pe-input mt-2" value={nextDue} onChange={(e) => setNextDue(e.target.value)} disabled={closed} />
-          <button type="button" className="pe-btn-secondary mt-3 px-4 py-2 text-sm" disabled={closed || busy} onClick={applyVaccine}>
-            Aplicar y recordar refuerzo
-          </button>
-          <ul className="mt-3 space-y-1 text-sm text-pe-muted">
+        <ChartCard mark="cartilla" title="Vacuna">
+          <div className="mt-3 grid gap-2">
+            <select className="pe-input" value={vaccineItem} onChange={(e) => setVaccineItem(e.target.value)} disabled={closed}>
+              {initial.catalog
+                .filter((item) => item.kind === 'product')
+                .map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.name}
+                  </option>
+                ))}
+            </select>
+            <input className="pe-input" placeholder="Lote" value={lot} onChange={(e) => setLot(e.target.value)} disabled={closed} />
+            <input type="date" className="pe-input" value={nextDue} onChange={(e) => setNextDue(e.target.value)} disabled={closed} />
+            <button type="button" className="pe-btn-secondary px-4 py-2 text-sm" disabled={closed || busy} onClick={() => void applyVaccine()}>
+              Aplicar y recordar refuerzo
+            </button>
+          </div>
+          <ul className="mt-3 divide-y divide-pe-line text-sm text-pe-muted">
             {(visit.vaccine_records ?? []).map((row) => (
-              <li key={row.id}>
-                {row.name} {row.next_due ? `· próxima ${row.next_due}` : ''}
+              <li key={row.id} className="py-2">
+                {row.name}
+                {row.next_due ? ` · próxima ${row.next_due}` : ''}
               </li>
             ))}
+            {(visit.vaccine_records ?? []).length === 0 ? <li className="py-2">Sin vacunas en esta consulta.</li> : null}
           </ul>
-        </div>
+        </ChartCard>
       </aside>
     </div>
   );

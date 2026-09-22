@@ -27,6 +27,8 @@ function one<T>(value: T | T[] | null): T | null {
   return Array.isArray(value) ? value[0] ?? null : value;
 }
 
+const FILTERS = ['all', 'overdue', 'appointment', 'vaccine', 'followup', 'deworming'] as const;
+
 export function FollowUpInbox({
   reminders,
   clinicName,
@@ -36,8 +38,7 @@ export function FollowUpInbox({
 }) {
   const router = useRouter();
   const today = todayMexicoYmd();
-  const [filter, setFilter] = useState<'all' | 'overdue' | ReminderKind>('all');
-
+  const [filter, setFilter] = useState<(typeof FILTERS)[number]>('all');
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -61,89 +62,85 @@ export function FollowUpInbox({
     router.refresh();
   }
 
-  async function email(id: string) {
-    setBusy(id + 'email');
-    setError(null);
-    const response = await fetch('/api/reminders', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, action: 'email' }),
-    });
-    const payload = (await response.json()) as { error?: string };
-    setBusy(null);
-    if (!response.ok) {
-      setError(payload.error ?? 'No se pudo enviar el correo.');
-      return;
-    }
-    router.refresh();
-  }
-
   return (
     <section className="space-y-4">
-      <PageHeading
-        mark="seguimiento"
-        kicker="Clínico"
-        title="Seguimiento"
-        description="Citas, vacunas, controles y desparasitación pendientes. WhatsApp o correo."
-      />
-      {error ? <p className="pe-callout-amber p-3 text-sm">{error}</p> : null}
-      <div className="flex flex-wrap gap-2">
-        {(['all', 'overdue', 'appointment', 'vaccine', 'followup', 'deworming'] as const).map((key) => (
-          <button
-            key={key}
-            type="button"
-            className={`pe-btn-ghost px-3 py-1.5 text-sm ${filter === key ? 'pe-chip-active' : ''}`}
-            onClick={() => setFilter(key)}
-          >
-            {key === 'all' ? 'Todos' : key === 'overdue' ? 'Vencidos' : REMINDER_KIND_LABELS[key]}
-          </button>
-        ))}
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <PageHeading
+          mark="seguimiento"
+          kicker="Clínico"
+          title="Seguimiento"
+          description="Citas, vacunas y controles pendientes."
+        />
+        <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+          {FILTERS.map((key) => (
+            <button
+              key={key}
+              type="button"
+              className={`whitespace-nowrap px-3 py-1.5 text-sm ${
+                filter === key ? 'pe-chip-active pe-btn-ghost' : 'pe-btn-ghost'
+              }`}
+              onClick={() => setFilter(key)}
+            >
+              {key === 'all' ? 'Todas' : key === 'overdue' ? 'Vencidas' : REMINDER_KIND_LABELS[key]}
+            </button>
+          ))}
+        </div>
       </div>
-      <ul className="space-y-2">
-        {rows.map((row) => {
-          const overdue = row.due_on <= today;
-          return (
-            <li key={row.id} className="pe-glass-card flex flex-wrap items-center justify-between gap-3 p-4">
-              <div>
-                <ReminderPill kind={row.kind} />
-                <p className="mt-1 font-medium">{row.title}</p>
-                <p className="text-sm text-pe-muted">
-                  {one(row.patients)?.name} · {one(row.clients)?.full_name} · {row.due_on}
-                  {overdue ? ' · vencido' : ''}
-                  {row.last_emailed_at ? ' · correo enviado' : ''}
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <WhatsAppLink
-                  phone={one(row.clients)?.phone}
-                  className="pe-btn-secondary px-3 py-1.5 text-sm"
-                  text={vaccineWhatsAppText({
-                    tutorName: one(row.clients)?.full_name ?? 'tutor',
-                    patientName: one(row.patients)?.name ?? 'tu mascota',
-                    clinicName,
-                    title: row.title,
-                    dueOn: row.due_on,
-                  })}
-                />
-                <button
-                  type="button"
-                  className="pe-btn-secondary px-3 py-1.5 text-sm"
-                  disabled={busy !== null || !one(row.clients)?.email}
-                  onClick={() => void email(row.id)}
-                >
-                  Correo
-                </button>
-                <button type="button" className="pe-btn-primary px-3 py-1.5 text-sm" onClick={() => mark(row.id, 'done')}>
-                  Hecho
-                </button>
-                <button type="button" className="pe-btn-ghost px-3 py-1.5 text-sm" onClick={() => mark(row.id, 'cancelled')}>
-                  Descartar
-                </button>
-              </div>
-            </li>
-          );
-        })}
-      </ul>
+      {error ? <p className="pe-callout-amber p-3 text-sm">{error}</p> : null}
+      {rows.length === 0 ? (
+        <p className="pe-card p-6 text-sm text-pe-muted">Nada pendiente en este filtro.</p>
+      ) : (
+        <ul className="pe-card divide-y divide-pe-line">
+          {rows.map((row) => {
+            const overdue = row.due_on <= today;
+            const client = one(row.clients);
+            const patient = one(row.patients);
+            return (
+              <li key={row.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <ReminderPill kind={row.kind} />
+                    {overdue ? <span className="pe-pill bg-amber-100 text-amber-900">Vencida</span> : null}
+                  </div>
+                  <p className="mt-1 truncate font-medium">{row.title}</p>
+                  <p className="truncate text-sm text-pe-muted">
+                    {patient?.name ?? 'Paciente'} · {client?.full_name ?? 'Tutor'} · {row.due_on}
+                  </p>
+                </div>
+                <div className="flex shrink-0 flex-nowrap items-center gap-2">
+                  <WhatsAppLink
+                    phone={client?.phone}
+                    className="pe-btn-secondary whitespace-nowrap px-3 py-1.5 text-sm"
+                    text={vaccineWhatsAppText({
+                      tutorName: client?.full_name ?? 'tutor',
+                      patientName: patient?.name ?? 'tu mascota',
+                      clinicName,
+                      title: row.title,
+                      dueOn: row.due_on,
+                    })}
+                  />
+                  <button
+                    type="button"
+                    className="pe-btn-primary whitespace-nowrap px-3 py-1.5 text-sm"
+                    disabled={busy !== null}
+                    onClick={() => void mark(row.id, 'done')}
+                  >
+                    Hecho
+                  </button>
+                  <button
+                    type="button"
+                    className="pe-btn-ghost whitespace-nowrap px-3 py-1.5 text-sm"
+                    disabled={busy !== null}
+                    onClick={() => void mark(row.id, 'cancelled')}
+                  >
+                    Descartar
+                  </button>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </section>
   );
 }

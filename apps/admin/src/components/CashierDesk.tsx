@@ -6,7 +6,7 @@ import { useState } from 'react';
 
 import { CFDI_STATUS_LABELS, formatMoney, PAYMENT_METHOD_LABELS, type CfdiStatus, type PaymentMethod } from '@petearth/shared';
 
-import { PageHeading, SectionMark } from '@/components/SectionTitle';
+import { ChartCard, PageHeading } from '@/components/SectionTitle';
 
 type Invoice = {
   id: string;
@@ -71,14 +71,10 @@ export function CashierDesk({
     const payload = (await response.json()) as { error?: string; stamped?: boolean; uuid?: string; message?: string };
     setBusy(null);
     if (!response.ok) {
-      setError(payload.error ?? 'No se pudo timbrar.');
+      setError(payload.error ?? 'No se pudo pedir el CFDI.');
       return;
     }
-    setNotice(
-      payload.stamped && payload.uuid
-        ? `Timbrada. UUID ${payload.uuid}`
-        : payload.message ?? 'Pedido de CFDI guardado.',
-    );
+    setNotice(payload.stamped && payload.uuid ? 'Factura solicitada y timbrada.' : payload.message ?? 'Pedido de CFDI guardado.');
     router.refresh();
   }
 
@@ -92,91 +88,94 @@ export function CashierDesk({
       />
       {error ? <p className="pe-callout-amber p-3 text-sm">{error}</p> : null}
       {notice ? <p className="pe-card p-3 text-sm">{notice}</p> : null}
-      {invoices.length === 0 ? (
-        <div className="pe-card p-6 text-sm text-pe-muted">
-          No hay tickets por cobrar{branchName ? ` en ${branchName}` : ''}.
-        </div>
-      ) : (
-        <ul className="space-y-3">
-          {invoices.map((invoice) => {
-            const client = one(invoice.clients);
-            const visit = one(invoice.visits);
-            const patient = one(visit?.patients ?? null);
-            return (
-              <li key={invoice.id} className="pe-card p-4">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <p className="font-semibold">{patient?.name ?? 'Consulta'}</p>
-                    <p className="text-sm text-pe-muted">{client?.full_name ?? 'Tutor'}</p>
-                    {invoice.visit_id ? (
-                      <Link href={`/consultas/${invoice.visit_id}`} className="pe-link text-sm">
-                        Ver consulta
-                      </Link>
-                    ) : null}
-                  </div>
-                  <p className="font-semibold tabular-nums">{formatMoney(Number(invoice.total))}</p>
-                </div>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {(Object.keys(PAYMENT_METHOD_LABELS) as PaymentMethod[]).map((method) => (
-                    <button
-                      key={method}
-                      type="button"
-                      className="pe-btn-primary px-3 py-1.5 text-sm"
-                      disabled={busy !== null}
-                      onClick={() => pay(invoice.id, method)}
-                    >
-                      {PAYMENT_METHOD_LABELS[method]}
-                    </button>
-                  ))}
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-      )}
 
-      <div>
-        <h2 className="flex items-center gap-2 text-xl font-semibold tracking-tight">
-          <SectionMark name="informes" size="sm" />
-          CFDI 4.0
-        </h2>
-        <p className="text-sm text-pe-muted">Tickets cobrados de esta sucursal, pendientes de UUID.</p>
-      </div>
-      {cfdiQueue.length === 0 ? (
-        <div className="pe-card p-4 text-sm text-pe-muted">Nada pendiente de timbrar.</div>
-      ) : (
-        <ul className="space-y-3">
-          {cfdiQueue.map((invoice) => {
-            const client = one(invoice.clients);
-            const visit = one(invoice.visits);
-            const patient = one(visit?.patients ?? null);
-            return (
-              <li key={invoice.id} className="pe-card p-4">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <p className="font-semibold">{patient?.name ?? 'Consulta'}</p>
-                    <p className="text-sm text-pe-muted">{client?.full_name ?? 'Tutor'}</p>
-                    <p className="text-xs text-pe-muted">
-                      {CFDI_STATUS_LABELS[invoice.cfdi_status ?? 'none']}
+      <ChartCard mark="caja" title="Por cobrar">
+        {invoices.length === 0 ? (
+          <p className="mt-3 text-sm text-pe-muted">Nada pendiente{branchName ? ` en ${branchName}` : ''}.</p>
+        ) : (
+          <ul className="mt-1 divide-y divide-pe-line">
+            {invoices.map((invoice) => {
+              const client = one(invoice.clients);
+              const visit = one(invoice.visits);
+              const patient = one(visit?.patients ?? null);
+              return (
+                <li key={invoice.id} className="flex flex-wrap items-center justify-between gap-3 py-2.5">
+                  <span className="min-w-0">
+                    <span className="font-medium">{patient?.name ?? 'Ticket'}</span>
+                    <span className="ml-2 text-sm text-pe-muted">{client?.full_name ?? 'Tutor'}</span>
+                    {invoice.visit_id ? (
+                      <>
+                        {' · '}
+                        <Link href={`/consultas/${invoice.visit_id}`} className="pe-link text-sm">
+                          Ver consulta
+                        </Link>
+                      </>
+                    ) : null}
+                  </span>
+                  <span className="flex shrink-0 flex-wrap items-center gap-2">
+                    <span className="tabular-nums text-sm font-semibold">{formatMoney(Number(invoice.total))}</span>
+                    {(Object.keys(PAYMENT_METHOD_LABELS) as PaymentMethod[]).map((method) => (
+                      <button
+                        key={method}
+                        type="button"
+                        className={
+                          method === 'cash'
+                            ? 'pe-btn-primary whitespace-nowrap px-3 py-1.5 text-sm'
+                            : 'pe-btn-secondary whitespace-nowrap px-3 py-1.5 text-sm'
+                        }
+                        disabled={busy !== null}
+                        onClick={() => void pay(invoice.id, method)}
+                      >
+                        {PAYMENT_METHOD_LABELS[method]}
+                      </button>
+                    ))}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </ChartCard>
+
+      <ChartCard mark="informes" title="Solicitar factura">
+        <p className="mt-1 text-sm text-pe-muted">Tickets cobrados. Se marca “solicitar”; el UUID llega cuando haya PAC.</p>
+        {cfdiQueue.length === 0 ? (
+          <p className="mt-3 text-sm text-pe-muted">Nada pendiente de solicitar.</p>
+        ) : (
+          <ul className="mt-1 divide-y divide-pe-line">
+            {cfdiQueue.map((invoice) => {
+              const client = one(invoice.clients);
+              const visit = one(invoice.visits);
+              const patient = one(visit?.patients ?? null);
+              const status = invoice.cfdi_status ?? 'none';
+              return (
+                <li key={invoice.id} className="flex flex-wrap items-center justify-between gap-3 py-2.5">
+                  <span className="min-w-0">
+                    <span className="font-medium">{patient?.name ?? 'Ticket'}</span>
+                    <span className="ml-2 text-sm text-pe-muted">{client?.full_name ?? 'Tutor'}</span>
+                    <span className="mt-0.5 block text-xs text-pe-muted">
+                      {CFDI_STATUS_LABELS[status]}
                       {client?.rfc ? ` · ${client.rfc}` : ' · falta RFC'}
-                    </p>
-                    {invoice.cfdi_error ? <p className="text-xs text-pe-clay-700">{invoice.cfdi_error}</p> : null}
-                  </div>
-                  <p className="font-semibold tabular-nums">{formatMoney(Number(invoice.total))}</p>
-                </div>
-                <button
-                  type="button"
-                  className="pe-btn-secondary mt-3 px-3 py-1.5 text-sm"
-                  disabled={busy !== null}
-                  onClick={() => requestCfdi(invoice.id)}
-                >
-                  {invoice.cfdi_status === 'error' ? 'Reintentar timbrado' : 'Timbrar CFDI 4.0'}
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      )}
+                    </span>
+                    {invoice.cfdi_error ? <span className="block text-xs text-pe-clay-700">{invoice.cfdi_error}</span> : null}
+                  </span>
+                  <span className="flex shrink-0 items-center gap-2">
+                    <span className="tabular-nums text-sm font-semibold">{formatMoney(Number(invoice.total))}</span>
+                    <button
+                      type="button"
+                      className="pe-btn-secondary whitespace-nowrap px-3 py-1.5 text-sm"
+                      disabled={busy !== null}
+                      onClick={() => void requestCfdi(invoice.id)}
+                    >
+                      {status === 'error' ? 'Reintentar' : 'Solicitar CFDI'}
+                    </button>
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </ChartCard>
     </section>
   );
 }
