@@ -26,7 +26,12 @@ export default async function PacientesPage() {
 
   return (
     <AdminShell>
-      <PatientsDirectory clients={(data ?? []) as never} speciesOptions={speciesOptions} upcoming={upcoming} />
+      <PatientsDirectory
+        clients={(data ?? []) as never}
+        speciesOptions={speciesOptions}
+        upcoming={upcoming}
+        clinicName={staff.organizationName}
+      />
     </AdminShell>
   );
 }
