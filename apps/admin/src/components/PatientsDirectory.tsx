@@ -288,11 +288,11 @@ export function PatientsDirectory({
       ) : null}
 
       {byPet ? (
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {pets.map(({ pet, client }) => (
             <article key={pet.id} className="pe-card p-4 hover:bg-pe-wash/60">
               <Link href={`/pacientes/${pet.id}`} className="flex items-start gap-3">
-                <SectionMark name={speciesMark(pet.species)} />
+                <SectionMark name={speciesMark(pet.species)} square />
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-base font-semibold tracking-tight">{pet.name}</span>
                   <span className="mt-0.5 block truncate text-sm text-pe-muted">
@@ -331,7 +331,7 @@ export function PatientsDirectory({
                   {(client.patients ?? []).map((pet) => (
                     <li key={pet.id}>
                       <Link href={`/pacientes/${pet.id}`} className="flex items-start gap-3 py-2.5 hover:bg-pe-wash">
-                        <SectionMark name={speciesMark(pet.species)} size="sm" />
+                        <SectionMark name={speciesMark(pet.species)} size="sm" square />
                         <span className="min-w-0 flex-1">
                           <span className="block truncate font-medium">{pet.name}</span>
                           <span className="block truncate text-sm text-pe-muted">{petMeta(pet, speciesOptions)}</span>

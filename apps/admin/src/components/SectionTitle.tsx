@@ -22,12 +22,17 @@ export type SectionMarkName =
 export function SectionMark({
   name,
   size = 'md',
+  square = false,
 }: {
   name: SectionMarkName;
   size?: 'sm' | 'md';
+  square?: boolean;
 }) {
+  const classes = [size === 'sm' ? 'pe-mark pe-mark-sm' : 'pe-mark', square ? 'pe-mark-sq' : '']
+    .filter(Boolean)
+    .join(' ');
   return (
-    <span className={size === 'sm' ? 'pe-mark pe-mark-sm' : 'pe-mark'} aria-hidden>
+    <span className={classes} aria-hidden>
       <img src={`/marks/${name}.png`} alt="" />
     </span>
   );

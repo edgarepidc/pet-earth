@@ -214,29 +214,32 @@ export function VisitWorkspace({
   return (
     <div className="grid gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.9fr)]">
       <section className="space-y-4">
-        <PatientHeader
-          name={patient?.name ?? 'Paciente'}
-          species={patient?.species ?? 'other'}
-          sex={(patient?.sex as 'male' | 'female' | 'unknown' | null) ?? null}
-          breed={patient?.breed}
-          birthDate={patient?.birth_date}
-          tutorName={client?.full_name}
-          tutorPhone={client?.phone}
-          alerts={patient?.alerts}
-          allergies={patient?.allergies}
-          weightKg={visit.weight_kg}
-          href={patient?.id ? `/pacientes/${patient.id}` : undefined}
-          clinicName={clinicName}
-        />
-        <div className="flex flex-wrap gap-2">
-          <a href={`/consultas/${visit.id}/receta`} className="pe-btn-secondary px-3 py-1.5 text-sm">
-            Receta / alta
-          </a>
-          {patient?.id ? (
-            <a href={`/pacientes/${patient.id}/cartilla`} className="pe-btn-secondary px-3 py-1.5 text-sm">
-              Cartilla
+        <div className="flex items-end justify-between gap-3">
+          <PatientHeader
+            boxed={false}
+            name={patient?.name ?? 'Paciente'}
+            species={patient?.species ?? 'other'}
+            sex={(patient?.sex as 'male' | 'female' | 'unknown' | null) ?? null}
+            breed={patient?.breed}
+            birthDate={patient?.birth_date}
+            tutorName={client?.full_name}
+            tutorPhone={client?.phone}
+            alerts={patient?.alerts}
+            allergies={patient?.allergies}
+            weightKg={visit.weight_kg}
+            href={patient?.id ? `/pacientes/${patient.id}` : undefined}
+            clinicName={clinicName}
+          />
+          <div className="flex shrink-0 flex-nowrap items-center gap-2">
+            <a href={`/consultas/${visit.id}/receta`} className="pe-btn-secondary whitespace-nowrap px-3 py-1.5 text-sm">
+              Receta / alta
             </a>
-          ) : null}
+            {patient?.id ? (
+              <a href={`/pacientes/${patient.id}/cartilla`} className="pe-btn-secondary whitespace-nowrap px-3 py-1.5 text-sm">
+                Cartilla
+              </a>
+            ) : null}
+          </div>
         </div>
         {error ? <p className="pe-callout-amber p-3 text-sm">{error}</p> : null}
         <div className="grid gap-3 sm:grid-cols-4">
