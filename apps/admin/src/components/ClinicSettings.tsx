@@ -12,6 +12,7 @@ import {
 } from '@petearth/shared';
 
 import { ClinicFiscalForm } from '@/components/ClinicFiscalForm';
+import { ClinicTeam, type ClinicStaffRow } from '@/components/ClinicTeam';
 import { ChartCard, PageHeading } from '@/components/SectionTitle';
 import type { ClinicListRow } from '@/lib/clinicLists';
 
@@ -55,12 +56,14 @@ export function ClinicSettings({
   species,
   clinicName,
   branches,
+  staff,
   fiscal,
   pacReady = false,
 }: {
   species: ClinicListRow[];
   clinicName: string;
   branches: ClinicBranchRow[];
+  staff: ClinicStaffRow[];
   fiscal: {
     rfc?: string | null;
     razonSocial?: string | null;
@@ -217,7 +220,7 @@ export function ClinicSettings({
         mark="clinicas"
         kicker="Administración"
         title="Configuración"
-        description="Sucursales, horario, fiscales y listas del consultorio."
+        description="Sucursales, equipo, fiscales y listas del consultorio."
       />
       {error ? <p className="pe-callout-amber p-3 text-sm">{error}</p> : null}
 
@@ -363,6 +366,8 @@ export function ClinicSettings({
           </ul>
         </ChartCard>
       </div>
+
+      <ClinicTeam staff={staff} branches={branches} />
     </section>
   );
 }
