@@ -7,6 +7,7 @@ export function PrintSheet({
   clinicName,
   branchName,
   branchAddress,
+  branchPhone,
   logo,
   footer,
   fiscal,
@@ -16,6 +17,7 @@ export function PrintSheet({
   clinicName: string;
   branchName?: string;
   branchAddress?: string | null;
+  branchPhone?: string | null;
   logo?: string | null;
   footer?: string | null;
   fiscal?: {
@@ -39,7 +41,13 @@ export function PrintSheet({
           <div className="min-w-0">
             <p className="font-serif text-xl font-semibold">{fiscal?.razonSocial || clinicName}</p>
             {branchName ? <p className="text-sm text-pe-muted">{branchName}</p> : null}
-            {branchAddress ? <p className="text-sm text-pe-muted">{branchAddress}</p> : null}
+            {branchAddress || branchPhone ? (
+              <p className="text-sm text-pe-muted">
+                {branchAddress}
+                {branchAddress && branchPhone ? ' · ' : null}
+                {branchPhone}
+              </p>
+            ) : null}
             {fiscal?.rfc || fiscal?.codigoPostal ? (
               <p className="mt-1 text-sm text-pe-muted">
                 {fiscal.rfc ? `RFC ${fiscal.rfc}` : null}

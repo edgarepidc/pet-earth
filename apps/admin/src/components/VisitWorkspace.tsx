@@ -1,17 +1,20 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { PatientHeader } from '@/components/PatientHeader';
 import {
   CATALOG_KIND_LABELS,
+  canEditClinical,
+  canTakePayment,
   formatMoney,
   INVOICE_STATUS_LABELS,
   PAYMENT_METHOD_LABELS,
   type CatalogKind,
   type InvoiceStatus,
   type PaymentMethod,
+  type StaffRole,
   splitInvoiceTotals,
   vaccineWhatsAppText,
   todayMexicoYmd,
@@ -81,11 +84,17 @@ type VisitPayload = {
 export function VisitWorkspace({
   initial,
   clinicName,
+  role,
+  isPlatformAdmin = false,
 }: {
   initial: VisitPayload;
   clinicName: string;
+  role: StaffRole;
+  isPlatformAdmin?: boolean;
 }) {
   const router = useRouter();
+  const canEdit = canEditClinical(role) || isPlatformAdmin;
+  const canPay = canTakePayment(role) || isPlatformAdmin;
   const [visit, setVisit] = useState(initial.visit);
   const [invoice, setInvoice] = useState(initial.invoice);
   const [subjective, setSubjective] = useState(visit.subjective ?? '');
@@ -107,6 +116,77 @@ export function VisitWorkspace({
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const closed = visit.status === 'completed';
+  const clinicalLocked = closed || !canEdit;
+  const savedNotes = useRef(notesKey());
+  const notesTimer = useRef<number | null>(null);
+
+  function notesKey() {
+    return JSON.stringify({
+      subjective: subjective.trim() || null,
+      objective: objective.trim() || null,
+      assessment: assessment.trim() || null,
+      plan: plan.trim() || null,
+      weight: weight.trim(),
+      temp: temp.trim(),
+      hr: hr.trim(),
+      rr: rr.trim(),
+      followup: followup || null,
+    });
+  }
+
+  function numberOrNull(value: string) {
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+    const parsed = Number(trimmed);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  async function persistNotes() {
+    if (!canEdit || closed) return;
+    const next = notesKey();
+    if (next === savedNotes.current) return;
+    const response = await fetch('/api/visits', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        visitId: visit.id,
+        action: 'notes',
+        subjective,
+        objective,
+        assessment,
+        plan,
+        weightKg: numberOrNull(weight),
+        temperatureC: numberOrNull(temp),
+        heartRate: numberOrNull(hr) === null ? null : Math.round(numberOrNull(hr) as number),
+        respiratoryRate: numberOrNull(rr) === null ? null : Math.round(numberOrNull(rr) as number),
+        followupOn: followup || null,
+      }),
+    });
+    const payload = (await response.json()) as { error?: string };
+    if (!response.ok) {
+      setError(payload.error ?? 'No se pudieron guardar las notas.');
+      return;
+    }
+    savedNotes.current = next;
+  }
+
+  async function goPrint(href: string) {
+    await persistNotes();
+    router.push(href);
+  }
+
+  useEffect(() => {
+    if (!canEdit || closed) return;
+    if (notesTimer.current) window.clearTimeout(notesTimer.current);
+    notesTimer.current = window.setTimeout(() => {
+      void persistNotes();
+    }, 700);
+    return () => {
+      if (notesTimer.current) window.clearTimeout(notesTimer.current);
+    };
+    // Persist the floor notes without waiting to close the consult.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [subjective, objective, assessment, plan, weight, temp, hr, rr, followup, canEdit, closed]);
 
   const lines = visit.visit_lines ?? invoice?.invoice_lines ?? [];
   const split = useMemo(
@@ -249,15 +329,15 @@ export function VisitWorkspace({
             clinicName={clinicName}
           />
           <div className="flex shrink-0 flex-nowrap items-center gap-2">
-            <a href={recetaHref} className="pe-btn-secondary whitespace-nowrap px-3 py-1.5 text-sm">
+            <button type="button" className="pe-btn-secondary whitespace-nowrap px-3 py-1.5 text-sm" onClick={() => void goPrint(recetaHref)}>
               Receta / alta
-            </a>
+            </button>
             {cartillaHref ? (
-              <a href={cartillaHref} className="pe-btn-secondary whitespace-nowrap px-3 py-1.5 text-sm">
+              <button type="button" className="pe-btn-secondary whitespace-nowrap px-3 py-1.5 text-sm" onClick={() => void goPrint(cartillaHref)}>
                 Cartilla
-              </a>
+              </button>
             ) : null}
-            {!closed ? (
+            {canEdit && !closed ? (
               <button
                 type="button"
                 className="pe-btn-primary whitespace-nowrap px-3 py-1.5 text-sm"
@@ -266,12 +346,14 @@ export function VisitWorkspace({
               >
                 Cerrar consulta
               </button>
-            ) : (
-              <span className="pe-chip-active pe-btn-ghost whitespace-nowrap px-3 py-1.5 text-sm">Alta</span>
-            )}
+            ) : null}
+            {closed ? <span className="pe-chip-active pe-btn-ghost whitespace-nowrap px-3 py-1.5 text-sm">Alta</span> : null}
           </div>
         </div>
         {error ? <p className="pe-callout-amber p-3 text-sm">{error}</p> : null}
+        {!canEdit && !closed ? (
+          <p className="text-sm text-pe-muted">Recepción cobra y sube fotos. El SOAP y la receta los escribe el MVZ.</p>
+        ) : null}
         {closed ? (
           <p className="text-sm text-pe-muted">
             Consulta cerrada. El tutor ya puede ver el alta en su portal.
@@ -295,19 +377,19 @@ export function VisitWorkspace({
           <div className="mt-3 grid gap-3 sm:grid-cols-4">
             <label className="text-sm">
               Peso (kg)
-              <input className="pe-input mt-1" value={weight} onChange={(e) => setWeight(e.target.value)} disabled={closed} />
+              <input className="pe-input mt-1" value={weight} onChange={(e) => setWeight(e.target.value)} disabled={clinicalLocked} />
             </label>
             <label className="text-sm">
               Temp (°C)
-              <input className="pe-input mt-1" value={temp} onChange={(e) => setTemp(e.target.value)} disabled={closed} />
+              <input className="pe-input mt-1" value={temp} onChange={(e) => setTemp(e.target.value)} disabled={clinicalLocked} />
             </label>
             <label className="text-sm">
               FC
-              <input className="pe-input mt-1" value={hr} onChange={(e) => setHr(e.target.value)} disabled={closed} />
+              <input className="pe-input mt-1" value={hr} onChange={(e) => setHr(e.target.value)} disabled={clinicalLocked} />
             </label>
             <label className="text-sm">
               FR
-              <input className="pe-input mt-1" value={rr} onChange={(e) => setRr(e.target.value)} disabled={closed} />
+              <input className="pe-input mt-1" value={rr} onChange={(e) => setRr(e.target.value)} disabled={clinicalLocked} />
             </label>
           </div>
         </ChartCard>
@@ -319,11 +401,11 @@ export function VisitWorkspace({
                 <span className="flex items-center justify-between gap-2">
                   {field.label}
                   <DictationButton
-                    disabled={closed}
+                    disabled={clinicalLocked}
                     onTranscript={(text) => field.set((current) => (current ? `${current} ${text}` : text))}
                   />
                 </span>
-                <textarea className="pe-input mt-1" value={field.value} onChange={(e) => field.set(e.target.value)} disabled={closed} />
+                <textarea className="pe-input mt-1" value={field.value} onChange={(e) => field.set(e.target.value)} disabled={clinicalLocked} />
               </label>
             ))}
             <label className="block text-sm">
@@ -333,7 +415,7 @@ export function VisitWorkspace({
                 className="pe-input mt-1 max-w-xs"
                 value={followup}
                 onChange={(e) => setFollowup(e.target.value)}
-                disabled={closed}
+                disabled={clinicalLocked}
               />
             </label>
           </div>
@@ -347,14 +429,14 @@ export function VisitWorkspace({
           <p className="mt-1 text-sm text-pe-muted">Lo que documentas aquí se cobra. La indicación sale en la receta, no el precio.</p>
           <div className="mt-3 grid gap-2">
             <div className="flex gap-2">
-              <select className="pe-input" value={itemId} onChange={(e) => setItemId(e.target.value)} disabled={closed}>
+              <select className="pe-input" value={itemId} onChange={(e) => setItemId(e.target.value)} disabled={clinicalLocked}>
                 {initial.catalog.map((item) => (
                   <option key={item.id} value={item.id}>
                     {CATALOG_KIND_LABELS[item.kind]} · {item.name} · {formatMoney(Number(item.unit_price))}
                   </option>
                 ))}
               </select>
-              <button type="button" className="pe-btn-secondary px-3 text-sm" disabled={closed || busy} onClick={() => void addLine()}>
+              <button type="button" className="pe-btn-secondary px-3 text-sm" disabled={clinicalLocked || busy} onClick={() => void addLine()}>
                 Agregar
               </button>
             </div>
@@ -363,7 +445,7 @@ export function VisitWorkspace({
               placeholder="Indicación (dosis, vía, días) — para la receta"
               value={directions}
               onChange={(e) => setDirections(e.target.value)}
-              disabled={closed}
+              disabled={clinicalLocked}
             />
           </div>
           <ul className="mt-3 divide-y divide-pe-line text-sm">
@@ -381,7 +463,7 @@ export function VisitWorkspace({
                     visitId={visit.id}
                     lineId={line.id}
                     initial={line.directions ?? ''}
-                    disabled={busy || closed}
+                    disabled={busy || clinicalLocked}
                     onError={setError}
                     onSaved={refresh}
                   />
@@ -405,7 +487,7 @@ export function VisitWorkspace({
             </p>
             <p className="text-xs text-pe-muted">Ticket: {invoice ? INVOICE_STATUS_LABELS[invoice.status] : 'sin abrir'}</p>
           </div>
-          {invoice && invoice.status !== 'paid' ? (
+          {invoice && invoice.status !== 'paid' && canPay ? (
             <div className="mt-3 flex flex-wrap gap-2">
               {(Object.keys(PAYMENT_METHOD_LABELS) as PaymentMethod[]).map((method) => (
                 <button
@@ -424,7 +506,7 @@ export function VisitWorkspace({
 
         <ChartCard mark="cartilla" title="Vacuna">
           <div className="mt-3 grid gap-2">
-            <select className="pe-input" value={vaccineItem} onChange={(e) => setVaccineItem(e.target.value)} disabled={closed}>
+            <select className="pe-input" value={vaccineItem} onChange={(e) => setVaccineItem(e.target.value)} disabled={clinicalLocked}>
               {initial.catalog
                 .filter((item) => item.kind === 'product')
                 .map((item) => (
@@ -433,9 +515,9 @@ export function VisitWorkspace({
                   </option>
                 ))}
             </select>
-            <input className="pe-input" placeholder="Lote" value={lot} onChange={(e) => setLot(e.target.value)} disabled={closed} />
-            <input type="date" className="pe-input" value={nextDue} onChange={(e) => setNextDue(e.target.value)} disabled={closed} />
-            <button type="button" className="pe-btn-secondary px-4 py-2 text-sm" disabled={closed || busy} onClick={() => void applyVaccine()}>
+            <input className="pe-input" placeholder="Lote" value={lot} onChange={(e) => setLot(e.target.value)} disabled={clinicalLocked} />
+            <input type="date" className="pe-input" value={nextDue} onChange={(e) => setNextDue(e.target.value)} disabled={clinicalLocked} />
+            <button type="button" className="pe-btn-secondary px-4 py-2 text-sm" disabled={clinicalLocked || busy} onClick={() => void applyVaccine()}>
               Aplicar y recordar refuerzo
             </button>
           </div>

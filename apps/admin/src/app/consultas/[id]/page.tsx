@@ -37,6 +37,8 @@ export default async function ConsultaPage({ params }: { params: Promise<{ id: s
     <AdminShell>
       <VisitWorkspace
         clinicName={staff.organizationName}
+        role={staff.role}
+        isPlatformAdmin={staff.isPlatformAdmin}
         initial={{ visit: visit as never, invoice: invoice as never, catalog: catalog ?? [] }}
       />
     </AdminShell>

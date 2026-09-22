@@ -1,4 +1,5 @@
-import { addMexicoDays, formatMoney, isValidYmd, todayMexicoYmd } from '@petearth/shared';
+import { addMexicoDays, formatMoney, isValidYmd, roleCan, todayMexicoYmd } from '@petearth/shared';
+import { redirect } from 'next/navigation';
 
 import { AdminShell } from '@/components/AdminShell';
 import { PageHeading, SectionMark } from '@/components/SectionTitle';
@@ -13,6 +14,7 @@ export default async function InformesPage({
   searchParams: Promise<{ start?: string; end?: string }>;
 }) {
   const staff = await loadClinicSession();
+  if (!roleCan(staff.role, 'informes') && !staff.isPlatformAdmin) redirect('/');
   const params = await searchParams;
   const today = todayMexicoYmd();
   const start = params.start && isValidYmd(params.start) ? params.start : addMexicoDays(today, -30);

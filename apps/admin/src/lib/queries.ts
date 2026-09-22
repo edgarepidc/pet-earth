@@ -1,4 +1,4 @@
-import { mexicoYmdBoundsIso, parseLetterhead } from '@petearth/shared';
+import { mexicoYmdBoundsIso, parseBranchSettings, parseLetterhead } from '@petearth/shared';
 import { createAdminClient } from '@petearth/supabase/admin';
 
 export async function loadAppointmentsInRange(branchId: string, startIso: string, endIso: string) {
@@ -188,7 +188,7 @@ export async function loadLetterhead(organizationId: string, branchId: string) {
   const supabase = createAdminClient();
   const [{ data: org }, { data: branch }] = await Promise.all([
     supabase.from('organizations').select('name, settings').eq('id', organizationId).maybeSingle(),
-    supabase.from('branches').select('name, address').eq('id', branchId).maybeSingle(),
+    supabase.from('branches').select('name, address, settings').eq('id', branchId).maybeSingle(),
   ]);
   const fiscal = ((org?.settings as { fiscal?: Record<string, string | null> } | null)?.fiscal ?? {}) as {
     rfc?: string | null;
@@ -200,8 +200,19 @@ export async function loadLetterhead(organizationId: string, branchId: string) {
     clinicName: org?.name ?? 'Clínica',
     branchName: branch?.name ?? '',
     branchAddress: branch?.address ?? null,
+    branchPhone: parseBranchSettings(branch?.settings).phone,
     fiscal,
     letterhead: parseLetterhead(org?.settings),
+  };
+}
+
+export async function loadPrescriber(vetId: string | null) {
+  if (!vetId) return { name: null, license: null };
+  const supabase = createAdminClient();
+  const { data } = await supabase.from('profiles').select('full_name, license').eq('id', vetId).maybeSingle();
+  return {
+    name: data?.full_name?.trim() || null,
+    license: data?.license?.trim() || null,
   };
 }
 

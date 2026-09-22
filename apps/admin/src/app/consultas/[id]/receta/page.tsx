@@ -1,10 +1,10 @@
-import { formatMexicoDate } from '@petearth/shared';
+import { canEditClinical, formatMexicoDate } from '@petearth/shared';
 import { createAdminClient } from '@petearth/supabase/admin';
 import { notFound } from 'next/navigation';
 
 import { PrintSheet } from '@/components/PrintSheet';
 import { loadClinicSession } from '@/lib/auth';
-import { loadLetterhead } from '@/lib/queries';
+import { loadLetterhead, loadPrescriber } from '@/lib/queries';
 
 export const dynamic = 'force-dynamic';
 
@@ -33,7 +33,10 @@ export default async function RecetaPage({ params }: { params: Promise<{ id: str
   const meds = lines.filter((line) => line.kind === 'product');
   const dateLabel = formatMexicoDate((visit.completed_at ?? visit.started_at).slice(0, 10));
   const sheet = letterhead.letterhead;
-  const license = staff.license?.trim();
+  const prescriber = await loadPrescriber(visit.vet_id);
+  const vetName =
+    prescriber.name || (canEditClinical(staff.role) ? staff.fullName?.trim() || staff.email : null) || 'MVZ';
+  const license = prescriber.license || (!visit.vet_id && canEditClinical(staff.role) ? staff.license?.trim() || null : null);
 
   return (
     <PrintSheet
@@ -41,13 +44,14 @@ export default async function RecetaPage({ params }: { params: Promise<{ id: str
       clinicName={letterhead.clinicName}
       branchName={letterhead.branchName}
       branchAddress={letterhead.branchAddress}
+      branchPhone={letterhead.branchPhone}
       logo={sheet.logo}
       footer={sheet.footer}
       fiscal={letterhead.fiscal}
     >
       <h1 className="mt-4 font-serif text-3xl font-semibold">Receta y alta</h1>
       <p className="text-sm text-pe-muted">
-        {dateLabel} · {staff.fullName ?? staff.email}
+        {dateLabel} · {vetName}
         {license ? ` · Cédula ${license}` : ''}
       </p>
       <section className="mt-6 grid gap-2 text-sm">
@@ -99,7 +103,7 @@ export default async function RecetaPage({ params }: { params: Promise<{ id: str
         <section className="mt-4">
           <h2 className="font-semibold">Vacunas aplicadas hoy</h2>
           <ul className="mt-2 space-y-1 text-sm">
-            {vaccines.map((row) => (
+            {(vaccines ?? []).map((row) => (
               <li key={row.name}>
                 {row.name}
                 {row.lot ? ` · lote ${row.lot}` : ''}
@@ -111,7 +115,7 @@ export default async function RecetaPage({ params }: { params: Promise<{ id: str
       ) : null}
       <p className="mt-10 text-sm text-pe-muted">
         Firma y sello ________________________________
-        {staff.fullName ? ` · ${staff.fullName}` : ''}
+        {vetName ? ` · ${vetName}` : ''}
         {license ? ` · Cédula ${license}` : ''}
       </p>
     </PrintSheet>

@@ -33,6 +33,7 @@ export default async function CartillaPage({ params }: { params: Promise<{ id: s
       clinicName={letterhead.clinicName}
       branchName={letterhead.branchName}
       branchAddress={letterhead.branchAddress}
+      branchPhone={letterhead.branchPhone}
       logo={letterhead.letterhead.logo}
       fiscal={letterhead.fiscal}
     >
