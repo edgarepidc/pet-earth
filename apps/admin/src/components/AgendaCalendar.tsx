@@ -104,7 +104,7 @@ export function AgendaCalendar({
           <button
             type="button"
             className={`pe-btn-ghost px-3 py-1.5 text-sm ${view === 'week' ? 'pe-chip-active' : ''}`}
-            onClick={() => open('week', cursor)}
+            onClick={() => open('week', today)}
           >
             Semana
           </button>
