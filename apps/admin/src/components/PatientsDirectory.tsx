@@ -9,6 +9,7 @@ import {
   CFDI_USOS,
   formatMexicoDateTime,
   speciesLabel,
+  todayMexicoYmd,
   whatsappHref,
   type CfdiUso,
   type ClinicListOption,
@@ -45,6 +46,15 @@ export type UpcomingPatientAppointment = {
   reason: string | null;
 };
 
+type PetEstado = 'activas' | 'baja' | 'cita' | 'todas';
+
+const ESTADO_CHIPS: { key: PetEstado; label: string }[] = [
+  { key: 'activas', label: 'Activas' },
+  { key: 'baja', label: 'Baja' },
+  { key: 'cita', label: 'Con cita' },
+  { key: 'todas', label: 'Todas' },
+];
+
 function petMeta(pet: Patient, speciesOptions: ClinicListOption[]): string {
   return [
     speciesLabel(pet.species, speciesOptions),
@@ -55,13 +65,28 @@ function petMeta(pet: Patient, speciesOptions: ClinicListOption[]): string {
     .join(' · ');
 }
 
+function agendaDayHref(iso: string) {
+  return `/agenda?view=day&start=${todayMexicoYmd(new Date(iso))}`;
+}
+
+function matchesEstado(pet: Patient, estado: PetEstado, upcoming: Record<string, UpcomingPatientAppointment>) {
+  if (estado === 'activas') return pet.is_active;
+  if (estado === 'baja') return !pet.is_active;
+  if (estado === 'cita') return Boolean(upcoming[pet.id]);
+  return true;
+}
+
 function UpcomingLine({ row }: { row?: UpcomingPatientAppointment }) {
   if (!row) return null;
   return (
-    <p className="mt-1 truncate text-xs font-medium text-pe-clay-700">
+    <Link
+      href={agendaDayHref(row.starts_at)}
+      className="mt-1 block truncate text-xs font-medium pe-link"
+      onClick={(event) => event.stopPropagation()}
+    >
       Próxima {formatMexicoDateTime(row.starts_at)}
       {row.reason?.trim() ? ` · ${row.reason}` : ''}
-    </p>
+    </Link>
   );
 }
 
@@ -109,6 +134,7 @@ export function PatientsDirectory({
   const byPet = mark === 'pacientes';
   const [query, setQuery] = useState('');
   const [species, setSpecies] = useState('');
+  const [estado, setEstado] = useState<PetEstado>('activas');
   const [alta, setAlta] = useState<null | 'tutor' | 'pet'>(null);
   const [error, setError] = useState<string | null>(null);
   const [tutorName, setTutorName] = useState('');
@@ -129,7 +155,10 @@ export function PatientsDirectory({
     const digits = q.replace(/\D/g, '');
     const rows: Client[] = [];
     for (const client of clients) {
-      const pets = (client.patients ?? []).filter((pet) => (species ? pet.species === species : true));
+      const pets = (client.patients ?? []).filter((pet) => {
+        if (species && pet.species !== species) return false;
+        return matchesEstado(pet, estado, upcoming);
+      });
       let nextPets = pets;
       if (q) {
         const inTutor = `${client.full_name} ${client.phone ?? ''} ${client.email ?? ''}`.toLowerCase().includes(q);
@@ -140,13 +169,13 @@ export function PatientsDirectory({
         });
         if (!inTutor && matchingPets.length === 0) continue;
         nextPets = inTutor ? pets : matchingPets;
-      } else if (species && pets.length === 0) {
+      } else if (pets.length === 0) {
         continue;
       }
       rows.push({ ...client, patients: nextPets });
     }
     return rows;
-  }, [clients, query, species]);
+  }, [clients, query, species, estado, upcoming]);
 
   const pets = useMemo(
     () =>
@@ -218,7 +247,7 @@ export function PatientsDirectory({
       <p className="pe-card p-6 text-sm text-pe-muted">
         {clients.length === 0
           ? 'Aún no hay tutores. Da de alta el primero para colgar las mascotas.'
-          : 'Nadie coincide con esa búsqueda.'}
+          : 'Nadie coincide con ese filtro.'}
       </p>
     ) : null;
 
@@ -226,70 +255,74 @@ export function PatientsDirectory({
     <section className="space-y-4">
       <div className="flex items-end justify-between gap-3">
         <PageHeading mark={mark} kicker={kicker} title={title} description={description} />
-        <div className="flex shrink-0 flex-col items-end gap-2">
-          <div className="flex shrink-0 flex-nowrap items-center gap-2">
-            <Link href={directoryHref(false, table)} className={tabClass(byPet)}>
-              Pacientes
-            </Link>
-            <Link href={directoryHref(true, table)} className={tabClass(!byPet)}>
-              Tutores
-            </Link>
-          </div>
-          <div className="flex shrink-0 flex-nowrap items-center gap-2">
-            <button
-              type="button"
-              className={`whitespace-nowrap px-3 py-1.5 text-sm ${alta === 'tutor' ? 'pe-chip-active pe-btn-ghost' : 'pe-btn-secondary'}`}
-              onClick={() => toggleAlta('tutor')}
-            >
-              Nuevo tutor
-            </button>
-            <button
-              type="button"
-              className={`whitespace-nowrap px-3 py-1.5 text-sm ${alta === 'pet' ? 'pe-chip-active pe-btn-ghost' : 'pe-btn-secondary'}`}
-              onClick={() => toggleAlta('pet')}
-              disabled={clients.length === 0}
-            >
-              Nueva mascota
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div className="flex flex-wrap items-end gap-3">
-          <input
-            className="pe-input max-w-md"
-            placeholder="Buscar tutor, mascota o chip"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-          />
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              className={`pe-btn-ghost px-3 py-1.5 text-sm ${species === '' ? 'pe-chip-active' : ''}`}
-              onClick={() => setSpecies('')}
-            >
-              Todas
-            </button>
-            {speciesOptions.map((item) => (
-              <button
-                key={item.slug}
-                type="button"
-                className={`pe-btn-ghost px-3 py-1.5 text-sm ${species === item.slug ? 'pe-chip-active' : ''}`}
-                onClick={() => setSpecies(item.slug)}
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
-        </div>
-        <div className="flex shrink-0 flex-nowrap items-center gap-2">
+        <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+          <Link href={directoryHref(false, table)} className={tabClass(byPet)}>
+            Pacientes
+          </Link>
+          <Link href={directoryHref(true, table)} className={tabClass(!byPet)}>
+            Tutores
+          </Link>
           <Link href={directoryHref(!byPet, false)} className={tabClass(!table)}>
             Tarjetas
           </Link>
           <Link href={directoryHref(!byPet, true)} className={tabClass(table)}>
             Tabla
           </Link>
+          <button
+            type="button"
+            className={`whitespace-nowrap px-3 py-1.5 text-sm ${alta === 'tutor' ? 'pe-chip-active pe-btn-ghost' : 'pe-btn-secondary'}`}
+            onClick={() => toggleAlta('tutor')}
+          >
+            Nuevo tutor
+          </button>
+          <button
+            type="button"
+            className={`whitespace-nowrap px-3 py-1.5 text-sm ${alta === 'pet' ? 'pe-chip-active pe-btn-ghost' : 'pe-btn-secondary'}`}
+            onClick={() => toggleAlta('pet')}
+            disabled={clients.length === 0}
+          >
+            Nueva mascota
+          </button>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-end gap-3">
+        <input
+          className="pe-input max-w-md"
+          placeholder="Buscar tutor, mascota o chip"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+        />
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            className={`pe-btn-ghost px-3 py-1.5 text-sm ${species === '' ? 'pe-chip-active' : ''}`}
+            onClick={() => setSpecies('')}
+          >
+            Especies
+          </button>
+          {speciesOptions.map((item) => (
+            <button
+              key={item.slug}
+              type="button"
+              className={`pe-btn-ghost px-3 py-1.5 text-sm ${species === item.slug ? 'pe-chip-active' : ''}`}
+              onClick={() => setSpecies(item.slug)}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {ESTADO_CHIPS.map((item) => (
+            <button
+              key={item.key}
+              type="button"
+              className={`pe-btn-ghost px-3 py-1.5 text-sm ${estado === item.key ? 'pe-chip-active' : ''}`}
+              onClick={() => setEstado(item.key)}
+            >
+              {item.label}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -426,7 +459,7 @@ export function PatientsDirectory({
                     <td className="px-3 py-6 text-pe-muted" colSpan={5}>
                       {clients.length === 0
                         ? 'Aún no hay tutores. Da de alta el primero para colgar las mascotas.'
-                        : 'Nadie coincide con esa búsqueda.'}
+                        : 'Nadie coincide con ese filtro.'}
                     </td>
                   </tr>
                 ) : (
@@ -452,10 +485,18 @@ export function PatientsDirectory({
                       </td>
                       <td className="max-w-[12rem] truncate px-3 py-2.5 text-pe-muted">{client.full_name}</td>
                       <td className="px-3 py-2.5 text-pe-muted">{petMeta(pet, speciesOptions)}</td>
-                      <td className="whitespace-nowrap px-3 py-2.5 text-pe-clay-700">
-                        {next
-                          ? `${formatMexicoDateTime(next.starts_at)}${next.reason?.trim() ? ` · ${next.reason}` : ''}`
-                          : '—'}
+                      <td
+                        className="whitespace-nowrap px-3 py-2.5 text-pe-clay-700"
+                        onClick={(event) => event.stopPropagation()}
+                      >
+                        {next ? (
+                          <Link href={agendaDayHref(next.starts_at)} className="pe-link font-medium">
+                            {formatMexicoDateTime(next.starts_at)}
+                            {next.reason?.trim() ? ` · ${next.reason}` : ''}
+                          </Link>
+                        ) : (
+                          '—'
+                        )}
                       </td>
                       <td className="max-w-[14rem] truncate px-3 py-2.5">
                         {pet.alerts ? <span className="font-medium text-amber-800">{pet.alerts}</span> : '—'}
@@ -485,7 +526,7 @@ export function PatientsDirectory({
                     <td className="px-3 py-6 text-pe-muted" colSpan={showFiscal ? 5 : 4}>
                       {clients.length === 0
                         ? 'Aún no hay tutores. Da de alta el primero para colgar las mascotas.'
-                        : 'Nadie coincide con esa búsqueda.'}
+                        : 'Nadie coincide con ese filtro.'}
                     </td>
                   </tr>
                 ) : (
@@ -563,10 +604,10 @@ export function PatientsDirectory({
                   <span className="mt-0.5 block truncate text-sm text-pe-muted">
                     {client.full_name} · {petMeta(pet, speciesOptions)}
                   </span>
-                  <UpcomingLine row={upcoming[pet.id]} />
                   <AlertPill alerts={pet.alerts} />
                 </span>
               </Link>
+              <UpcomingLine row={upcoming[pet.id]} />
             </article>
           ))}
         </div>
@@ -594,16 +635,16 @@ export function PatientsDirectory({
                 </p>
                 <ul className="mt-3 divide-y divide-pe-line">
                   {(client.patients ?? []).map((pet) => (
-                    <li key={pet.id}>
-                      <Link href={`/pacientes/${pet.id}`} className="flex items-start gap-3 py-2.5 hover:bg-pe-wash">
+                    <li key={pet.id} className="py-2.5">
+                      <Link href={`/pacientes/${pet.id}`} className="flex items-start gap-3 hover:bg-pe-wash">
                         <SectionMark name={speciesMark(pet.species)} size="sm" square />
                         <span className="min-w-0 flex-1">
                           <span className="block truncate font-medium">{pet.name}</span>
                           <span className="block truncate text-sm text-pe-muted">{petMeta(pet, speciesOptions)}</span>
-                          <UpcomingLine row={upcoming[pet.id]} />
                           <AlertPill alerts={pet.alerts} />
                         </span>
                       </Link>
+                      <UpcomingLine row={upcoming[pet.id]} />
                     </li>
                   ))}
                   {(client.patients ?? []).length === 0 ? (
