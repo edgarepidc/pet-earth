@@ -48,6 +48,11 @@ export default async function RecetaPage({ params }: { params: Promise<{ id: str
       logo={sheet.logo}
       footer={sheet.footer}
       fiscal={letterhead.fiscal}
+      whatsApp={{
+        phone: client?.phone,
+        tutorName: client?.full_name ?? 'tutor',
+        patientName: patient?.name ?? 'tu mascota',
+      }}
     >
       <h1 className="mt-4 font-serif text-3xl font-semibold">Receta y alta</h1>
       <p className="text-sm text-pe-muted">

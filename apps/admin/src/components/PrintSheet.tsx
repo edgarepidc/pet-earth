@@ -1,6 +1,7 @@
 import Link from 'next/link';
 
 import { PrintButton } from '@/components/PrintButton';
+import { RecetaWhatsAppButton } from '@/components/RecetaWhatsAppButton';
 
 export function PrintSheet({
   backHref,
@@ -11,6 +12,7 @@ export function PrintSheet({
   logo,
   footer,
   fiscal,
+  whatsApp,
   children,
 }: {
   backHref: string;
@@ -25,6 +27,11 @@ export function PrintSheet({
     razonSocial?: string | null;
     codigoPostal?: string | null;
   };
+  whatsApp?: {
+    phone: string | null | undefined;
+    tutorName: string;
+    patientName: string;
+  };
   children: React.ReactNode;
 }) {
   return (
@@ -33,9 +40,19 @@ export function PrintSheet({
         <Link href={backHref} className="pe-link text-sm">
           Volver
         </Link>
-        <PrintButton />
+        <div className="flex items-start gap-2">
+          {whatsApp ? (
+            <RecetaWhatsAppButton
+              phone={whatsApp.phone}
+              tutorName={whatsApp.tutorName}
+              patientName={whatsApp.patientName}
+              clinicName={clinicName}
+            />
+          ) : null}
+          <PrintButton />
+        </div>
       </div>
-      <article className="pe-print-sheet mx-auto max-w-3xl p-8">
+      <article id="pe-print-sheet" className="pe-print-sheet mx-auto max-w-3xl p-8">
         <header className="flex items-start gap-4">
           {logo ? <img src={logo} alt="" className="h-16 w-16 rounded-md object-cover" /> : null}
           <div className="min-w-0">

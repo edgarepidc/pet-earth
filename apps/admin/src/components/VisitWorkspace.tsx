@@ -21,15 +21,12 @@ import {
   type ReminderKind,
   type StaffRole,
   splitInvoiceTotals,
-  vaccineWhatsAppText,
-  todayMexicoYmd,
 } from '@petearth/shared';
 
 import { ClinicalMedia } from '@/components/ClinicalMedia';
 import { DictationButton } from '@/components/DictationButton';
 import { ChartCard } from '@/components/SectionTitle';
 import { ReminderPill } from '@/components/StatusPill';
-import { WhatsAppLink } from '@/components/WhatsAppLink';
 
 type CatalogItem = {
   id: string;
@@ -332,6 +329,7 @@ export function VisitWorkspace({
     }
     await refresh();
     router.refresh();
+    router.push(`/consultas/${visit.id}/receta`);
   }
 
   async function pay(method: PaymentMethod) {
@@ -417,20 +415,10 @@ export function VisitWorkspace({
         ) : null}
         {closed ? (
           <p className="text-sm text-pe-muted">
-            Consulta cerrada. El tutor ya puede ver el alta en su portal.
-            <WhatsAppLink
-              phone={client?.phone}
-              className="pe-link ml-2"
-              text={vaccineWhatsAppText({
-                tutorName: client?.full_name ?? 'tutor',
-                patientName: patient?.name ?? 'tu mascota',
-                clinicName,
-                title: 'el alta y las indicaciones de consulta',
-                dueOn: todayMexicoYmd(),
-              })}
-            >
-              WhatsApp al tutor
-            </WhatsAppLink>
+            Consulta cerrada. El tutor ya puede ver el alta en su portal.{' '}
+            <button type="button" className="pe-link" onClick={() => void goPrint(recetaHref)}>
+              Enviar receta por WhatsApp
+            </button>
           </p>
         ) : null}
 

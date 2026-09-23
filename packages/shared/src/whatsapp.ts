@@ -31,3 +31,11 @@ export function vaccineWhatsAppText(input: {
 }): string {
   return `Hola ${input.tutorName}, ${input.patientName} tiene pendiente ${input.title} (${input.dueOn}) en ${input.clinicName}.`;
 }
+
+export function recetaWhatsAppText(input: {
+  tutorName: string;
+  patientName: string;
+  clinicName: string;
+}): string {
+  return `Hola ${input.tutorName}, te enviamos la receta y alta de ${input.patientName} de ${input.clinicName}.`;
+}
