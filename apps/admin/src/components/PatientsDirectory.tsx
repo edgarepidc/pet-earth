@@ -98,13 +98,26 @@ function AlertPill({ alerts }: { alerts: string | null }) {
 function directoryHref(tutors: boolean, table: boolean) {
   const params = new URLSearchParams();
   if (tutors) params.set('vista', 'tutores');
-  if (table) params.set('lista', 'tabla');
+  if (!table) params.set('lista', 'tarjetas');
   const query = params.toString();
   return query ? `/pacientes?${query}` : '/pacientes';
 }
 
 function tabClass(active: boolean) {
   return `whitespace-nowrap px-3 py-1.5 text-sm ${active ? 'pe-chip-active pe-btn-ghost' : 'pe-btn-ghost'}`;
+}
+
+function viewTabClass(active: boolean) {
+  return `whitespace-nowrap rounded px-2 py-1 text-sm ${active ? 'pe-chip-active pe-btn-ghost' : 'text-pe-muted hover:text-pe-ink'}`;
+}
+
+function FilterBox({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex h-10 min-w-0 items-center gap-2 rounded-[var(--pe-radius)] border border-pe-line bg-white px-2.5">
+      <span className="shrink-0 text-[10px] font-bold uppercase tracking-[0.12em] text-pe-muted">{label}</span>
+      {children}
+    </div>
+  );
 }
 
 export function PatientsDirectory({
@@ -114,7 +127,7 @@ export function PatientsDirectory({
   description = 'Una ficha por mascota. El tutor va en el subtítulo.',
   showFiscal = false,
   mark = 'pacientes',
-  table = false,
+  table = true,
   speciesOptions,
   upcoming = {},
   clinicName,
@@ -262,12 +275,14 @@ export function PatientsDirectory({
           <Link href={directoryHref(true, table)} className={tabClass(!byPet)}>
             Tutores
           </Link>
-          <Link href={directoryHref(!byPet, false)} className={tabClass(!table)}>
-            Tarjetas
-          </Link>
-          <Link href={directoryHref(!byPet, true)} className={tabClass(table)}>
-            Tabla
-          </Link>
+          <FilterBox label="Vista">
+            <Link href={directoryHref(!byPet, true)} className={viewTabClass(table)}>
+              Tabla
+            </Link>
+            <Link href={directoryHref(!byPet, false)} className={viewTabClass(!table)}>
+              Tarjetas
+            </Link>
+          </FilterBox>
           <button
             type="button"
             className={`whitespace-nowrap px-3 py-1.5 text-sm ${alta === 'tutor' ? 'pe-chip-active pe-btn-ghost' : 'pe-btn-secondary'}`}
@@ -286,44 +301,42 @@ export function PatientsDirectory({
         </div>
       </div>
 
-      <div className="flex flex-wrap items-end gap-3">
+      <div className="flex flex-wrap items-center gap-2">
         <input
-          className="pe-input max-w-md"
+          className="pe-input h-10 max-w-md"
           placeholder="Buscar tutor, mascota o chip"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
         />
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            className={`pe-btn-ghost px-3 py-1.5 text-sm ${species === '' ? 'pe-chip-active' : ''}`}
-            onClick={() => setSpecies('')}
+        <FilterBox label="Especie">
+          <select
+            className="min-w-[7.5rem] bg-transparent py-1 text-sm outline-none"
+            value={species}
+            onChange={(event) => setSpecies(event.target.value)}
+            aria-label="Especie"
           >
-            Especies
-          </button>
-          {speciesOptions.map((item) => (
-            <button
-              key={item.slug}
-              type="button"
-              className={`pe-btn-ghost px-3 py-1.5 text-sm ${species === item.slug ? 'pe-chip-active' : ''}`}
-              onClick={() => setSpecies(item.slug)}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {ESTADO_CHIPS.map((item) => (
-            <button
-              key={item.key}
-              type="button"
-              className={`pe-btn-ghost px-3 py-1.5 text-sm ${estado === item.key ? 'pe-chip-active' : ''}`}
-              onClick={() => setEstado(item.key)}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
+            <option value="">Todas</option>
+            {speciesOptions.map((item) => (
+              <option key={item.slug} value={item.slug}>
+                {item.label}
+              </option>
+            ))}
+          </select>
+        </FilterBox>
+        <FilterBox label="Estado">
+          <select
+            className="min-w-[7.5rem] bg-transparent py-1 text-sm outline-none"
+            value={estado}
+            onChange={(event) => setEstado(event.target.value as PetEstado)}
+            aria-label="Estado"
+          >
+            {ESTADO_CHIPS.map((item) => (
+              <option key={item.key} value={item.key}>
+                {item.label}
+              </option>
+            ))}
+          </select>
+        </FilterBox>
       </div>
 
       {error ? <p className="pe-callout-amber p-3 text-sm">{error}</p> : null}

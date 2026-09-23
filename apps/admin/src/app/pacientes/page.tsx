@@ -17,7 +17,7 @@ export default async function PacientesPage({
   const staff = await loadClinicSession();
   const params = await searchParams;
   const tutors = params.vista === 'tutores';
-  const table = params.lista === 'tabla';
+  const table = params.lista !== 'tarjetas';
   const supabase = createAdminClient();
   const fromIso = mexicoYmdBoundsIso(todayMexicoYmd()).start;
   const [{ data, error }, speciesOptions, upcoming] = await Promise.all([
