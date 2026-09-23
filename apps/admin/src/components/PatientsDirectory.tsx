@@ -70,6 +70,18 @@ function AlertPill({ alerts }: { alerts: string | null }) {
   return <span className="pe-pill mt-1 inline-block max-w-full truncate bg-amber-100 text-amber-900">{alerts}</span>;
 }
 
+function directoryHref(tutors: boolean, table: boolean) {
+  const params = new URLSearchParams();
+  if (tutors) params.set('vista', 'tutores');
+  if (table) params.set('lista', 'tabla');
+  const query = params.toString();
+  return query ? `/pacientes?${query}` : '/pacientes';
+}
+
+function tabClass(active: boolean) {
+  return `whitespace-nowrap px-3 py-1.5 text-sm ${active ? 'pe-chip-active pe-btn-ghost' : 'pe-btn-ghost'}`;
+}
+
 export function PatientsDirectory({
   clients,
   title = 'Pacientes',
@@ -77,6 +89,7 @@ export function PatientsDirectory({
   description = 'Una ficha por mascota. El tutor va en el subtítulo.',
   showFiscal = false,
   mark = 'pacientes',
+  table = false,
   speciesOptions,
   upcoming = {},
   clinicName,
@@ -87,6 +100,7 @@ export function PatientsDirectory({
   description?: string;
   showFiscal?: boolean;
   mark?: SectionMarkName;
+  table?: boolean;
   speciesOptions: ClinicListOption[];
   upcoming?: Record<string, UpcomingPatientAppointment>;
   clinicName?: string;
@@ -214,16 +228,10 @@ export function PatientsDirectory({
         <PageHeading mark={mark} kicker={kicker} title={title} description={description} />
         <div className="flex shrink-0 flex-col items-end gap-2">
           <div className="flex shrink-0 flex-nowrap items-center gap-2">
-            <Link
-              href="/pacientes"
-              className={`whitespace-nowrap px-3 py-1.5 text-sm ${byPet ? 'pe-chip-active pe-btn-ghost' : 'pe-btn-ghost'}`}
-            >
+            <Link href={directoryHref(false, table)} className={tabClass(byPet)}>
               Pacientes
             </Link>
-            <Link
-              href="/pacientes?vista=tutores"
-              className={`whitespace-nowrap px-3 py-1.5 text-sm ${byPet ? 'pe-btn-ghost' : 'pe-chip-active pe-btn-ghost'}`}
-            >
+            <Link href={directoryHref(true, table)} className={tabClass(!byPet)}>
               Tutores
             </Link>
           </div>
@@ -247,31 +255,41 @@ export function PatientsDirectory({
         </div>
       </div>
 
-      <div className="flex flex-wrap items-end gap-3">
-        <input
-          className="pe-input max-w-md"
-          placeholder="Buscar tutor, mascota o chip"
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-        />
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            className={`pe-btn-ghost px-3 py-1.5 text-sm ${species === '' ? 'pe-chip-active' : ''}`}
-            onClick={() => setSpecies('')}
-          >
-            Todas
-          </button>
-          {speciesOptions.map((item) => (
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="flex flex-wrap items-end gap-3">
+          <input
+            className="pe-input max-w-md"
+            placeholder="Buscar tutor, mascota o chip"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+          />
+          <div className="flex flex-wrap gap-2">
             <button
-              key={item.slug}
               type="button"
-              className={`pe-btn-ghost px-3 py-1.5 text-sm ${species === item.slug ? 'pe-chip-active' : ''}`}
-              onClick={() => setSpecies(item.slug)}
+              className={`pe-btn-ghost px-3 py-1.5 text-sm ${species === '' ? 'pe-chip-active' : ''}`}
+              onClick={() => setSpecies('')}
             >
-              {item.label}
+              Todas
             </button>
-          ))}
+            {speciesOptions.map((item) => (
+              <button
+                key={item.slug}
+                type="button"
+                className={`pe-btn-ghost px-3 py-1.5 text-sm ${species === item.slug ? 'pe-chip-active' : ''}`}
+                onClick={() => setSpecies(item.slug)}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="flex shrink-0 flex-nowrap items-center gap-2">
+          <Link href={directoryHref(!byPet, false)} className={tabClass(!table)}>
+            Tarjetas
+          </Link>
+          <Link href={directoryHref(!byPet, true)} className={tabClass(table)}>
+            Tabla
+          </Link>
         </div>
       </div>
 
@@ -389,7 +407,152 @@ export function PatientsDirectory({
         </form>
       ) : null}
 
-      {byPet ? (
+      {table ? (
+        byPet ? (
+          <div className="pe-card overflow-x-auto px-1 py-2">
+            <table className="w-full min-w-[48rem] text-left text-sm">
+              <thead>
+                <tr className="border-b border-pe-line text-[10px] font-bold uppercase tracking-[0.12em] text-pe-muted">
+                  <th className="px-3 py-2.5">Mascota</th>
+                  <th className="px-3 py-2.5">Tutor</th>
+                  <th className="px-3 py-2.5">Ficha</th>
+                  <th className="px-3 py-2.5">Próxima</th>
+                  <th className="px-3 py-2.5">Alertas</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pets.length === 0 ? (
+                  <tr className="border-b border-pe-line">
+                    <td className="px-3 py-6 text-pe-muted" colSpan={5}>
+                      {clients.length === 0
+                        ? 'Aún no hay tutores. Da de alta el primero para colgar las mascotas.'
+                        : 'Nadie coincide con esa búsqueda.'}
+                    </td>
+                  </tr>
+                ) : (
+                  pets.map(({ pet, client }) => {
+                    const next = upcoming[pet.id];
+                    return (
+                    <tr
+                      key={pet.id}
+                      className={`cursor-pointer border-b border-pe-line last:border-0 hover:bg-white ${
+                        pet.is_active
+                          ? 'bg-[#fbfcf8] shadow-[0_4px_14px_rgba(22,26,22,0.08)]'
+                          : 'bg-pe-wash/40 text-pe-muted'
+                      }`}
+                      onClick={() => router.push(`/pacientes/${pet.id}`)}
+                    >
+                      <td className="border-l-[3px] border-pe-clay bg-[#eef2e6] px-3 py-2.5">
+                        <span className="flex items-center gap-2">
+                          <SectionMark name={speciesMark(pet.species)} size="sm" square />
+                          <Link href={`/pacientes/${pet.id}`} className="truncate font-medium text-pe-ink">
+                            {pet.name}
+                          </Link>
+                        </span>
+                      </td>
+                      <td className="max-w-[12rem] truncate px-3 py-2.5 text-pe-muted">{client.full_name}</td>
+                      <td className="px-3 py-2.5 text-pe-muted">{petMeta(pet, speciesOptions)}</td>
+                      <td className="whitespace-nowrap px-3 py-2.5 text-pe-clay-700">
+                        {next
+                          ? `${formatMexicoDateTime(next.starts_at)}${next.reason?.trim() ? ` · ${next.reason}` : ''}`
+                          : '—'}
+                      </td>
+                      <td className="max-w-[14rem] truncate px-3 py-2.5">
+                        {pet.alerts ? <span className="font-medium text-amber-800">{pet.alerts}</span> : '—'}
+                      </td>
+                    </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="pe-card overflow-x-auto px-1 py-2">
+            <table className="w-full min-w-[48rem] text-left text-sm">
+              <thead>
+                <tr className="border-b border-pe-line text-[10px] font-bold uppercase tracking-[0.12em] text-pe-muted">
+                  <th className="px-3 py-2.5">Tutor</th>
+                  <th className="px-3 py-2.5">Teléfono</th>
+                  <th className="px-3 py-2.5">Correo</th>
+                  <th className="px-3 py-2.5">Mascotas</th>
+                  {showFiscal ? <th className="px-3 py-2.5">RFC</th> : null}
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.length === 0 ? (
+                  <tr className="border-b border-pe-line">
+                    <td className="px-3 py-6 text-pe-muted" colSpan={showFiscal ? 5 : 4}>
+                      {clients.length === 0
+                        ? 'Aún no hay tutores. Da de alta el primero para colgar las mascotas.'
+                        : 'Nadie coincide con esa búsqueda.'}
+                    </td>
+                  </tr>
+                ) : (
+                  filtered.map((client) => {
+                    const wa = whatsappHref(
+                      client.phone,
+                      `Hola ${client.full_name}, te escribe ${clinicName ?? 'la clínica'}.`,
+                    );
+                    return (
+                      <tr
+                        key={client.id}
+                        className="border-b border-pe-line bg-[#fbfcf8] shadow-[0_4px_14px_rgba(22,26,22,0.08)] last:border-0 hover:bg-white"
+                      >
+                        <td className="border-l-[3px] border-pe-clay bg-[#eef2e6] px-3 py-2.5 font-medium text-pe-ink">
+                          {client.full_name}
+                        </td>
+                        <td className="px-3 py-2.5 text-pe-muted">
+                          {client.phone ?? '—'}
+                          {wa ? (
+                            <>
+                              {' · '}
+                              <a href={wa} target="_blank" rel="noreferrer" className="pe-link">
+                                WhatsApp
+                              </a>
+                            </>
+                          ) : null}
+                        </td>
+                        <td className="max-w-[14rem] truncate px-3 py-2.5 text-pe-muted">{client.email ?? '—'}</td>
+                        <td className="px-3 py-2.5">
+                          {(client.patients ?? []).length === 0 ? (
+                            <span className="text-pe-muted">Sin mascotas aún.</span>
+                          ) : (
+                            <span className="flex flex-wrap gap-x-2 gap-y-1">
+                              {(client.patients ?? []).map((pet) => (
+                                <Link
+                                  key={pet.id}
+                                  href={`/pacientes/${pet.id}`}
+                                  className="pe-link inline-flex items-center gap-1"
+                                >
+                                  <SectionMark name={speciesMark(pet.species)} size="sm" square />
+                                  {pet.name}
+                                </Link>
+                              ))}
+                            </span>
+                          )}
+                        </td>
+                        {showFiscal ? (
+                          <td className="px-3 py-2.5" onClick={(event) => event.stopPropagation()}>
+                            <p className="font-mono text-xs text-pe-muted">{client.rfc?.trim() || '—'}</p>
+                            <ClientFiscalForm
+                              clientId={client.id}
+                              rfc={client.rfc ?? null}
+                              taxZip={client.tax_zip ?? null}
+                              usoCfdi={client.uso_cfdi ?? null}
+                              fiscalName={client.fiscal_name ?? null}
+                            />
+                          </td>
+                        ) : null}
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        )
+      ) : byPet ? (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {pets.map(({ pet, client }) => (
             <article key={pet.id} className="pe-card p-4 hover:bg-pe-wash/60">
@@ -461,7 +624,7 @@ export function PatientsDirectory({
           })}
         </div>
       )}
-      {empty}
+      {table ? null : empty}
     </section>
   );
 }

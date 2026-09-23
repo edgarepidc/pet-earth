@@ -12,10 +12,12 @@ export const dynamic = 'force-dynamic';
 export default async function PacientesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ vista?: string }>;
+  searchParams: Promise<{ vista?: string; lista?: string }>;
 }) {
   const staff = await loadClinicSession();
-  const tutors = (await searchParams).vista === 'tutores';
+  const params = await searchParams;
+  const tutors = params.vista === 'tutores';
+  const table = params.lista === 'tabla';
   const supabase = createAdminClient();
   const fromIso = mexicoYmdBoundsIso(todayMexicoYmd()).start;
   const [{ data, error }, speciesOptions, upcoming] = await Promise.all([
@@ -39,10 +41,15 @@ export default async function PacientesPage({
         kicker="Clínico"
         description={
           tutors
-            ? 'Cuenta del tutor primero. Las mascotas cuelgan de aquí.'
-            : 'Una ficha por mascota. El tutor va en el subtítulo.'
+            ? table
+              ? 'Listado de tutores. Las mascotas cuelgan de cada fila.'
+              : 'Cuenta del tutor primero. Las mascotas cuelgan de aquí.'
+            : table
+              ? 'Listado de mascotas. El tutor va en la columna de al lado.'
+              : 'Una ficha por mascota. El tutor va en el subtítulo.'
         }
         showFiscal={tutors}
+        table={table}
         clients={(data ?? []) as never}
         speciesOptions={speciesOptions}
         upcoming={upcoming}
