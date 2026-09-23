@@ -32,7 +32,7 @@ export function canManageClinic(role: StaffRole): boolean {
 }
 
 export const FLOOR_CAPABILITIES = [
-  { key: 'hoy', label: 'Hoy' },
+  { key: 'hoy', label: 'Agenda' },
   { key: 'consulta', label: 'Consulta' },
   { key: 'receta', label: 'Receta' },
   { key: 'caja', label: 'Caja' },

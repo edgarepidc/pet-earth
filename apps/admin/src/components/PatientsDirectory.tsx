@@ -212,22 +212,38 @@ export function PatientsDirectory({
     <section className="space-y-4">
       <div className="flex items-end justify-between gap-3">
         <PageHeading mark={mark} kicker={kicker} title={title} description={description} />
-        <div className="flex shrink-0 flex-nowrap items-center gap-2">
-          <button
-            type="button"
-            className={`whitespace-nowrap px-3 py-1.5 text-sm ${alta === 'tutor' ? 'pe-chip-active pe-btn-ghost' : 'pe-btn-secondary'}`}
-            onClick={() => toggleAlta('tutor')}
-          >
-            Nuevo tutor
-          </button>
-          <button
-            type="button"
-            className={`whitespace-nowrap px-3 py-1.5 text-sm ${alta === 'pet' ? 'pe-chip-active pe-btn-ghost' : 'pe-btn-secondary'}`}
-            onClick={() => toggleAlta('pet')}
-            disabled={clients.length === 0}
-          >
-            Nueva mascota
-          </button>
+        <div className="flex shrink-0 flex-col items-end gap-2">
+          <div className="flex shrink-0 flex-nowrap items-center gap-2">
+            <Link
+              href="/pacientes"
+              className={`whitespace-nowrap px-3 py-1.5 text-sm ${byPet ? 'pe-chip-active pe-btn-ghost' : 'pe-btn-ghost'}`}
+            >
+              Pacientes
+            </Link>
+            <Link
+              href="/pacientes?vista=tutores"
+              className={`whitespace-nowrap px-3 py-1.5 text-sm ${byPet ? 'pe-btn-ghost' : 'pe-chip-active pe-btn-ghost'}`}
+            >
+              Tutores
+            </Link>
+          </div>
+          <div className="flex shrink-0 flex-nowrap items-center gap-2">
+            <button
+              type="button"
+              className={`whitespace-nowrap px-3 py-1.5 text-sm ${alta === 'tutor' ? 'pe-chip-active pe-btn-ghost' : 'pe-btn-secondary'}`}
+              onClick={() => toggleAlta('tutor')}
+            >
+              Nuevo tutor
+            </button>
+            <button
+              type="button"
+              className={`whitespace-nowrap px-3 py-1.5 text-sm ${alta === 'pet' ? 'pe-chip-active pe-btn-ghost' : 'pe-btn-secondary'}`}
+              onClick={() => toggleAlta('pet')}
+              disabled={clients.length === 0}
+            >
+              Nueva mascota
+            </button>
+          </div>
         </div>
       </div>
 

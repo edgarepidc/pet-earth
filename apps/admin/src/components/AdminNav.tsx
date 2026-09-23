@@ -14,16 +14,12 @@ const GROUPS: {
 }[] = [
   {
     label: 'Operación',
-    items: [
-      { href: '/', label: 'Hoy' },
-      { href: '/agenda', label: 'Agenda' },
-    ],
+    items: [{ href: '/agenda', label: 'Agenda' }],
   },
   {
     label: 'Clínico',
     items: [
       { href: '/pacientes', label: 'Pacientes' },
-      { href: '/tutores', label: 'Tutores' },
       { href: '/seguimiento', label: 'Seguimiento' },
     ],
   },

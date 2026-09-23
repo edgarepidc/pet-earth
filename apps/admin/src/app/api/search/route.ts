@@ -41,7 +41,7 @@ export async function GET(request: Request) {
 
   for (const client of clients ?? []) {
     hits.push({
-      href: '/tutores',
+      href: '/pacientes?vista=tutores',
       title: client.full_name,
       subtitle: [client.phone, client.email].filter(Boolean).join(' · ') || 'Tutor',
     });

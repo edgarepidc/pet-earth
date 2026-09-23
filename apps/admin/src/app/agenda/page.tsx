@@ -4,9 +4,16 @@ import { Suspense } from 'react';
 import { AdminShell } from '@/components/AdminShell';
 import { AgendaCalendar } from '@/components/AgendaCalendar';
 import { ClinicNotices } from '@/components/ClinicNotices';
-import { DayBoard, type AppointmentRow } from '@/components/DayBoard';
+import { DayBoard, type AppointmentRow, type OpenInvoiceRow } from '@/components/DayBoard';
 import { loadClinicSession } from '@/lib/auth';
-import { loadAppointmentsInRange, loadClinicVets, loadDayAppointments, loadFollowUps, loadLowStock } from '@/lib/queries';
+import {
+  loadAppointmentsInRange,
+  loadClinicVets,
+  loadDayAppointments,
+  loadFollowUps,
+  loadLowStock,
+  loadOpenInvoices,
+} from '@/lib/queries';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,7 +25,7 @@ export default async function AgendaPage({
   const staff = await loadClinicSession();
   const params = await searchParams;
   const today = todayMexicoYmd();
-  const view = params.view === 'month' ? 'month' : params.view === 'day' ? 'day' : 'week';
+  const view = params.view === 'month' ? 'month' : params.view === 'week' ? 'week' : 'day';
   const anchor = params.start && isValidYmd(params.start) ? params.start : today;
   const overduePromise = loadFollowUps(staff.organizationId).then((reminders) =>
     reminders.filter((row) => row.due_on <= today),
@@ -26,8 +33,9 @@ export default async function AgendaPage({
   const lowStockPromise = loadLowStock(staff.organizationId);
 
   if (view === 'day') {
-    const [appointments, overdue, lowStock, vets] = await Promise.all([
+    const [appointments, invoices, overdue, lowStock, vets] = await Promise.all([
       loadDayAppointments(staff.branchId, anchor),
+      loadOpenInvoices(staff.organizationId, staff.branchId),
       overduePromise,
       lowStockPromise,
       loadClinicVets(staff.organizationId),
@@ -38,18 +46,18 @@ export default async function AgendaPage({
         <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_260px]">
           <Suspense fallback={null}>
             <DayBoard
-            mark="agenda"
-            title={title.charAt(0).toUpperCase() + title.slice(1)}
-            date={anchor}
-            appointments={appointments as AppointmentRow[]}
-            vets={vets}
-            clinicName={staff.organizationName}
-            branchName={staff.branchName}
-            kicker={`Agenda · ${staff.branchName ?? staff.organizationName}`}
-            showCash={false}
-            openMin={staff.branchOpenMin}
-            closeMin={staff.branchCloseMin}
-          />
+              mark="agenda"
+              title={title.charAt(0).toUpperCase() + title.slice(1)}
+              date={anchor}
+              appointments={appointments as AppointmentRow[]}
+              invoices={invoices as OpenInvoiceRow[]}
+              vets={vets}
+              clinicName={staff.organizationName}
+              branchName={staff.branchName}
+              kicker={`Agenda · ${staff.branchName ?? staff.organizationName}`}
+              openMin={staff.branchOpenMin}
+              closeMin={staff.branchCloseMin}
+            />
           </Suspense>
           <ClinicNotices overdue={overdue} lowStock={lowStock} />
         </div>

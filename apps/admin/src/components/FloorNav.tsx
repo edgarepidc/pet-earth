@@ -15,7 +15,7 @@ function shiftMonth(ymd: string, delta: number): string {
 }
 
 export function dayFloorHref(ymd: string): string {
-  return ymd === todayMexicoYmd() ? '/' : `/agenda?view=day&start=${ymd}`;
+  return `/agenda?view=day&start=${ymd}`;
 }
 
 export function withVetParam(href: string, vet: string | null | undefined): string {
@@ -44,7 +44,7 @@ function FloorNavButtons({ active, date, vet }: { active: FloorNavActive; date: 
 
   return (
     <div className="flex shrink-0 flex-nowrap items-center gap-2">
-      <Link href={withVetParam('/', vet)} className="pe-btn-primary whitespace-nowrap px-3 py-1.5 text-sm">
+      <Link href={withVetParam(dayFloorHref(today), vet)} className={tabClass(active === 'hoy')}>
         Hoy
       </Link>
       <Link
