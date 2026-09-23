@@ -75,7 +75,9 @@ export {
 export { formatMoney, lineTotal, roundMoney, splitInvoiceTotals } from './money';
 export {
   appointmentWhatsAppText,
+  isMobileWhatsAppShare,
   mexicoWhatsAppNumber,
+  recetaWhatsAppAttachText,
   recetaWhatsAppText,
   vaccineWhatsAppText,
   whatsappHref,

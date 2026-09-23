@@ -3,7 +3,9 @@
 import { useState } from 'react';
 
 import {
+  isMobileWhatsAppShare,
   mexicoWhatsAppNumber,
+  recetaWhatsAppAttachText,
   recetaWhatsAppText,
   slugify,
   whatsappHref,
@@ -38,29 +40,33 @@ export function RecetaWhatsAppButton({
       setHint('No se encontró la receta para armar el PDF.');
       return;
     }
+    const text = recetaWhatsAppText({ tutorName, patientName, clinicName });
+    const attachText = recetaWhatsAppAttachText({ tutorName, patientName, clinicName });
+    const href = whatsappHref(phone, attachText);
+    const useShare = isMobileWhatsAppShare(navigator.userAgent);
+
+    // Open the chat in the same click; waiting for the PDF lets the browser block the popup.
+    if (!useShare && href) {
+      window.open(href, '_blank', 'noopener,noreferrer');
+    }
+
     setBusy(true);
     setHint(null);
-    const text = recetaWhatsAppText({ tutorName, patientName, clinicName });
     try {
       const file = await sheetToPdf(sheet, `receta-${slugify(patientName)}.pdf`);
-      const shareData: ShareData = { files: [file], title: 'Receta y alta', text };
-      const canShareFiles = (() => {
+      if (useShare) {
+        const shareData: ShareData = { files: [file], title: 'Receta y alta', text };
         try {
-          return Boolean(navigator.canShare?.(shareData));
-        } catch {
-          return false;
+          if (navigator.canShare?.(shareData)) {
+            await navigator.share(shareData);
+            return;
+          }
+        } catch (error) {
+          if (error instanceof Error && error.name === 'AbortError') return;
         }
-      })();
-      if (canShareFiles) {
-        await navigator.share(shareData);
-        return;
+        if (href) window.open(href, '_blank', 'noopener,noreferrer');
       }
       downloadFile(file);
-      const href = whatsappHref(
-        phone,
-        `${text}\n\nAdjunta el PDF que se acaba de descargar (receta de ${patientName}).`,
-      );
-      if (href) window.open(href, '_blank', 'noopener,noreferrer');
       setHint('Se descargó el PDF. En WhatsApp pica el clip y adjúntalo a este chat.');
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') return;

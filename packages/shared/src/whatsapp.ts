@@ -39,3 +39,16 @@ export function recetaWhatsAppText(input: {
 }): string {
   return `Hola ${input.tutorName}, te enviamos la receta y alta de ${input.patientName} de ${input.clinicName}.`;
 }
+
+export function recetaWhatsAppAttachText(input: {
+  tutorName: string;
+  patientName: string;
+  clinicName: string;
+}): string {
+  return `${recetaWhatsAppText(input)}\n\nAdjunta el PDF de la receta de ${input.patientName} que se acaba de descargar.`;
+}
+
+/** Mac/Windows share sheets skip WhatsApp; only phones put it in the picker. */
+export function isMobileWhatsAppShare(userAgent: string): boolean {
+  return /Android|iPhone|iPod|iPad/i.test(userAgent);
+}
