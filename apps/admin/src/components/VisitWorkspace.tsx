@@ -134,7 +134,6 @@ export function VisitWorkspace({
   const [rr, setRr] = useState(visit.respiratory_rate?.toString() ?? '');
   const [followup, setFollowup] = useState(visit.followup_at ?? '');
   const [itemId, setItemId] = useState(initial.catalog[0]?.id ?? '');
-  const [itemQuery, setItemQuery] = useState('');
   const [quantity, setQuantity] = useState('1');
   const [directions, setDirections] = useState('');
   const [vaccineItem, setVaccineItem] = useState(
@@ -223,12 +222,7 @@ export function VisitWorkspace({
     () => splitInvoiceTotals(lines.map((line) => ({ kind: line.kind, lineTotal: Number(line.line_total) }))),
     [lines],
   );
-  const catalogMatches = useMemo(() => {
-    const query = itemQuery.trim().toLowerCase();
-    if (!query) return initial.catalog;
-    return initial.catalog.filter((item) => item.name.toLowerCase().includes(query));
-  }, [initial.catalog, itemQuery]);
-  const selectedItemId = catalogMatches.some((item) => item.id === itemId) ? itemId : catalogMatches[0]?.id ?? '';
+  const selectedItemId = initial.catalog.some((item) => item.id === itemId) ? itemId : initial.catalog[0]?.id ?? '';
 
   const soap = [
     { label: 'S — Motivo / tutor', value: subjective, set: setSubjective },
@@ -364,8 +358,8 @@ export function VisitWorkspace({
   const cartillaHref = patient?.id ? `/pacientes/${patient.id}/cartilla` : null;
 
   return (
-    <div className="grid gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.9fr)]">
-      <section className="space-y-4">
+    <div className="grid min-w-0 gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.9fr)]">
+      <section className="min-w-0 space-y-4">
         <div className="flex items-end justify-between gap-3">
           <PatientHeader
             boxed={false}
@@ -518,27 +512,26 @@ export function VisitWorkspace({
         {patient?.id ? <ClinicalMedia patientId={patient.id} visitId={visit.id} canUpload={!closed} /> : null}
       </section>
 
-      <aside className="space-y-4">
+      <aside className="min-w-0 space-y-4">
         <ChartCard mark="caja" title="Cargos">
           <p className="mt-1 text-sm text-pe-muted">Lo que documentas aquí se cobra. La indicación sale en la receta, no el precio.</p>
-          <div className="mt-3 grid gap-2">
-            <input
-              className="pe-input h-8 py-1 text-sm"
-              placeholder="Buscar en catálogo"
-              value={itemQuery}
-              onChange={(e) => setItemQuery(e.target.value)}
-              disabled={linesLocked}
-            />
-            <div className="flex gap-2">
-              <select className="pe-input" value={selectedItemId} onChange={(e) => setItemId(e.target.value)} disabled={linesLocked}>
-                {catalogMatches.map((item) => (
+          <div className="mt-3 grid min-w-0 gap-2">
+            <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_3.25rem_auto] items-stretch gap-2">
+              <select
+                className="pe-input h-10 min-w-0 py-0 text-sm"
+                value={selectedItemId}
+                onChange={(e) => setItemId(e.target.value)}
+                disabled={linesLocked}
+                aria-label="Buscar en catálogo"
+              >
+                {initial.catalog.map((item) => (
                   <option key={item.id} value={item.id}>
                     {CATALOG_KIND_LABELS[item.kind]} · {item.name} · {formatMoney(Number(item.unit_price))}
                   </option>
                 ))}
               </select>
               <input
-                className="pe-input w-16 shrink-0 text-center tabular-nums"
+                className="pe-input h-10 min-w-0 py-0 text-center text-sm tabular-nums"
                 inputMode="numeric"
                 min={1}
                 value={quantity}
@@ -546,15 +539,17 @@ export function VisitWorkspace({
                 disabled={linesLocked}
                 aria-label="Cantidad"
               />
-              <button type="button" className="pe-btn-secondary px-3 text-sm" disabled={linesLocked || busy || !selectedItemId} onClick={() => void addLine()}>
+              <button
+                type="button"
+                className="pe-btn-secondary h-10 px-3 text-sm"
+                disabled={linesLocked || busy || !selectedItemId}
+                onClick={() => void addLine()}
+              >
                 Agregar
               </button>
             </div>
-            {itemQuery.trim() && catalogMatches.length === 0 ? (
-              <p className="text-xs text-pe-muted">Sin coincidencias en el catálogo.</p>
-            ) : null}
             <input
-              className="pe-input h-8 py-1 text-sm"
+              className="pe-input h-10 min-w-0 py-0 text-sm"
               placeholder="Indicación (dosis, vía, días) — para la receta"
               value={directions}
               onChange={(e) => setDirections(e.target.value)}
@@ -633,8 +628,8 @@ export function VisitWorkspace({
         </ChartCard>
 
         <ChartCard mark="cartilla" title="Vacuna">
-          <div className="mt-3 grid gap-2">
-            <select className="pe-input" value={vaccineItem} onChange={(e) => setVaccineItem(e.target.value)} disabled={clinicalLocked}>
+          <div className="mt-3 grid min-w-0 gap-2">
+            <select className="pe-input h-10 min-w-0 py-0" value={vaccineItem} onChange={(e) => setVaccineItem(e.target.value)} disabled={clinicalLocked}>
               {initial.catalog
                 .filter((item) => item.kind === 'product')
                 .map((item) => (
@@ -643,9 +638,11 @@ export function VisitWorkspace({
                   </option>
                 ))}
             </select>
-            <input className="pe-input" placeholder="Lote" value={lot} onChange={(e) => setLot(e.target.value)} disabled={clinicalLocked} />
-            <input type="date" className="pe-input" value={nextDue} onChange={(e) => setNextDue(e.target.value)} disabled={clinicalLocked} />
-            <button type="button" className="pe-btn-secondary px-4 py-2 text-sm" disabled={clinicalLocked || busy} onClick={() => void applyVaccine()}>
+            <div className="grid min-w-0 grid-cols-2 gap-2">
+              <input className="pe-input h-10 min-w-0 py-0" placeholder="Lote" value={lot} onChange={(e) => setLot(e.target.value)} disabled={clinicalLocked} />
+              <input type="date" className="pe-input h-10 min-w-0 py-0" value={nextDue} onChange={(e) => setNextDue(e.target.value)} disabled={clinicalLocked} />
+            </div>
+            <button type="button" className="pe-btn-secondary h-10 px-3 text-sm" disabled={clinicalLocked || busy} onClick={() => void applyVaccine()}>
               Aplicar y recordar refuerzo
             </button>
           </div>
