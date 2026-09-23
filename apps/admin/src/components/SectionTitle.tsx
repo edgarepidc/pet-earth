@@ -82,7 +82,7 @@ export function ChartCard({
   children: React.ReactNode;
 }) {
   return (
-    <section className="pe-card p-4">
+    <section className="pe-card min-w-0 p-4">
       <h2 className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-pe-muted">
         <SectionMark name={mark} size="sm" />
         {title}

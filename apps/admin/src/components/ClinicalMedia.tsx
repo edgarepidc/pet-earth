@@ -81,9 +81,12 @@ export function ClinicalMedia({
       <p className="mt-1 text-sm text-pe-muted">Radiografías, laboratorios o fotos de lesión. Quedan en el expediente.</p>
       {error ? <p className="mt-2 text-sm text-pe-danger">{error}</p> : null}
       {canUpload ? (
-        <form onSubmit={(event) => void upload(event)} className="mt-3 flex min-w-0 flex-nowrap items-center gap-2 overflow-x-auto">
-          <label className="pe-btn-ghost max-w-[11rem] shrink-0 cursor-pointer truncate whitespace-nowrap px-3 py-2 text-sm">
-            {fileName || 'Archivo'}
+        <form
+          onSubmit={(event) => void upload(event)}
+          className="mt-3 grid min-w-0 grid-cols-[6.75rem_minmax(0,1fr)_9.75rem_auto] items-stretch gap-2"
+        >
+          <label className="pe-btn-ghost flex h-10 min-w-0 cursor-pointer items-center justify-center px-2 text-sm">
+            <span className="block w-full truncate text-center">{fileName || 'Archivo'}</span>
             <input
               className="sr-only"
               type="file"
@@ -93,18 +96,18 @@ export function ClinicalMedia({
               onChange={(event) => setFileName(event.target.files?.[0]?.name ?? '')}
             />
           </label>
-          <input className="pe-input min-w-0 flex-1 py-2" name="caption" placeholder="Nota (opcional)" />
-          <select className="pe-input w-36 shrink-0 py-2" name="kind" defaultValue="photo">
+          <input className="pe-input h-10 min-w-0 py-0" name="caption" placeholder="Nota (opcional)" />
+          <select className="pe-input h-10 min-w-0 py-0" name="kind" defaultValue="photo">
             <option value="photo">Foto</option>
             <option value="study">Estudio / lab</option>
           </select>
-          <button type="submit" className="pe-btn-secondary shrink-0 whitespace-nowrap px-3 py-2 text-sm" disabled={busy}>
+          <button type="submit" className="pe-btn-secondary h-10 shrink-0 px-3 text-sm" disabled={busy}>
             {busy ? 'Subiendo…' : 'Subir'}
           </button>
         </form>
       ) : null}
-      <div className="mt-3 overflow-x-auto">
-        <table className="w-full min-w-[32rem] text-left text-sm">
+      <div className="mt-3 min-w-0 overflow-x-auto">
+        <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-pe-line text-[10px] font-bold uppercase tracking-[0.12em] text-pe-muted">
               <th className="w-16 px-3 py-2.5">Vista</th>
