@@ -12,7 +12,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function ConfiguracionPage() {
   const staff = await loadClinicSession();
-  if (!canManageClinic(staff.role) && !staff.isPlatformAdmin) redirect('/');
+  if (!canManageClinic(staff.role) && !staff.isPlatformAdmin) redirect('/agenda');
   const supabase = createAdminClient();
   const [species, orgResult, branchesResult, membershipsResult] = await Promise.all([
     loadSpeciesList(staff.organizationId),

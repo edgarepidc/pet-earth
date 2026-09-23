@@ -7,6 +7,19 @@ import { requireStaffApi } from '@/lib/auth';
 import { loadAppointmentPeek, loadAppointmentsInRange, loadDayAppointments } from '@/lib/queries';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
+async function closeAppointmentReminder(
+  appointmentId: string,
+  status: 'done' | 'cancelled',
+) {
+  const admin = createAdminClient();
+  await admin
+    .from('reminders')
+    .update({ status })
+    .eq('appointment_id', appointmentId)
+    .eq('kind', 'appointment')
+    .eq('status', 'pending');
+}
+
 export async function GET(request: Request) {
   const auth = await requireStaffApi();
   if (auth instanceof NextResponse) return auth;
@@ -160,6 +173,7 @@ async function completeAppointmentVisit(
       .eq('organization_id', organizationId);
     if (error) return { error: error.message };
   }
+  await closeAppointmentReminder(appointmentId, 'done');
   return { ok: true as const };
 }
 
@@ -246,6 +260,9 @@ export async function PATCH(request: Request) {
         .eq('id', body.id)
         .eq('organization_id', auth.organizationId);
       if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+      if (nextStatus === 'no_show' || nextStatus === 'cancelled') {
+        await closeAppointmentReminder(body.id, 'cancelled');
+      }
       return NextResponse.json({ ok: true });
     }
     return NextResponse.json({ error: 'Columna no soportada' }, { status: 400 });
@@ -258,6 +275,7 @@ export async function PATCH(request: Request) {
       .eq('id', body.id)
       .eq('organization_id', auth.organizationId);
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+    await closeAppointmentReminder(body.id, 'cancelled');
     return NextResponse.json({ ok: true });
   }
   if (body.action === 'reschedule') {

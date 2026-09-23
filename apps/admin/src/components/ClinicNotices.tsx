@@ -1,6 +1,7 @@
 import Link from 'next/link';
 
 import type { ReminderKind } from '@petearth/shared';
+import { formatMexicoDate } from '@petearth/shared';
 
 import { ReminderPill } from '@/components/StatusPill';
 import { SectionMark } from '@/components/SectionTitle';
@@ -10,6 +11,7 @@ type NoticeReminder = {
   kind: ReminderKind;
   title: string;
   due_on: string;
+  patients?: { name: string } | { name: string }[] | null;
 };
 
 type StockItem = {
@@ -18,6 +20,11 @@ type StockItem = {
   stock: number | null;
   min_stock: number | null;
 };
+
+function one<T>(value: T | T[] | null | undefined): T | null {
+  if (!value) return null;
+  return Array.isArray(value) ? value[0] ?? null : value;
+}
 
 export function ClinicNotices({
   overdue,
@@ -29,7 +36,7 @@ export function ClinicNotices({
   return (
     <aside className="pe-card h-fit p-4 xl:sticky xl:top-5">
       <h2 className="text-sm font-semibold tracking-tight">Avisos</h2>
-      <p className="mt-0.5 text-xs text-pe-muted">Seguimiento y stock de la sucursal.</p>
+      <p className="mt-0.5 text-xs text-pe-muted">Seguimiento clínico y stock.</p>
 
       <section className="mt-4 border-t border-pe-line pt-3">
         <h3 className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-pe-muted">
@@ -40,13 +47,19 @@ export function ClinicNotices({
           <p className="mt-2 text-sm text-pe-muted">Nada vencido.</p>
         ) : (
           <ul className="mt-3 space-y-2">
-            {overdue.slice(0, 5).map((row) => (
-              <li key={row.id} className="text-sm">
-                <ReminderPill kind={row.kind} />
-                <p className="mt-1 font-medium">{row.title}</p>
-                <p className="text-xs text-pe-muted">{row.due_on}</p>
-              </li>
-            ))}
+            {overdue.slice(0, 5).map((row) => {
+              const patient = one(row.patients);
+              return (
+                <li key={row.id} className="text-sm">
+                  <ReminderPill kind={row.kind} />
+                  <p className="mt-1 font-medium">{row.title}</p>
+                  <p className="text-xs text-pe-muted">
+                    {patient?.name ? `${patient.name} · ` : ''}
+                    {formatMexicoDate(row.due_on)}
+                  </p>
+                </li>
+              );
+            })}
           </ul>
         )}
         <Link href="/seguimiento" className="mt-3 inline-block text-sm pe-link">

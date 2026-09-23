@@ -41,6 +41,63 @@ export async function loadDayAppointments(branchId: string, ymd: string) {
   return rows.map((row) => ({ ...row, visits: byAppointment.get(row.id) ?? null }));
 }
 
+export async function loadPaidToday(organizationId: string, branchId: string, ymd: string) {
+  const bounds = mexicoYmdBoundsIso(ymd);
+  const supabase = createAdminClient();
+  const { data: invoices, error } = await supabase
+    .from('invoices')
+    .select('id, total, visit_id, client_id')
+    .eq('organization_id', organizationId)
+    .eq('branch_id', branchId)
+    .eq('status', 'paid');
+  if (error) throw new Error(error.message);
+  const invoiceRows = invoices ?? [];
+  if (invoiceRows.length === 0) return [];
+
+  const { data: payments, error: payError } = await supabase
+    .from('payments')
+    .select('id, amount, method, paid_at, invoice_id')
+    .in(
+      'invoice_id',
+      invoiceRows.map((row) => row.id),
+    )
+    .gte('paid_at', bounds.start)
+    .lt('paid_at', bounds.end)
+    .order('paid_at', { ascending: false });
+  if (payError) throw new Error(payError.message);
+  const rows = payments ?? [];
+  if (rows.length === 0) return [];
+
+  const invoiceById = new Map(invoiceRows.map((row) => [row.id, row]));
+  const clientIds = [...new Set(rows.map((row) => invoiceById.get(row.invoice_id)?.client_id).filter((id): id is string => Boolean(id)))];
+  const visitIds = rows
+    .map((row) => invoiceById.get(row.invoice_id)?.visit_id)
+    .filter((id): id is string => Boolean(id));
+  const [{ data: clients }, { data: visits }] = await Promise.all([
+    clientIds.length
+      ? supabase.from('clients').select('id, full_name').in('id', clientIds)
+      : Promise.resolve({ data: [] as { id: string; full_name: string }[] }),
+    visitIds.length
+      ? supabase.from('visits').select('id, patients(name)').in('id', visitIds)
+      : Promise.resolve({ data: [] as { id: string; patients: { name: string } | { name: string }[] | null }[] }),
+  ]);
+  const clientById = new Map((clients ?? []).map((client) => [client.id, client]));
+  const visitById = new Map((visits ?? []).map((visit) => [visit.id, visit]));
+  return rows.map((row) => {
+    const invoice = invoiceById.get(row.invoice_id);
+    return {
+      id: row.id,
+      amount: row.amount,
+      method: row.method,
+      paid_at: row.paid_at,
+      invoice_id: row.invoice_id,
+      visit_id: invoice?.visit_id ?? null,
+      clients: invoice ? (clientById.get(invoice.client_id) ?? null) : null,
+      visits: invoice?.visit_id ? (visitById.get(invoice.visit_id) ?? null) : null,
+    };
+  });
+}
+
 export async function loadOpenInvoices(organizationId: string, branchId: string) {
   const supabase = createAdminClient();
   const { data: invoices, error } = await supabase
@@ -107,10 +164,11 @@ export async function loadFollowUps(organizationId: string) {
   const { data, error } = await supabase
     .from('reminders')
     .select(
-      'id, kind, title, due_on, status, last_emailed_at, client_id, patient_id, clients(full_name, phone, email), patients(name)',
+      'id, kind, title, due_on, status, last_emailed_at, client_id, patient_id, clients(full_name, phone, email), patients(id, name)',
     )
     .eq('organization_id', organizationId)
     .eq('status', 'pending')
+    .neq('kind', 'appointment')
     .order('due_on');
   if (error) throw new Error(error.message);
   return data ?? [];
