@@ -48,6 +48,15 @@ export function mexicoYmdBoundsIso(ymd: string): { start: string; end: string } 
   };
 }
 
+export function mexicoWeekday(ymd: string): number {
+  const weekday = new Intl.DateTimeFormat('en-US', {
+    timeZone: MEXICO_TZ,
+    weekday: 'short',
+  }).format(new Date(mexicoYmdAtNoonIso(ymd)));
+  const map: Record<string, number> = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+  return map[weekday] ?? 1;
+}
+
 export function mexicoWeekStart(ymd: string): string {
   const date = new Date(mexicoYmdAtNoonIso(ymd));
   const weekday = new Intl.DateTimeFormat('en-US', {

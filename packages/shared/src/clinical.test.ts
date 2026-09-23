@@ -1,11 +1,16 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import { canEditClinical, canTakePayment, normalizeStaffRole, roleCan, slugify } from './clinical';
+import { canAddVisitLines, canEditClinical, canTakePayment, normalizeStaffRole, roleCan, slugify } from './clinical';
 
 test('reception cannot edit SOAP', () => {
   assert.equal(canEditClinical('reception'), false);
   assert.equal(canEditClinical('vet'), true);
+});
+
+test('reception can add visit lines', () => {
+  assert.equal(canAddVisitLines('reception'), true);
+  assert.equal(canAddVisitLines('vet'), true);
 });
 
 test('vet cannot take payment by default', () => {

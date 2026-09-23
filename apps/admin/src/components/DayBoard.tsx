@@ -4,12 +4,12 @@ import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-import { APPOINTMENT_STATUS_LABELS, formatMexicoTime, formatMoney, todayMexicoYmd, type AppointmentStatus } from '@petearth/shared';
+import { APPOINTMENT_STATUS_LABELS, formatMexicoTime, formatMoney, nextWalkInClock, todayMexicoYmd, type AppointmentStatus, type StaffRole } from '@petearth/shared';
 
 import {
   AppointmentPeek,
-  FLOOR_STATUSES,
   floorStatus,
+  floorStatusesFor,
   moveAppointment,
   one,
   type AppointmentRow,
@@ -50,6 +50,8 @@ export function DayBoard({
   mark = 'hoy',
   openMin,
   closeMin,
+  role = 'vet',
+  isPlatformAdmin = false,
 }: {
   title: string;
   date: string;
@@ -63,6 +65,8 @@ export function DayBoard({
   mark?: 'hoy' | 'agenda';
   openMin?: number;
   closeMin?: number;
+  role?: StaffRole;
+  isPlatformAdmin?: boolean;
 }) {
   const router = useRouter();
   const vetFilter = useSearchParams().get('vet');
@@ -71,6 +75,8 @@ export function DayBoard({
   const [overrides, setOverrides] = useState<Record<string, AppointmentStatus>>({});
   const [openId, setOpenId] = useState<string | null>(null);
   const [bookTime, setBookTime] = useState<string | null>(null);
+  const [walkIn, setWalkIn] = useState(false);
+  const statuses = floorStatusesFor(role, isPlatformAdmin);
 
   const visible = useMemo(
     () =>
@@ -132,6 +138,18 @@ export function DayBoard({
         />
         <div className="flex shrink-0 flex-col items-end gap-2">
           <FloorNav active={isToday ? 'hoy' : 'day'} date={date} />
+          {isToday ? (
+            <button
+              type="button"
+              className="pe-btn-primary whitespace-nowrap px-3 py-1.5 text-sm"
+              onClick={() => {
+                setWalkIn(true);
+                setBookTime(nextWalkInClock(nowClock, openMin, closeMin));
+              }}
+            >
+              Ahora
+            </button>
+          ) : null}
           <VetFilter vets={vets} />
         </div>
       </div>
@@ -158,7 +176,10 @@ export function DayBoard({
                       <button
                         type="button"
                         className="text-sm text-pe-clay-700 hover:underline"
-                        onClick={() => setBookTime(slot.clock)}
+                        onClick={() => {
+                          setWalkIn(false);
+                          setBookTime(slot.clock);
+                        }}
                       >
                         Libre · agendar
                       </button>
@@ -212,7 +233,7 @@ export function DayBoard({
                           void changeStatus(row.id, event.target.value as AppointmentStatus, row.status)
                         }
                       >
-                        {FLOOR_STATUSES.map((item) => (
+                        {statuses.map((item) => (
                           <option key={item} value={item}>
                             {APPOINTMENT_STATUS_LABELS[item]}
                           </option>
@@ -267,6 +288,8 @@ export function DayBoard({
           appointment={selected}
           openMin={openMin}
           closeMin={closeMin}
+          role={role}
+          isPlatformAdmin={isPlatformAdmin}
           onClose={() => setOpenId(null)}
           onMoved={() => router.refresh()}
         />
@@ -278,9 +301,18 @@ export function DayBoard({
           vets={vets}
           openMin={openMin}
           closeMin={closeMin}
-          onClose={() => setBookTime(null)}
-          onCreated={() => {
+          startAfterCreate={walkIn}
+          onClose={() => {
             setBookTime(null);
+            setWalkIn(false);
+          }}
+          onCreated={(result) => {
+            setBookTime(null);
+            setWalkIn(false);
+            if (result?.visitId) {
+              router.push(`/consultas/${result.visitId}`);
+              return;
+            }
             router.refresh();
           }}
         />

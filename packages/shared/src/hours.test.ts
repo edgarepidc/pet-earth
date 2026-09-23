@@ -2,8 +2,10 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 import {
+  branchIsOpenOn,
   clinicSlotClocks,
   hoursLabelFromSchedule,
+  nextWalkInClock,
   parseBranchSettings,
 } from './hours';
 
@@ -31,4 +33,15 @@ test('hours label and slots match 9 to 19', () => {
   const slots = clinicSlotClocks(9 * 60, 19 * 60);
   assert.equal(slots[0], '09:00');
   assert.equal(slots.at(-1), '18:00');
+});
+
+test('branch is closed on Sunday by default', () => {
+  assert.equal(branchIsOpenOn([1, 2, 3, 4, 5, 6], '2026-09-20'), false);
+  assert.equal(branchIsOpenOn([1, 2, 3, 4, 5, 6], '2026-09-21'), true);
+});
+
+test('walk-in uses the current hour while the floor is open', () => {
+  assert.equal(nextWalkInClock('08:10', 9 * 60, 19 * 60), '09:00');
+  assert.equal(nextWalkInClock('11:40', 9 * 60, 19 * 60), '11:00');
+  assert.equal(nextWalkInClock('19:10', 9 * 60, 19 * 60), '18:00');
 });

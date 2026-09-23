@@ -7,12 +7,17 @@ import { useMemo, useState } from 'react';
 import {
   addMexicoDays,
   formatMexicoDate,
+  formatMexicoTime,
   mexicoWeekStart,
+  nextWalkInClock,
   REMINDER_KIND_LABELS,
   todayMexicoYmd,
   vaccineWhatsAppText,
   type ReminderKind,
 } from '@petearth/shared';
+
+import type { ClinicVet } from '@/components/AppointmentPeek';
+import { BookSlotDialog } from '@/components/BookSlotDialog';
 
 import { ReminderPill } from '@/components/StatusPill';
 import { PageHeading } from '@/components/SectionTitle';
@@ -24,6 +29,7 @@ type Reminder = {
   title: string;
   due_on: string;
   last_emailed_at?: string | null;
+  client_id?: string | null;
   patient_id?: string | null;
   clients:
     | { full_name: string; phone?: string | null; email?: string | null }
@@ -49,9 +55,15 @@ function filterLabel(key: (typeof FILTERS)[number]): string {
 export function FollowUpInbox({
   reminders,
   clinicName,
+  vets = [],
+  openMin,
+  closeMin,
 }: {
   reminders: Reminder[];
   clinicName: string;
+  vets?: ClinicVet[];
+  openMin?: number;
+  closeMin?: number;
 }) {
   const router = useRouter();
   const today = todayMexicoYmd();
@@ -60,6 +72,7 @@ export function FollowUpInbox({
   const [filter, setFilter] = useState<(typeof FILTERS)[number]>('all');
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [booking, setBooking] = useState<Reminder | null>(null);
 
   const rows = useMemo(() => {
     return reminders
@@ -177,6 +190,15 @@ export function FollowUpInbox({
                             dueOn: row.due_on,
                           })}
                         />
+                        {patient?.id || row.patient_id ? (
+                          <button
+                            type="button"
+                            className="pe-btn-secondary whitespace-nowrap px-3 py-1.5 text-sm"
+                            onClick={() => setBooking(row)}
+                          >
+                            Agendar
+                          </button>
+                        ) : null}
                         <button
                           type="button"
                           className="pe-btn-primary whitespace-nowrap px-3 py-1.5 text-sm"
@@ -202,6 +224,28 @@ export function FollowUpInbox({
           </tbody>
         </table>
       </div>
+      {booking ? (
+        <BookSlotDialog
+          date={booking.due_on > today ? booking.due_on : today}
+          time={nextWalkInClock(formatMexicoTime(new Date().toISOString()), openMin, closeMin)}
+          vets={vets}
+          openMin={openMin}
+          closeMin={closeMin}
+          preset={{
+            clientId: booking.client_id ?? undefined,
+            patientId: one(booking.patients)?.id ?? booking.patient_id ?? undefined,
+            patientName: one(booking.patients)?.name,
+            clientName: one(booking.clients)?.full_name,
+            reason: booking.title,
+            reminderId: booking.id,
+          }}
+          onClose={() => setBooking(null)}
+          onCreated={() => {
+            setBooking(null);
+            router.refresh();
+          }}
+        />
+      ) : null}
     </section>
   );
 }

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-import { addMexicoDays, parseClockToIso, todayMexicoYmd } from '@petearth/shared';
+import { addMexicoDays, canEditClinical, parseClockToIso, todayMexicoYmd } from '@petearth/shared';
 import { createAdminClient } from '@petearth/supabase/admin';
 
 import { requireStaffApi } from '@/lib/auth';
@@ -63,6 +63,7 @@ export async function POST(request: Request) {
     durationMin?: number;
     reason?: string;
     vetId?: string | null;
+    reminderId?: string;
   };
   if (!body.patientId || !body.date || !body.time) {
     return NextResponse.json({ error: 'Paciente, fecha y hora son obligatorios.' }, { status: 400 });
@@ -121,9 +122,19 @@ export async function POST(request: Request) {
     patient_id: patient.id,
     appointment_id: data.id,
     kind: 'appointment',
-    title: 'Cita clínica',
+    title: body.reason?.trim() || 'Cita clínica',
     due_on: body.date,
   });
+
+  if (body.reminderId) {
+    await supabase
+      .from('reminders')
+      .update({ status: 'done' })
+      .eq('id', body.reminderId)
+      .eq('organization_id', auth.organizationId)
+      .eq('status', 'pending')
+      .neq('kind', 'appointment');
+  }
 
   return NextResponse.json({ id: data.id });
 }
@@ -248,6 +259,9 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ ok: true });
     }
     if (status === 'completed') {
+      if (!canEditClinical(auth.role) && !auth.isPlatformAdmin) {
+        return NextResponse.json({ error: 'Solo el MVZ cierra la consulta.' }, { status: 403 });
+      }
       const result = await completeAppointmentVisit(userClient, body.id, auth.organizationId);
       if ('error' in result) return NextResponse.json({ error: result.error }, { status: 400 });
       return NextResponse.json({ ok: true });

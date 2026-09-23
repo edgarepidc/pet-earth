@@ -1,6 +1,13 @@
 import { NextResponse } from 'next/server';
 
-import { parseClockToIso, todayMexicoYmd } from '@petearth/shared';
+import {
+  branchIsOpenOn,
+  clinicSlotClocks,
+  clockToMinutes,
+  parseBranchSettings,
+  parseClockToIso,
+  todayMexicoYmd,
+} from '@petearth/shared';
 import { createAdminClient } from '@petearth/supabase/admin';
 
 import { PUBLIC_BRANCH_ID } from '@/lib/clinic';
@@ -34,26 +41,38 @@ export async function POST(request: Request) {
   if (!patient) return NextResponse.json({ error: 'Mascota no encontrada.' }, { status: 404 });
 
   let branchId = tutor.preferredBranchId;
+  let branchSettings: unknown = null;
   if (branchId) {
     const { data: allowed } = await supabase
       .from('branches')
-      .select('id')
+      .select('id, settings')
       .eq('id', branchId)
       .eq('organization_id', patient.organization_id)
       .eq('is_active', true)
       .maybeSingle();
     if (!allowed) branchId = null;
+    else branchSettings = allowed.settings;
   }
   if (!branchId) {
     const { data: fallback } = await supabase
       .from('branches')
-      .select('id')
+      .select('id, settings')
       .eq('organization_id', patient.organization_id)
       .eq('is_active', true)
       .order('created_at', { ascending: true })
       .limit(1)
       .maybeSingle();
     branchId = fallback?.id ?? PUBLIC_BRANCH_ID;
+    branchSettings = fallback?.settings ?? null;
+  }
+
+  const schedule = parseBranchSettings(branchSettings);
+  if (!branchIsOpenOn(schedule.days, body.date)) {
+    return NextResponse.json({ error: 'El consultorio no abre ese día.' }, { status: 400 });
+  }
+  const hours = clinicSlotClocks(clockToMinutes(schedule.open), clockToMinutes(schedule.close));
+  if (!hours.includes(body.time)) {
+    return NextResponse.json({ error: 'Elige un horario de consulta de la sucursal.' }, { status: 400 });
   }
 
   const reason = body.reason?.trim() || 'Consulta';

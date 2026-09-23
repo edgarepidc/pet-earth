@@ -23,6 +23,10 @@ export function canTakePayment(role: StaffRole): boolean {
   return role === 'owner' || role === 'admin' || role === 'reception';
 }
 
+export function canAddVisitLines(role: StaffRole): boolean {
+  return canEditClinical(role) || canTakePayment(role);
+}
+
 export function canManageCatalog(role: StaffRole): boolean {
   return role === 'owner' || role === 'admin';
 }

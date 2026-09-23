@@ -59,6 +59,9 @@ export type PublicBranch = {
   hours: string;
   phone: string;
   image: string;
+  open: string;
+  close: string;
+  days: number[];
 };
 
 export const PUBLIC_ORG_ID = DEMO_ORG_ID;
@@ -118,6 +121,9 @@ export async function loadPublicClinic(preferredBranchId?: string | null) {
       hours: schedule.hours || DEFAULT_HOURS,
       phone: schedule.phone ?? '',
       image: settingsImage(branch.settings, branch.slug),
+      open: schedule.open,
+      close: schedule.close,
+      days: schedule.days,
     };
   });
 
@@ -155,6 +161,9 @@ export async function loadPublicClinic(preferredBranchId?: string | null) {
       hours: DEFAULT_HOURS,
       phone: '',
       image: '/catalog/srv-con.jpg',
+      open: '09:00',
+      close: '19:00',
+      days: [1, 2, 3, 4, 5, 6],
     },
     branchName: selected?.name ?? 'Roma Norte',
     address: selected?.address ?? 'Roma Norte, CDMX',

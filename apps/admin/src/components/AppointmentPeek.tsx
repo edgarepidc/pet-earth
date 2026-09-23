@@ -6,11 +6,13 @@ import { useRouter } from 'next/navigation';
 
 import {
   APPOINTMENT_STATUS_LABELS,
+  canEditClinical,
   formatMexicoDate,
   formatMexicoTime,
   speciesLabel,
   todayMexicoYmd,
   type AppointmentStatus,
+  type StaffRole,
 } from '@petearth/shared';
 
 import { appointmentTone, StatusPill } from '@/components/StatusPill';
@@ -24,6 +26,11 @@ export const FLOOR_STATUSES: AppointmentStatus[] = [
   'no_show',
   'cancelled',
 ];
+
+export function floorStatusesFor(role: StaffRole, isPlatformAdmin = false): AppointmentStatus[] {
+  if (canEditClinical(role) || isPlatformAdmin) return FLOOR_STATUSES;
+  return FLOOR_STATUSES.filter((status) => status !== 'completed');
+}
 
 export function floorStatus(status: AppointmentStatus): AppointmentStatus {
   return status === 'confirmed' ? 'scheduled' : status;
@@ -107,12 +114,16 @@ export function AppointmentPeek({
   onMoved,
   openMin,
   closeMin,
+  role = 'vet',
+  isPlatformAdmin = false,
 }: {
   appointment: AppointmentRow;
   onClose: () => void;
   onMoved?: () => void;
   openMin?: number;
   closeMin?: number;
+  role?: StaffRole;
+  isPlatformAdmin?: boolean;
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
@@ -272,7 +283,7 @@ export function AppointmentPeek({
             disabled={busy}
             onChange={(event) => void changeStatus(event.target.value as AppointmentStatus)}
           >
-            {FLOOR_STATUSES.map((item) => (
+            {floorStatusesFor(role, isPlatformAdmin).map((item) => (
               <option key={item} value={item}>
                 {APPOINTMENT_STATUS_LABELS[item]}
               </option>

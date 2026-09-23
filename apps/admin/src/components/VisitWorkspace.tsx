@@ -1,19 +1,24 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { PatientHeader } from '@/components/PatientHeader';
 import {
   CATALOG_KIND_LABELS,
+  canAddVisitLines,
   canEditClinical,
   canTakePayment,
+  formatMexicoDate,
+  formatMexicoDateTime,
   formatMoney,
   INVOICE_STATUS_LABELS,
   PAYMENT_METHOD_LABELS,
   type CatalogKind,
   type InvoiceStatus,
   type PaymentMethod,
+  type ReminderKind,
   type StaffRole,
   splitInvoiceTotals,
   vaccineWhatsAppText,
@@ -23,6 +28,7 @@ import {
 import { ClinicalMedia } from '@/components/ClinicalMedia';
 import { DictationButton } from '@/components/DictationButton';
 import { ChartCard } from '@/components/SectionTitle';
+import { ReminderPill } from '@/components/StatusPill';
 import { WhatsAppLink } from '@/components/WhatsAppLink';
 
 type CatalogItem = {
@@ -81,20 +87,41 @@ type VisitPayload = {
   catalog: CatalogItem[];
 };
 
+type PreviousVisit = {
+  id: string;
+  started_at: string;
+  subjective: string | null;
+  objective: string | null;
+  assessment: string | null;
+  plan: string | null;
+};
+
+type PendingReminder = {
+  id: string;
+  kind: ReminderKind;
+  title: string;
+  due_on: string;
+};
+
 export function VisitWorkspace({
   initial,
   clinicName,
   role,
   isPlatformAdmin = false,
+  previous = null,
+  reminders = [],
 }: {
   initial: VisitPayload;
   clinicName: string;
   role: StaffRole;
   isPlatformAdmin?: boolean;
+  previous?: PreviousVisit | null;
+  reminders?: PendingReminder[];
 }) {
   const router = useRouter();
   const canEdit = canEditClinical(role) || isPlatformAdmin;
   const canPay = canTakePayment(role) || isPlatformAdmin;
+  const canCharge = canAddVisitLines(role) || isPlatformAdmin;
   const [visit, setVisit] = useState(initial.visit);
   const [invoice, setInvoice] = useState(initial.invoice);
   const [subjective, setSubjective] = useState(visit.subjective ?? '');
@@ -107,6 +134,8 @@ export function VisitWorkspace({
   const [rr, setRr] = useState(visit.respiratory_rate?.toString() ?? '');
   const [followup, setFollowup] = useState(visit.followup_at ?? '');
   const [itemId, setItemId] = useState(initial.catalog[0]?.id ?? '');
+  const [itemQuery, setItemQuery] = useState('');
+  const [quantity, setQuantity] = useState('1');
   const [directions, setDirections] = useState('');
   const [vaccineItem, setVaccineItem] = useState(
     initial.catalog.find((item) => item.kind === 'product' && item.name.toLowerCase().includes('vacuna'))?.id ?? '',
@@ -117,6 +146,7 @@ export function VisitWorkspace({
   const [busy, setBusy] = useState(false);
   const closed = visit.status === 'completed';
   const clinicalLocked = closed || !canEdit;
+  const linesLocked = closed || !canCharge;
   const savedNotes = useRef(notesKey());
   const notesTimer = useRef<number | null>(null);
 
@@ -193,6 +223,12 @@ export function VisitWorkspace({
     () => splitInvoiceTotals(lines.map((line) => ({ kind: line.kind, lineTotal: Number(line.line_total) }))),
     [lines],
   );
+  const catalogMatches = useMemo(() => {
+    const query = itemQuery.trim().toLowerCase();
+    if (!query) return initial.catalog;
+    return initial.catalog.filter((item) => item.name.toLowerCase().includes(query));
+  }, [initial.catalog, itemQuery]);
+  const selectedItemId = catalogMatches.some((item) => item.id === itemId) ? itemId : catalogMatches[0]?.id ?? '';
 
   const soap = [
     { label: 'S — Motivo / tutor', value: subjective, set: setSubjective },
@@ -217,8 +253,8 @@ export function VisitWorkspace({
       body: JSON.stringify({
         visitId: visit.id,
         action: 'add-line',
-        catalogItemId: itemId,
-        quantity: 1,
+        catalogItemId: selectedItemId,
+        quantity: Math.max(1, Number(quantity) || 1),
         directions: directions.trim() || undefined,
       }),
     });
@@ -229,6 +265,24 @@ export function VisitWorkspace({
       return;
     }
     setDirections('');
+    setQuantity('1');
+    await refresh();
+  }
+
+  async function removeLine(lineId: string) {
+    setBusy(true);
+    setError(null);
+    const response = await fetch('/api/visits', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ visitId: visit.id, action: 'remove-line', lineId }),
+    });
+    const payload = (await response.json()) as { error?: string };
+    setBusy(false);
+    if (!response.ok) {
+      setError(payload.error ?? 'No se pudo quitar el cargo');
+      return;
+    }
     await refresh();
   }
 
@@ -352,7 +406,20 @@ export function VisitWorkspace({
         </div>
         {error ? <p className="pe-callout-amber p-3 text-sm">{error}</p> : null}
         {!canEdit && !closed ? (
-          <p className="text-sm text-pe-muted">Recepción cobra y sube fotos. El SOAP y la receta los escribe el MVZ.</p>
+          <p className="text-sm text-pe-muted">Recepción cobra y agrega productos. El SOAP y la receta los escribe el MVZ.</p>
+        ) : null}
+        {reminders.length > 0 ? (
+          <ul className="flex flex-wrap gap-2">
+            {reminders.map((row) => (
+              <li key={row.id} className="flex items-center gap-2 rounded-md border border-pe-line bg-pe-wash px-2 py-1 text-xs">
+                <ReminderPill kind={row.kind} />
+                <span>
+                  {row.title}
+                  <span className="ml-1 text-pe-muted">{formatMexicoDate(row.due_on)}</span>
+                </span>
+              </li>
+            ))}
+          </ul>
         ) : null}
         {closed ? (
           <p className="text-sm text-pe-muted">
@@ -394,6 +461,33 @@ export function VisitWorkspace({
           </div>
         </ChartCard>
 
+        {previous ? (
+          <ChartCard mark="consulta" title="Última consulta">
+            <p className="mt-2 text-xs text-pe-muted">{formatMexicoDateTime(previous.started_at)}</p>
+            <dl className="mt-2 space-y-2 text-sm">
+              {[
+                ['S', previous.subjective],
+                ['O', previous.objective],
+                ['A', previous.assessment],
+                ['P', previous.plan],
+              ].map(([label, value]) =>
+                value ? (
+                  <div key={label}>
+                    <dt className="text-[11px] font-bold uppercase tracking-[0.12em] text-pe-muted">{label}</dt>
+                    <dd className="mt-0.5 whitespace-pre-wrap text-pe-ink">{value}</dd>
+                  </div>
+                ) : null,
+              )}
+            </dl>
+            {!previous.subjective && !previous.objective && !previous.assessment && !previous.plan ? (
+              <p className="mt-2 text-sm text-pe-muted">Sin notas en la consulta anterior.</p>
+            ) : null}
+            <Link href={`/consultas/${previous.id}`} className="pe-link mt-2 inline-block text-sm">
+              Abrir consulta previa
+            </Link>
+          </ChartCard>
+        ) : null}
+
         <ChartCard mark="consulta" title="SOAP">
           <div className="mt-3 space-y-3">
             {soap.map((field) => (
@@ -428,18 +522,37 @@ export function VisitWorkspace({
         <ChartCard mark="caja" title="Cargos">
           <p className="mt-1 text-sm text-pe-muted">Lo que documentas aquí se cobra. La indicación sale en la receta, no el precio.</p>
           <div className="mt-3 grid gap-2">
+            <input
+              className="pe-input h-8 py-1 text-sm"
+              placeholder="Buscar en catálogo"
+              value={itemQuery}
+              onChange={(e) => setItemQuery(e.target.value)}
+              disabled={linesLocked}
+            />
             <div className="flex gap-2">
-              <select className="pe-input" value={itemId} onChange={(e) => setItemId(e.target.value)} disabled={clinicalLocked}>
-                {initial.catalog.map((item) => (
+              <select className="pe-input" value={selectedItemId} onChange={(e) => setItemId(e.target.value)} disabled={linesLocked}>
+                {catalogMatches.map((item) => (
                   <option key={item.id} value={item.id}>
                     {CATALOG_KIND_LABELS[item.kind]} · {item.name} · {formatMoney(Number(item.unit_price))}
                   </option>
                 ))}
               </select>
-              <button type="button" className="pe-btn-secondary px-3 text-sm" disabled={clinicalLocked || busy} onClick={() => void addLine()}>
+              <input
+                className="pe-input w-16 shrink-0 text-center tabular-nums"
+                inputMode="numeric"
+                min={1}
+                value={quantity}
+                onChange={(e) => setQuantity(e.target.value)}
+                disabled={linesLocked}
+                aria-label="Cantidad"
+              />
+              <button type="button" className="pe-btn-secondary px-3 text-sm" disabled={linesLocked || busy || !selectedItemId} onClick={() => void addLine()}>
                 Agregar
               </button>
             </div>
+            {itemQuery.trim() && catalogMatches.length === 0 ? (
+              <p className="text-xs text-pe-muted">Sin coincidencias en el catálogo.</p>
+            ) : null}
             <input
               className="pe-input h-8 py-1 text-sm"
               placeholder="Indicación (dosis, vía, días) — para la receta"
@@ -451,12 +564,27 @@ export function VisitWorkspace({
           <ul className="mt-3 divide-y divide-pe-line text-sm">
             {lines.map((line) => (
               <li key={line.id} className="py-2.5">
-                <span className="flex justify-between gap-3">
+                <span className="flex items-start justify-between gap-3">
                   <span>
                     {line.description}
-                    <span className="block text-xs text-pe-muted">{CATALOG_KIND_LABELS[line.kind]}</span>
+                    <span className="block text-xs text-pe-muted">
+                      {CATALOG_KIND_LABELS[line.kind]}
+                      {Number(line.quantity) !== 1 ? ` · ${Number(line.quantity)} × ${formatMoney(Number(line.unit_price))}` : ''}
+                    </span>
                   </span>
-                  <span className="tabular-nums">{formatMoney(Number(line.line_total))}</span>
+                  <span className="flex shrink-0 items-center gap-2">
+                    <span className="tabular-nums">{formatMoney(Number(line.line_total))}</span>
+                    {!linesLocked ? (
+                      <button
+                        type="button"
+                        className="text-xs text-pe-muted underline-offset-2 hover:text-pe-ink hover:underline"
+                        disabled={busy}
+                        onClick={() => void removeLine(line.id)}
+                      >
+                        Quitar
+                      </button>
+                    ) : null}
+                  </span>
                 </span>
                 {line.kind === 'product' ? (
                   <ProductLineDirections

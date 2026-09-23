@@ -2,9 +2,9 @@
 
 import { useEffect, useMemo, useState } from 'react';
 
-import { DEFAULT_SPECIES_OPTIONS, formatMexicoDate, type ClinicListOption } from '@petearth/shared';
+import { DEFAULT_SPECIES_OPTIONS, formatMexicoDate, todayMexicoYmd, type ClinicListOption } from '@petearth/shared';
 
-import type { ClinicVet } from '@/components/AppointmentPeek';
+import { startAppointmentVisit, type ClinicVet } from '@/components/AppointmentPeek';
 import { clinicSlotClocks } from '@/lib/day-slots';
 
 type PatientOption = {
@@ -22,12 +22,23 @@ type ClientOption = {
   patients: PatientOption[] | null;
 };
 
+export type BookSlotPreset = {
+  clientId?: string;
+  patientId?: string;
+  patientName?: string;
+  clientName?: string;
+  reason?: string;
+  reminderId?: string;
+};
+
 export function BookSlotDialog({
   date,
   time,
   vets = [],
   openMin,
   closeMin,
+  preset,
+  startAfterCreate = false,
   onClose,
   onCreated,
 }: {
@@ -36,15 +47,17 @@ export function BookSlotDialog({
   vets?: ClinicVet[];
   openMin?: number;
   closeMin?: number;
+  preset?: BookSlotPreset;
+  startAfterCreate?: boolean;
   onClose: () => void;
-  onCreated: () => void;
+  onCreated: (result?: { id: string; visitId?: string }) => void;
 }) {
   const [mode, setMode] = useState<'existing' | 'new'>('existing');
   const [clients, setClients] = useState<ClientOption[]>([]);
   const [species, setSpecies] = useState<ClinicListOption[]>(DEFAULT_SPECIES_OPTIONS);
-  const [query, setQuery] = useState('');
-  const [clientId, setClientId] = useState<string | null>(null);
-  const [patientId, setPatientId] = useState<string | null>(null);
+  const [query, setQuery] = useState(preset?.clientName ?? preset?.patientName ?? '');
+  const [clientId, setClientId] = useState<string | null>(preset?.clientId ?? null);
+  const [patientId, setPatientId] = useState<string | null>(preset?.patientId ?? null);
   const [newPet, setNewPet] = useState(false);
   const [tutorName, setTutorName] = useState('');
   const [tutorPhone, setTutorPhone] = useState('');
@@ -52,12 +65,14 @@ export function BookSlotDialog({
   const [petName, setPetName] = useState('');
   const [petSpecies, setPetSpecies] = useState(DEFAULT_SPECIES_OPTIONS[0]?.slug ?? 'dog');
   const [petAlerts, setPetAlerts] = useState('');
-  const [reason, setReason] = useState('');
+  const [reason, setReason] = useState(preset?.reason ?? '');
   const [vetId, setVetId] = useState(vets[0]?.id ?? '');
+  const [slotDate, setSlotDate] = useState(date);
   const [slotTime, setSlotTime] = useState(time);
   const hours = useMemo(() => clinicSlotClocks(openMin, closeMin), [openMin, closeMin]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const lockedPatient = Boolean(preset?.patientId);
 
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
@@ -72,32 +87,48 @@ export function BookSlotDialog({
   }, [time, hours]);
 
   useEffect(() => {
-    void Promise.all([
-      fetch('/api/clients').then((response) => response.json() as Promise<{ clients?: ClientOption[] }>),
-      fetch('/api/clinic/lists?key=species').then(
-        (response) => response.json() as Promise<{ items?: (ClinicListOption & { is_active?: boolean })[] }>,
-      ),
-    ]).then(([clientPayload, listPayload]) => {
-      setClients(clientPayload.clients ?? []);
-      const items = (listPayload.items ?? []).filter((item) => item.is_active !== false);
-      if (items.length) {
-        setSpecies(items);
-        setPetSpecies((current) => (items.some((item) => item.slug === current) ? current : items[0].slug));
-      }
-    });
+    void fetch('/api/clinic/lists?key=species')
+      .then((response) => response.json() as Promise<{ items?: (ClinicListOption & { is_active?: boolean })[] }>)
+      .then((listPayload) => {
+        const items = (listPayload.items ?? []).filter((item) => item.is_active !== false);
+        if (items.length) {
+          setSpecies(items);
+          setPetSpecies((current) => (items.some((item) => item.slug === current) ? current : items[0].slug));
+        }
+      });
   }, []);
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return clients.slice(0, 8);
-    return clients
-      .filter((client) => {
-        const hay = `${client.full_name} ${client.phone ?? ''} ${client.email ?? ''}`.toLowerCase();
-        const pets = (client.patients ?? []).some((pet) => pet.name.toLowerCase().includes(q));
-        return hay.includes(q) || pets;
-      })
-      .slice(0, 8);
-  }, [clients, query]);
+  useEffect(() => {
+    if (preset?.clientId) {
+      void fetch(`/api/clients?id=${encodeURIComponent(preset.clientId)}`)
+        .then((response) => response.json() as Promise<{ clients?: ClientOption[] }>)
+        .then((payload) => {
+          setClients(payload.clients ?? []);
+          const owner = payload.clients?.[0];
+          if (owner) {
+            setClientId(owner.id);
+            const pet = (owner.patients ?? []).find((item) => item.id === preset.patientId);
+            setPatientId(pet?.id ?? preset.patientId ?? null);
+            setNewPet(false);
+          }
+        });
+    }
+  }, [preset?.clientId, preset?.patientId]);
+
+  useEffect(() => {
+    if (lockedPatient) return;
+    const q = query.trim();
+    if (q.length < 2) {
+      setClients([]);
+      return;
+    }
+    const handle = window.setTimeout(() => {
+      void fetch(`/api/clients?q=${encodeURIComponent(q)}`)
+        .then((response) => response.json() as Promise<{ clients?: ClientOption[] }>)
+        .then((payload) => setClients(payload.clients ?? []));
+    }, 250);
+    return () => window.clearTimeout(handle);
+  }, [query, lockedPatient]);
 
   const selectedClient = clients.find((client) => client.id === clientId) ?? null;
   const pets = (selectedClient?.patients ?? []).filter((pet) => pet.is_active !== false);
@@ -143,11 +174,24 @@ export function BookSlotDialog({
       const response = await fetch('/api/appointments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ patientId: nextPatientId, date, time: slotTime, reason, vetId: vetId || null }),
+        body: JSON.stringify({
+          patientId: nextPatientId,
+          date: slotDate,
+          time: slotTime,
+          reason,
+          vetId: vetId || null,
+          reminderId: preset?.reminderId,
+        }),
       });
-      const payload = (await response.json()) as { error?: string };
-      if (!response.ok) throw new Error(payload.error ?? 'No se pudo agendar');
-      onCreated();
+      const payload = (await response.json()) as { error?: string; id?: string };
+      if (!response.ok || !payload.id) throw new Error(payload.error ?? 'No se pudo agendar');
+      let visitId: string | undefined;
+      if (startAfterCreate && slotDate === todayMexicoYmd()) {
+        const started = await startAppointmentVisit(payload.id);
+        if (!started.ok) throw new Error(started.error);
+        visitId = started.visitId;
+      }
+      onCreated({ id: payload.id, visitId });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo agendar');
       setBusy(false);
@@ -166,178 +210,197 @@ export function BookSlotDialog({
         className="pe-card relative z-10 w-full max-w-lg p-5"
         onSubmit={(event) => void submit(event)}
       >
-        <p className="pe-kicker">Nueva cita</p>
+        <p className="pe-kicker">{startAfterCreate ? 'Llegó sin cita' : 'Nueva cita'}</p>
         <h2 id="book-slot-title" className="mt-1 text-xl font-semibold tracking-tight">
-          {formatMexicoDate(date, { weekday: 'long', day: 'numeric', month: 'long' })}
+          {formatMexicoDate(slotDate, { weekday: 'long', day: 'numeric', month: 'long' })}
         </h2>
         <p className="mt-1 text-sm text-pe-muted">
-          Consulta de una hora. Si otro veterinario ya tiene este horario, se agenda en paralelo.
+          {startAfterCreate
+            ? 'Toma el hueco de ahora y abre la consulta.'
+            : 'Consulta de una hora. Si otro veterinario ya tiene este horario, se agenda en paralelo.'}
         </p>
 
-        <label className="mt-4 block text-sm font-medium">
-          Hora
-          <select className="pe-input mt-1" value={slotTime} onChange={(event) => setSlotTime(event.target.value)}>
-            {hours.map((hour) => (
-              <option key={hour} value={hour}>
-                {hour}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <div className="mt-4 flex gap-2">
-          <button
-            type="button"
-            className={`pe-btn-ghost px-3 py-1.5 text-sm ${mode === 'existing' ? 'pe-chip-active' : ''}`}
-            onClick={() => setMode('existing')}
-          >
-            Tutor existente
-          </button>
-          <button
-            type="button"
-            className={`pe-btn-ghost px-3 py-1.5 text-sm ${mode === 'new' ? 'pe-chip-active' : ''}`}
-            onClick={() => setMode('new')}
-          >
-            Tutor nuevo
-          </button>
-        </div>
-
-        {mode === 'existing' ? (
-          <div className="mt-4 space-y-3">
-            <input
-              className="pe-input"
-              placeholder="Buscar tutor, teléfono o mascota"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-            />
-            <ul className="max-h-40 overflow-y-auto rounded-md border border-pe-line">
-              {filtered.length === 0 ? (
-                <li className="px-3 py-2 text-sm text-pe-muted">Sin coincidencias. Cambia a tutor nuevo.</li>
-              ) : (
-                filtered.map((client) => (
-                  <li key={client.id}>
-                    <button
-                      type="button"
-                      className={`block w-full px-3 py-2 text-left text-sm ${
-                        clientId === client.id ? 'bg-pe-wash font-medium' : 'hover:bg-pe-wash'
-                      }`}
-                      onClick={() => {
-                        setClientId(client.id);
-                        const first = (client.patients ?? []).find((pet) => pet.is_active !== false);
-                        setNewPet(!first);
-                        setPatientId(first?.id ?? null);
-                      }}
-                    >
-                      {client.full_name}
-                      <span className="ml-2 text-pe-muted">
-                        {client.phone ?? (client.patients ?? []).map((pet) => pet.name).join(', ')}
-                      </span>
-                    </button>
-                  </li>
-                ))
-              )}
-            </ul>
-            {selectedClient ? (
-              <div className="space-y-2">
-                <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-pe-muted">Mascota</p>
-                {pets.map((pet) => (
-                  <label key={pet.id} className="flex items-center gap-2 text-sm">
-                    <input
-                      type="radio"
-                      name="slot-pet"
-                      checked={!newPet && patientId === pet.id}
-                      onChange={() => {
-                        setNewPet(false);
-                        setPatientId(pet.id);
-                      }}
-                    />
-                    {pet.name}
-                  </label>
-                ))}
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="radio"
-                    name="slot-pet"
-                    checked={newPet}
-                    onChange={() => {
-                      setNewPet(true);
-                      setPatientId(null);
-                    }}
-                  />
-                  Nueva mascota
-                </label>
-                {newPet ? (
-                  <div className="grid gap-2 sm:grid-cols-2">
-                    <input
-                      className="pe-input"
-                      required
-                      placeholder="Nombre de la mascota"
-                      value={petName}
-                      onChange={(event) => setPetName(event.target.value)}
-                    />
-                    <select className="pe-input" value={petSpecies} onChange={(event) => setPetSpecies(event.target.value)}>
-                      {species.map((item) => (
-                        <option key={item.slug} value={item.slug}>
-                          {item.label}
-                        </option>
-                      ))}
-                    </select>
-                    <input
-                      className="pe-input sm:col-span-2"
-                      placeholder="Alertas de manejo: muerde, sale si se abre la jaula…"
-                      value={petAlerts}
-                      onChange={(event) => setPetAlerts(event.target.value)}
-                    />
-                  </div>
-                ) : null}
-              </div>
-            ) : null}
-          </div>
-        ) : (
-          <div className="mt-4 grid gap-3">
-            <input
-              className="pe-input"
-              required
-              placeholder="Nombre del tutor"
-              value={tutorName}
-              onChange={(event) => setTutorName(event.target.value)}
-            />
-            <div className="grid gap-3 sm:grid-cols-2">
-              <input
-                className="pe-input"
-                placeholder="Teléfono"
-                value={tutorPhone}
-                onChange={(event) => setTutorPhone(event.target.value)}
-              />
-              <input
-                className="pe-input"
-                type="email"
-                placeholder="Correo"
-                value={tutorEmail}
-                onChange={(event) => setTutorEmail(event.target.value)}
-              />
-            </div>
-            <input
-              className="pe-input"
-              required
-              placeholder="Nombre de la mascota"
-              value={petName}
-              onChange={(event) => setPetName(event.target.value)}
-            />
-            <select className="pe-input" value={petSpecies} onChange={(event) => setPetSpecies(event.target.value)}>
-              {species.map((item) => (
-                <option key={item.slug} value={item.slug}>
-                  {item.label}
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <label className="block text-sm font-medium">
+            Día
+            <input className="pe-input mt-1" type="date" value={slotDate} onChange={(event) => setSlotDate(event.target.value)} />
+          </label>
+          <label className="block text-sm font-medium">
+            Hora
+            <select className="pe-input mt-1" value={slotTime} onChange={(event) => setSlotTime(event.target.value)}>
+              {hours.map((hour) => (
+                <option key={hour} value={hour}>
+                  {hour}
                 </option>
               ))}
             </select>
-            <input
-              className="pe-input"
-              placeholder="Alertas de manejo: muerde, sale si se abre la jaula…"
-              value={petAlerts}
-              onChange={(event) => setPetAlerts(event.target.value)}
-            />
-          </div>
+          </label>
+        </div>
+
+        {lockedPatient ? (
+          <p className="mt-4 text-sm">
+            <span className="font-medium">{preset?.patientName ?? 'Paciente'}</span>
+            <span className="text-pe-muted"> · {preset?.clientName ?? selectedClient?.full_name ?? 'Tutor'}</span>
+          </p>
+        ) : (
+          <>
+            <div className="mt-4 flex gap-2">
+              <button
+                type="button"
+                className={`pe-btn-ghost px-3 py-1.5 text-sm ${mode === 'existing' ? 'pe-chip-active' : ''}`}
+                onClick={() => setMode('existing')}
+              >
+                Tutor existente
+              </button>
+              <button
+                type="button"
+                className={`pe-btn-ghost px-3 py-1.5 text-sm ${mode === 'new' ? 'pe-chip-active' : ''}`}
+                onClick={() => setMode('new')}
+              >
+                Tutor nuevo
+              </button>
+            </div>
+
+            {mode === 'existing' ? (
+              <div className="mt-4 space-y-3">
+                <input
+                  className="pe-input"
+                  placeholder="Buscar tutor, teléfono o mascota"
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                />
+                <ul className="max-h-40 overflow-y-auto rounded-md border border-pe-line">
+                  {query.trim().length < 2 ? (
+                    <li className="px-3 py-2 text-sm text-pe-muted">Escribe al menos 2 letras.</li>
+                  ) : clients.length === 0 ? (
+                    <li className="px-3 py-2 text-sm text-pe-muted">Sin coincidencias. Cambia a tutor nuevo.</li>
+                  ) : (
+                    clients.map((client) => (
+                      <li key={client.id}>
+                        <button
+                          type="button"
+                          className={`block w-full px-3 py-2 text-left text-sm ${
+                            clientId === client.id ? 'bg-pe-wash font-medium' : 'hover:bg-pe-wash'
+                          }`}
+                          onClick={() => {
+                            setClientId(client.id);
+                            const first = (client.patients ?? []).find((pet) => pet.is_active !== false);
+                            setNewPet(!first);
+                            setPatientId(first?.id ?? null);
+                          }}
+                        >
+                          {client.full_name}
+                          <span className="ml-2 text-pe-muted">
+                            {client.phone ?? (client.patients ?? []).map((pet) => pet.name).join(', ')}
+                          </span>
+                        </button>
+                      </li>
+                    ))
+                  )}
+                </ul>
+                {selectedClient ? (
+                  <div className="space-y-2">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-pe-muted">Mascota</p>
+                    {pets.map((pet) => (
+                      <label key={pet.id} className="flex items-center gap-2 text-sm">
+                        <input
+                          type="radio"
+                          name="slot-pet"
+                          checked={!newPet && patientId === pet.id}
+                          onChange={() => {
+                            setNewPet(false);
+                            setPatientId(pet.id);
+                          }}
+                        />
+                        {pet.name}
+                      </label>
+                    ))}
+                    <label className="flex items-center gap-2 text-sm">
+                      <input
+                        type="radio"
+                        name="slot-pet"
+                        checked={newPet}
+                        onChange={() => {
+                          setNewPet(true);
+                          setPatientId(null);
+                        }}
+                      />
+                      Nueva mascota
+                    </label>
+                    {newPet ? (
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        <input
+                          className="pe-input"
+                          required
+                          placeholder="Nombre de la mascota"
+                          value={petName}
+                          onChange={(event) => setPetName(event.target.value)}
+                        />
+                        <select className="pe-input" value={petSpecies} onChange={(event) => setPetSpecies(event.target.value)}>
+                          {species.map((item) => (
+                            <option key={item.slug} value={item.slug}>
+                              {item.label}
+                            </option>
+                          ))}
+                        </select>
+                        <input
+                          className="pe-input sm:col-span-2"
+                          placeholder="Alertas de manejo: muerde, sale si se abre la jaula…"
+                          value={petAlerts}
+                          onChange={(event) => setPetAlerts(event.target.value)}
+                        />
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
+            ) : (
+              <div className="mt-4 grid gap-3">
+                <input
+                  className="pe-input"
+                  required
+                  placeholder="Nombre del tutor"
+                  value={tutorName}
+                  onChange={(event) => setTutorName(event.target.value)}
+                />
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <input
+                    className="pe-input"
+                    placeholder="Teléfono"
+                    value={tutorPhone}
+                    onChange={(event) => setTutorPhone(event.target.value)}
+                  />
+                  <input
+                    className="pe-input"
+                    type="email"
+                    placeholder="Correo"
+                    value={tutorEmail}
+                    onChange={(event) => setTutorEmail(event.target.value)}
+                  />
+                </div>
+                <input
+                  className="pe-input"
+                  required
+                  placeholder="Nombre de la mascota"
+                  value={petName}
+                  onChange={(event) => setPetName(event.target.value)}
+                />
+                <select className="pe-input" value={petSpecies} onChange={(event) => setPetSpecies(event.target.value)}>
+                  {species.map((item) => (
+                    <option key={item.slug} value={item.slug}>
+                      {item.label}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  className="pe-input"
+                  placeholder="Alertas de manejo: muerde, sale si se abre la jaula…"
+                  value={petAlerts}
+                  onChange={(event) => setPetAlerts(event.target.value)}
+                />
+              </div>
+            )}
+          </>
         )}
 
         <label className="mt-4 block text-sm font-medium">
@@ -369,7 +432,7 @@ export function BookSlotDialog({
             Cancelar
           </button>
           <button type="submit" className="pe-btn-primary px-4 py-2 text-sm" disabled={busy}>
-            {busy ? 'Guardando…' : 'Agendar consulta'}
+            {busy ? 'Guardando…' : startAfterCreate ? 'Abrir consulta' : 'Agendar consulta'}
           </button>
         </div>
       </form>

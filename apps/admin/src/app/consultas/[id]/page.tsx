@@ -21,17 +21,35 @@ export default async function ConsultaPage({ params }: { params: Promise<{ id: s
     .maybeSingle();
   if (!visit) notFound();
 
-  const { data: invoice } = await supabase
-    .from('invoices')
-    .select('*, invoice_lines(*)')
-    .eq('visit_id', id)
-    .maybeSingle();
-  const { data: catalog } = await supabase
-    .from('catalog_items')
-    .select('id, kind, name, unit_price, stock, is_active')
-    .eq('organization_id', staff.organizationId)
-    .eq('is_active', true)
-    .order('name');
+  const [{ data: invoice }, { data: catalog }, { data: previous }, { data: reminders }] = await Promise.all([
+    supabase.from('invoices').select('*, invoice_lines(*)').eq('visit_id', id).maybeSingle(),
+    supabase
+      .from('catalog_items')
+      .select('id, kind, name, unit_price, stock, is_active')
+      .eq('organization_id', staff.organizationId)
+      .eq('is_active', true)
+      .order('name'),
+    visit.patient_id
+      ? supabase
+          .from('visits')
+          .select('id, started_at, subjective, objective, assessment, plan')
+          .eq('patient_id', visit.patient_id)
+          .eq('organization_id', staff.organizationId)
+          .neq('id', id)
+          .order('started_at', { ascending: false })
+          .limit(1)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+    visit.patient_id
+      ? supabase
+          .from('reminders')
+          .select('id, kind, title, due_on')
+          .eq('patient_id', visit.patient_id)
+          .eq('organization_id', staff.organizationId)
+          .eq('status', 'pending')
+          .order('due_on')
+      : Promise.resolve({ data: [] }),
+  ]);
 
   return (
     <AdminShell>
@@ -39,6 +57,8 @@ export default async function ConsultaPage({ params }: { params: Promise<{ id: s
         clinicName={staff.organizationName}
         role={staff.role}
         isPlatformAdmin={staff.isPlatformAdmin}
+        previous={previous}
+        reminders={reminders ?? []}
         initial={{ visit: visit as never, invoice: invoice as never, catalog: catalog ?? [] }}
       />
     </AdminShell>

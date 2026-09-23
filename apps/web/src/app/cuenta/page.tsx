@@ -140,6 +140,9 @@ export default async function TutorHomePage({
             patientId={mascota ?? (pets.length === 1 ? pets[0].id : undefined)}
             defaultReason={service?.name ?? motivo ?? ''}
             branchName={clinic.branchName}
+            open={clinic.selectedBranch.open}
+            close={clinic.selectedBranch.close}
+            days={clinic.selectedBranch.days}
           />
         </div>
       </section>

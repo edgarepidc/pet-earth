@@ -11,7 +11,8 @@ type NoticeReminder = {
   kind: ReminderKind;
   title: string;
   due_on: string;
-  patients?: { name: string } | { name: string }[] | null;
+  patient_id?: string | null;
+  patients?: { id?: string; name: string } | { id?: string; name: string }[] | null;
 };
 
 type StockItem = {
@@ -49,10 +50,17 @@ export function ClinicNotices({
           <ul className="mt-3 space-y-2">
             {overdue.slice(0, 5).map((row) => {
               const patient = one(row.patients);
+              const patientId = patient?.id ?? row.patient_id ?? null;
               return (
                 <li key={row.id} className="text-sm">
                   <ReminderPill kind={row.kind} />
-                  <p className="mt-1 font-medium">{row.title}</p>
+                  {patientId ? (
+                    <Link href={`/pacientes/${patientId}`} className="pe-link mt-1 block font-medium">
+                      {row.title}
+                    </Link>
+                  ) : (
+                    <p className="mt-1 font-medium">{row.title}</p>
+                  )}
                   <p className="text-xs text-pe-muted">
                     {patient?.name ? `${patient.name} · ` : ''}
                     {formatMexicoDate(row.due_on)}

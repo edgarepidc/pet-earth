@@ -57,6 +57,8 @@ export default async function AgendaPage({
               kicker={`Agenda · ${staff.branchName ?? staff.organizationName}`}
               openMin={staff.branchOpenMin}
               closeMin={staff.branchCloseMin}
+              role={staff.role}
+              isPlatformAdmin={staff.isPlatformAdmin}
             />
           </Suspense>
           <ClinicNotices overdue={overdue} lowStock={lowStock} />

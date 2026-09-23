@@ -1,3 +1,5 @@
+import { mexicoWeekday } from './dates';
+
 export const SLOT_MINUTES = 60;
 export const DEFAULT_OPEN = '09:00';
 export const DEFAULT_CLOSE = '19:00';
@@ -54,6 +56,19 @@ export function normalizeClock(clock: string, fallback = DEFAULT_OPEN): string {
   const minute = Number(match[2] ?? '0');
   if (!Number.isFinite(hour) || hour < 0 || hour > 23 || minute < 0 || minute > 59) return fallback;
   return minutesToClock(hour * 60 + minute);
+}
+
+export function branchIsOpenOn(days: number[], ymd: string): boolean {
+  return days.includes(mexicoWeekday(ymd));
+}
+
+export function nextWalkInClock(nowClock: string, openMin = DEFAULT_OPEN_MIN, closeMin = DEFAULT_CLOSE_MIN): string {
+  const now = clockToMinutes(nowClock);
+  const start = Number.isFinite(openMin) ? openMin : DEFAULT_OPEN_MIN;
+  const end = Number.isFinite(closeMin) && closeMin > start ? closeMin : start + SLOT_MINUTES;
+  if (now < start) return minutesToClock(start);
+  if (now >= end) return minutesToClock(Math.max(start, end - SLOT_MINUTES));
+  return minutesToClock(slotFloor(now));
 }
 
 export function clinicSlotClocks(openMin = DEFAULT_OPEN_MIN, closeMin = DEFAULT_CLOSE_MIN): string[] {

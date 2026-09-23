@@ -659,6 +659,10 @@ export interface Database {
         };
         Returns: string;
       };
+      pe_remove_visit_line: {
+        Args: { p_line_id: string };
+        Returns: undefined;
+      };
       pe_apply_vaccine: {
         Args: {
           p_visit_id: string;

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-import { canEditClinical } from '@petearth/shared';
+import { canAddVisitLines, canEditClinical } from '@petearth/shared';
 import { createAdminClient } from '@petearth/supabase/admin';
 
 import { requireStaffApi, type StaffContext } from '@/lib/auth';
@@ -10,8 +10,16 @@ function canWriteClinical(auth: StaffContext) {
   return canEditClinical(auth.role) || auth.isPlatformAdmin;
 }
 
+function canWriteLines(auth: StaffContext) {
+  return canAddVisitLines(auth.role) || auth.isPlatformAdmin;
+}
+
 function denyClinical() {
   return NextResponse.json({ error: 'Solo el MVZ escribe la consulta y la receta.' }, { status: 403 });
+}
+
+function denyLines() {
+  return NextResponse.json({ error: 'No puedes agregar cargos a esta consulta.' }, { status: 403 });
 }
 
 function numberOrNull(value: unknown) {
@@ -93,7 +101,7 @@ export async function PATCH(request: Request) {
 
   const userClient = await createSupabaseServerClient();
   if (body.action === 'add-line') {
-    if (!canWriteClinical(auth)) return denyClinical();
+    if (!canWriteLines(auth)) return denyLines();
     const { data: lineId, error } = await userClient.rpc('pe_add_visit_line', {
       p_visit_id: body.visitId,
       p_catalog_item_id: body.catalogItemId ?? null,
@@ -109,6 +117,13 @@ export async function PATCH(request: Request) {
       if (dirError) return NextResponse.json({ error: dirError.message }, { status: 400 });
     }
     return NextResponse.json({ ok: true, id: lineId });
+  }
+  if (body.action === 'remove-line') {
+    if (!canWriteLines(auth)) return denyLines();
+    if (!body.lineId) return NextResponse.json({ error: 'Falta el cargo.' }, { status: 400 });
+    const { error } = await userClient.rpc('pe_remove_visit_line', { p_line_id: body.lineId });
+    if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+    return NextResponse.json({ ok: true });
   }
   if (body.action === 'vaccine') {
     if (!canWriteClinical(auth)) return denyClinical();

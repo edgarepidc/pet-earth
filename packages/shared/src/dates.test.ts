@@ -8,6 +8,7 @@ import {
   mexicoMonthGridDays,
   mexicoWeekDays,
   mexicoWeekStart,
+  mexicoWeekday,
   parseClockToIso,
   patientAgeLabel,
 } from './dates';
@@ -15,6 +16,12 @@ import {
 test('isValidYmd', () => {
   assert.equal(isValidYmd('2026-09-14'), true);
   assert.equal(isValidYmd('2026-02-30'), false);
+});
+
+test('mexicoWeekday is JS weekday in Mexico', () => {
+  assert.equal(mexicoWeekday('2026-09-14'), 1);
+  assert.equal(mexicoWeekday('2026-09-22'), 2);
+  assert.equal(mexicoWeekday('2026-09-20'), 0);
 });
 
 test('week starts on Monday', () => {
