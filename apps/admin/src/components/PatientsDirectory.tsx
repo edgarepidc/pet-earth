@@ -293,52 +293,52 @@ export function PatientsDirectory({
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex min-w-0 flex-wrap items-center gap-2">
-          <input
-            className="pe-input h-10 max-w-md"
-            placeholder="Buscar tutor, mascota o chip"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-          />
-          <FilterBox label="Especie">
-            <select
-              className="min-w-[7.5rem] bg-transparent py-1 text-sm outline-none"
-              value={species}
-              onChange={(event) => setSpecies(event.target.value)}
-              aria-label="Especie"
-            >
-              <option value="">Todas</option>
-              {speciesOptions.map((item) => (
-                <option key={item.slug} value={item.slug}>
-                  {item.label}
-                </option>
-              ))}
-            </select>
-          </FilterBox>
-          <FilterBox label="Estado">
-            <select
-              className="min-w-[7.5rem] bg-transparent py-1 text-sm outline-none"
-              value={estado}
-              onChange={(event) => setEstado(event.target.value as PetEstado)}
-              aria-label="Estado"
-            >
-              {ESTADO_CHIPS.map((item) => (
-                <option key={item.key} value={item.key}>
-                  {item.label}
-                </option>
-              ))}
-            </select>
+      <div className="flex min-w-0 items-center gap-2 overflow-x-auto">
+        <input
+          className="pe-input h-10 min-w-[12rem] max-w-md flex-1"
+          placeholder="Buscar tutor, mascota o chip"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+        />
+        <FilterBox label="Especie">
+          <select
+            className="min-w-[7.5rem] bg-transparent py-1 text-sm outline-none"
+            value={species}
+            onChange={(event) => setSpecies(event.target.value)}
+            aria-label="Especie"
+          >
+            <option value="">Todas</option>
+            {speciesOptions.map((item) => (
+              <option key={item.slug} value={item.slug}>
+                {item.label}
+              </option>
+            ))}
+          </select>
+        </FilterBox>
+        <FilterBox label="Estado">
+          <select
+            className="min-w-[7.5rem] bg-transparent py-1 text-sm outline-none"
+            value={estado}
+            onChange={(event) => setEstado(event.target.value as PetEstado)}
+            aria-label="Estado"
+          >
+            {ESTADO_CHIPS.map((item) => (
+              <option key={item.key} value={item.key}>
+                {item.label}
+              </option>
+            ))}
+          </select>
+        </FilterBox>
+        <div className="ml-auto shrink-0">
+          <FilterBox label="Vista">
+            <Link href={directoryHref(!byPet, true)} className={viewTabClass(table)}>
+              Tabla
+            </Link>
+            <Link href={directoryHref(!byPet, false)} className={viewTabClass(!table)}>
+              Tarjetas
+            </Link>
           </FilterBox>
         </div>
-        <FilterBox label="Vista">
-          <Link href={directoryHref(!byPet, true)} className={viewTabClass(table)}>
-            Tabla
-          </Link>
-          <Link href={directoryHref(!byPet, false)} className={viewTabClass(!table)}>
-            Tarjetas
-          </Link>
-        </FilterBox>
       </div>
 
       {error ? <p className="pe-callout-amber p-3 text-sm">{error}</p> : null}
