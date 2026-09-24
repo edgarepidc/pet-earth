@@ -33,10 +33,12 @@ for project in pet-earth-admin pet-earth-web; do
   add_env "$project" SUPABASE_SERVICE_ROLE_KEY "$SUPABASE_SERVICE_ROLE_KEY"
 done
 
-ADMIN_URL="${PE_ADMIN_URL:-https://pet-earth-admin.vercel.app}"
-WEB_URL="${PE_WEB_URL:-https://pet-earth-web.vercel.app}"
+ADMIN_URL="${PE_ADMIN_URL:-https://admin.pet-earth.com.mx}"
+WEB_URL="${PE_WEB_URL:-https://pet-earth.com.mx}"
 add_env pet-earth-admin NEXT_PUBLIC_WEB_URL "$WEB_URL"
+add_env pet-earth-admin NEXT_PUBLIC_ADMIN_URL "$ADMIN_URL"
 add_env pet-earth-web NEXT_PUBLIC_APP_URL "$WEB_URL"
+add_env pet-earth-web NEXT_PUBLIC_ADMIN_URL "$ADMIN_URL"
 
 echo "→ Deploying admin..."
 npx vercel deploy --prod --yes --scope "$TEAM" --project pet-earth-admin

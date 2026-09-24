@@ -9,7 +9,7 @@ import { createAdminClient } from '@petearth/supabase/admin';
 function adminOrigin() {
   const fromEnv = process.env.NEXT_PUBLIC_ADMIN_URL?.replace(/\/$/, '');
   if (fromEnv) return fromEnv;
-  return process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : 'https://pet-earth-admin.vercel.app';
+  return process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : 'https://admin.pet-earth.com.mx';
 }
 
 export async function POST(request: Request) {

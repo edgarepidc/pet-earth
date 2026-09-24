@@ -74,7 +74,7 @@ export function TutorLoginForm({ next = '/cuenta' }: { next?: string }) {
     if (payload.role === 'staff' && payload.handoff?.action && payload.handoff.token) {
       const allowed =
         process.env.NEXT_PUBLIC_ADMIN_URL?.replace(/\/$/, '') ??
-        (window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://pet-earth-admin.vercel.app');
+        (window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://admin.pet-earth.com.mx');
       if (payload.handoff.action !== `${allowed}/api/auth/handoff`) {
         setLoading(false);
         setError('No se pudo abrir el panel.');
